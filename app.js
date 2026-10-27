@@ -1,34 +1,157 @@
 'use strict';
-const key='mon-suivi-v1', app=document.querySelector('#app'),nav=document.querySelector('#nav'),dlg=document.querySelector('#dialog');
-const blank=()=>({name:'',weights:[],meals:[],moods:[],consent:false});
-let data=blank(),demo=false,page='Accueil',storageOK=true;
-try{const s=JSON.parse(localStorage.getItem(key));if(s&&s.consent&&Array.isArray(s.weights)&&Array.isArray(s.meals)&&Array.isArray(s.moods))data=s}catch{storageOK=false}
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
-function save(){if(!demo&&data.consent)try{localStorage.setItem(key,JSON.stringify(data))}catch{storageOK=false}render()}
-function go(p){page=p;render();window.scrollTo(0,0)}
-function btn(t,action,cl=''){return '<button class="'+cl+'" data-action="'+action+'">'+t+'</button>'}
-function startDemo(){demo=true;data=blank();data.name='Camille';data.weights=[{id:1,date:today(),value:82.4}];page="Aujourd’hui";render()}
-function openForm(type,id){let list=data[type],e=list.find(x=>String(x.id)===String(id))||{};let fields=type==='weights'?'<label>Poids (kg)<input name="value" type="number" inputmode="decimal" step="0.01" min="1" max="700" required value="'+esc(e.value||'')+'"></label>':type==='meals'?'<label>Aliment / repas<input name="name" maxlength="150" required value="'+esc(e.name||'')+'"></label><label>Quantité et unité<input name="quantity" placeholder="150 g, 1 portion…" required maxlength="80" value="'+esc(e.quantity||'')+'"></label><label>Calories estimées pour cette quantité<input name="value" type="number" min="0" max="50000" required value="'+esc(e.value??'')+'"></label>':'<label>Humeur<select name="name">'+['À plat','Moyen','Bien','En forme'].map(v=>'<option '+(e.name===v?'selected':'')+'>'+v+'</option>').join('')+'</select></label><label>Note facultative<input name="note" maxlength="300" value="'+esc(e.note||'')+'"></label>';
-dlg.innerHTML='<form id="entry"><h2>'+({weights:'Noter mon poids',meals:'Ajouter un repas',moods:'Mon humeur'}[type])+'</h2><label>Date<input name="date" type="date" required max="'+today()+'" value="'+esc(e.date||today())+'"></label>'+fields+'<div class="row"><button>Enregistrer</button><button type="button" class="secondary" id="cancel">Annuler</button></div></form>';dlg.showModal();document.querySelector('#cancel').onclick=()=>dlg.close();document.querySelector('#entry').onsubmit=ev=>{ev.preventDefault();let f=new FormData(ev.target),v=Object.fromEntries(f);if(v.value!==undefined)v.value=Number(v.value);v.id=e.id||Date.now();data[type]=list.filter(x=>x.id!==e.id).concat(v);dlg.close();save()}}
-function list(type){return '<ul>'+data[type].slice().sort((a,b)=>b.date.localeCompare(a.date)).map(e=>'<li><div class="row"><div><strong>'+esc(type==='weights'?e.value+' kg':e.name)+'</strong><br><small>'+esc(e.date)+(type==='meals'?' · '+esc(e.quantity)+' · ≈ '+Math.round(e.value)+' kcal':'')+(e.note?' · '+esc(e.note):'')+'</small></div><div>'+btn('Modifier','edit:'+type+':'+e.id,'secondary small')+' '+btn('Supprimer','delete:'+type+':'+e.id,'secondary small')+'</div></div></li>').join('')+'</ul>'}
+const KEY='mon-suivi-v1',app=document.querySelector('#app'),nav=document.querySelector('#nav'),dlg=document.querySelector('#dialog');
+const blank=()=>({name:'',weights:[],meals:[],moods:[],consent:false,unit:'kg'});
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const iso=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+const today=()=>iso(new Date());
+const past=n=>{const d=new Date();d.setDate(d.getDate()-n);return iso(d)};
+const fmt=n=>Number(n).toLocaleString('fr-FR',{maximumFractionDigits:1});
+const unitFactor=2.2046226218;
+const shownWeight=kg=>fmt(unit==='lb'?Number(kg)*unitFactor:Number(kg));
+const sorted=items=>items.slice().sort((a,b)=>a.date.localeCompare(b.date)||String(a.id).localeCompare(String(b.id)));
+const newest=items=>sorted(items).reverse()[0];
+const icon=(name)=>{const shapes={
+back:'<path d="m15 18-6-6 6-6"/><path d="M20 12H9"/>',
+chevron:'<path d="m9 18 6-6-6-6"/>',
+user:'<circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/>',
+home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10Z"/><path d="M9 21v-8h6v8"/>',
+meal:'<path d="M4 3v7a3 3 0 0 0 6 0V3M7 3v19M15 3v19M15 10c0-5 2-7 5-7v9h-5"/>',
+chart:'<path d="M4 21v-7m6 7V9m6 12V5m5 16V3"/>',
+scale:'<rect x="3" y="5" width="18" height="15" rx="3"/><path d="m8 10 4-2 4 2M12 8v5"/>',
+happy:'<circle cx="12" cy="12" r="10"/><path d="M8 14c2.5 3 5.5 3 8 0"/><path d="M8 9h.01M16 9h.01"/>',
+neutral:'<circle cx="12" cy="12" r="10"/><path d="M8 15h8M8 9h.01M16 9h.01"/>',
+sad:'<circle cx="12" cy="12" r="10"/><path d="M8 17c2-3 6-3 8 0"/><path d="M8 9h.01M16 9h.01"/>',
+download:'<path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/>',
+upload:'<path d="M12 16V4m-4 4 4-4 4 4M4 17v4h16v-4"/>',
+trash:'<path d="M4 7h16M10 4h4M6 7l1 14h10l1-14M10 11v6m4-6v6"/>',
+heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
+plus:'<path d="M12 5v14M5 12h14"/>'
+};return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(shapes[name]||shapes.heart)+'</svg>'};
+let data=blank(),demo=false,page='Accueil',period='30',unit='kg',storageOK=true,restoreFocus=null;
+const isDate=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T12:00:00'))&&iso(new Date(v+'T12:00:00'))===v;
+function validatePayload(raw){
+if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('Format de sauvegarde invalide.');
+if(!Array.isArray(raw.weights)||!Array.isArray(raw.meals)||!Array.isArray(raw.moods))throw Error('Le fichier ne contient pas un suivi compatible.');
+const out=blank();out.name=typeof raw.name==='string'?raw.name.slice(0,60):'';out.unit=raw.unit==='lb'?'lb':'kg';out.consent=raw.consent===true;
+for(const type of ['weights','meals','moods']){
+ if(raw[type].length>3000)throw Error('Trop de données dans le fichier.');
+ out[type]=raw[type].map((entry,i)=>{
+  if(!entry||typeof entry!=='object'||!isDate(entry.date)||entry.date>today())throw Error('Date invalide dans '+type+'.');
+  const id=typeof entry.id==='string'||typeof entry.id==='number'?String(entry.id).slice(0,90):String(i);
+  if(type==='weights'){const value=Number(entry.value);if(!Number.isFinite(value)||value<=0||value>700)throw Error('Poids invalide.');return {id,date:entry.date,value:Math.round(value*100)/100}}
+  if(type==='meals'){const value=Number(entry.value);if(!Number.isFinite(value)||value<0||value>50000||typeof entry.name!=='string'||!entry.name.trim()||typeof entry.quantity!=='string')throw Error('Repas invalide.');return {id,date:entry.date,name:entry.name.slice(0,150),quantity:entry.quantity.slice(0,80),value:Math.round(value)}}
+  if(!['À plat','Moyen','Bien','En forme'].includes(entry.name))throw Error('Humeur invalide.');
+  return {id,date:entry.date,name:entry.name,note:typeof entry.note==='string'?entry.note.slice(0,300):''};
+ });
+}
+out.consentAt=typeof raw.consentAt==='string'?raw.consentAt:'';out.consentVersion='1';
+return out;
+}
+function reload(){try{const raw=localStorage.getItem(KEY);if(raw){const item=validatePayload(JSON.parse(raw));if(item.consent){data=item;unit=data.unit}}}catch(err){storageOK=false}}
+reload();
+function save(){if(!demo&&data.consent){try{localStorage.setItem(KEY,JSON.stringify(data));storageOK=true}catch{storageOK=false}}render()}
+function go(where){page=where;render();window.scrollTo({top:0,behavior:'instant'})}
+function btn(text,action,cl=''){return '<button type="button" class="'+cl+'" data-action="'+esc(action)+'">'+text+'</button>'}
+function startDemo(){demo=true;data=blank();data.name='Camille';data.weights=[{id:'demo1',date:past(28),value:84.4},{id:'demo2',date:past(21),value:83.7},{id:'demo3',date:past(14),value:83.8},{id:'demo4',date:past(7),value:82.9},{id:'demo5',date:today(),value:82.4}];data.meals=[{id:'demo-meal',date:today(),name:'Déjeuner',quantity:'1 portion',value:520}];data.moods=[{id:'demo-mood',date:today(),name:'Bien',note:''}];unit='kg';page='Aujourd’hui';render()}
+function leaveDemo(){demo=false;data=blank();storageOK=true;reload();unit=data.unit||'kg';go('Accueil')}
+function footer(){return '<footer>'+Object.keys(legal).map(name=>'<a href="#" data-action="go:'+esc(name)+'">'+esc(name)+'</a>').join('')+'</footer>'}
 const legal={
-'Confidentialité':'Projet à compléter avant publication. Cette version ne crée aucun compte et ne transmet pas vos mesures à un serveur applicatif. Après votre accord, poids, repas et humeur sont enregistrés dans le stockage de ce navigateur. Ils ne sont pas chiffrés par cette application : une personne ayant accès à votre session peut les consulter. Export et effacement disponibles dans Profil. Effacer les données du navigateur peut supprimer votre suivi. Sur un site publié, l’hébergeur peut traiter des données techniques de connexion. Éditeur, contact, hébergeur, durées de conservation et modalités des droits : à compléter avant publication.',
-'Conditions':'Prototype de bien-être pour adultes. Les calories sont saisies par vous et restent des estimations. Aucun diagnostic ni promesse de résultat. Aucun compte, synchronisation, IA ou notification automatique dans cette version. Éditeur et conditions définitives à compléter avant publication.',
-'Cookies':'Aucun outil publicitaire ou de mesure d’audience ajouté. Le suivi utilise localStorage uniquement après activation volontaire de la sauvegarde. Pas de bannière de cookies facultatifs, car aucun de ces traceurs n’est intégré. Vérifier aussi les services de l’hébergeur avant publication.',
-'Mentions légales':'Éditeur, adresse, contact et hébergeur : à compléter avant publication.',
-'Remboursements':'Aucun achat ni abonnement proposé dans cette version.'};
-function render(){nav.hidden=page==='Accueil'||!!legal[page];nav.innerHTML=['Aujourd’hui','Repas','Progrès','Profil'].map(p=>'<button data-action="go:'+p+'" aria-current="'+(p===page?'page':'false')+'">'+p+'</button>').join('');
-let head='<div class="row"><strong>Mon Suivi</strong><small>Votre rythme. Vos progrès.</small></div>';
-if(demo)head+='<p class="notice">Données de démonstration · '+btn('Quitter','exit','secondary small')+'</p>';
-if(!storageOK)head+='<p role="alert">Sauvegarde indisponible. Exportez vos données avant de quitter.</p>';
-let body='';
-if(page==='Accueil'){body='<p class="eyebrow">Un espace pour vous</p><h1>Un peu<br>chaque jour.</h1><p class="muted">Poids, repas et humeur, au même endroit.<br>Avancez à votre rythme, sans pression.</p><div class="card pink"><h2>Votre quotidien, plus clair.</h2><p>Une base personnelle, simple et privée sur cet appareil.</p>'+btn(data.consent?'Retrouver mon suivi':'Commencer','start')+' '+btn('Explorer la démo','demo','secondary')+'</div><div class="grid"><div class="card yellow"><h3>Voir les tendances</h3>Des mesures, sans jugement.</div><div class="card"><h3>Prendre un instant</h3>Notez vos repas et votre humeur.</div></div>'}
-else if(legal[page])body='<h1>'+page+'</h1><div class="card"><p>'+legal[page]+'</p></div>'+btn('Retour','go:Accueil','secondary');
-else if(page==='Aujourd’hui'){let w=data.weights.slice().sort((a,b)=>b.date.localeCompare(a.date))[0];body='<p class="eyebrow">Aujourd’hui</p><h1>Bonjour'+(data.name?' '+esc(data.name):'')+'.</h1><p class="muted">Chaque petit pas compte.</p><div class="card pink"><h3>Mon évolution</h3><div class="value">'+(w?esc(w.value)+' <small>kg</small>':'Votre premier pas')+'</div><p>'+ (w?'Dernière mesure · '+esc(w.date):'Notez votre première mesure quand vous le souhaitez.')+'</p>'+btn('Noter mon poids','add:weights')+'</div><div class="grid"><div class="card yellow"><h3>Mon journal</h3>'+btn('Ajouter un repas','add:meals','secondary')+'</div><div class="card"><h3>Comment vous sentez-vous ?</h3>'+btn('Noter mon humeur','add:moods','secondary')+'</div></div>'}
-else if(page==='Repas')body='<h1>Mon journal.</h1><p class="muted">Aujourd’hui · ≈ '+Math.round(data.meals.filter(x=>x.date===today()).reduce((s,x)=>s+Number(x.value),0))+' kcal renseignées</p>'+btn('Ajouter un repas','add:meals')+(data.meals.length?list('meals'):'<div class="card yellow">Ajoutez un repas et ses calories estimées. Aucun objectif imposé.</div>');
-else if(page==='Progrès'){let w=data.weights.slice().sort((a,b)=>a.date.localeCompare(b.date));let chart='<p>Ajoutez au moins deux mesures pour afficher une courbe.</p>';if(w.length>1){let vals=w.map(x=>Number(x.value)),min=Math.min(...vals)-1,max=Math.max(...vals)+1;chart='<svg viewBox="0 0 600 160" role="img" aria-label="Évolution du poids, valeurs exactes dans la liste ci-dessous"><polyline fill="none" stroke="#842849" stroke-width="3" points="'+w.map((x,i)=>(10+i*580/(w.length-1))+','+(145-(x.value-min)/(max-min)*130)).join(' ')+'"/></svg><small>'+esc(w[0].date)+' → '+esc(w[w.length-1].date)+' · '+min.toFixed(1)+' à '+max.toFixed(1)+' kg</small>'}body='<h1>Vos progrès.</h1><div class="card pink"><h3>Historique du poids</h3>'+chart+'</div>'+btn('Ajouter une mesure','add:weights')+list('weights')+'<h2>Votre humeur</h2>'+btn('Noter mon humeur','add:moods')+list('moods')}
-else if(page==='Profil')body='<h1>Votre espace.</h1><div class="card"><label>Prénom ou pseudonyme<input id="name" maxlength="60" value="'+esc(data.name)+'"></label>'+btn('Enregistrer','name')+'</div><div class="card yellow"><h3>Vos données vous appartiennent.</h3><p>'+ (demo?'Mode démo : aucune sauvegarde permanente.':'Sauvegarde locale activée. Aucun compte en ligne. Aucun transfert automatique entre appareils.')+'</p>'+btn('Exporter en JSON','export','secondary')+'<p>'+btn('Retirer mon accord et tout effacer','clear','secondary')+'</p></div><div class="card"><h3>À venir</h3><p>Comptes synchronisés, photos IA et rappels nécessitent des services supplémentaires. Ils ne sont pas actifs.</p></div>';
-app.innerHTML=head+body+'<footer>'+Object.keys(legal).map(p=>'<a href="#" data-action="go:'+p+'">'+p+'</a>').join('')+'</footer>'}
-document.addEventListener('click',e=>{let el=e.target.closest('[data-action]');if(!el)return;e.preventDefault();let [act,t,id]=el.dataset.action.split(':');if(act==='go')go(t);if(act==='demo')startDemo();if(act==='exit'){demo=false;try{data=JSON.parse(localStorage.getItem(key))||blank()}catch{data=blank()}go('Accueil')}if(act==='start'){if(data.consent){go('Aujourd’hui');return}dlg.innerHTML='<h2>Votre suivi sur cet appareil</h2><p>Aucun compte ni mot de passe nécessaire. Vos données seront conservées dans ce navigateur uniquement.</p><label><input type="checkbox" id="agree">Je consens à enregistrer localement mon poids, mes repas et mon humeur pour mon suivi. Je peux retirer mon accord et effacer ces données dans Profil.</label><p><a href="#" data-action="policy">Lire la confidentialité</a></p><button id="activate">Activer mon suivi</button> <button id="close" class="secondary">Annuler</button>';dlg.showModal();document.querySelector('#close').onclick=()=>dlg.close();document.querySelector('#activate').onclick=()=>{if(!document.querySelector('#agree').checked)return;data=blank();data.consent=true;data.consentAt=new Date().toISOString();data.consentVersion='1';demo=false;page='Aujourd’hui';dlg.close();save()}}if(act==='policy'){dlg.close();go('Confidentialité')}if(act==='add')openForm(t);if(act==='edit')openForm(t,id);if(act==='delete'&&confirm('Supprimer cette entrée ?')){data[t]=data[t].filter(x=>String(x.id)!==id);save()}if(act==='name'){data.name=document.querySelector('#name').value;save()}if(act==='export'){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='mon-suivi-export.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}if(act==='clear'&&confirm('Effacer définitivement toutes les données locales ? Exportez-les avant de continuer si nécessaire.')){try{localStorage.removeItem(key)}catch{}data=blank();demo=false;go('Accueil')}});
+'Confidentialité':'Ce prototype ne crée aucun compte et ne transmet pas vos données de suivi à un serveur applicatif. Après votre consentement, vos mesures de poids, repas et humeur sont enregistrées dans le stockage local de ce navigateur. Elles ne sont pas chiffrées par cette application. Une personne accédant à votre session peut les consulter. Vous pouvez exporter ou effacer ces données dans Profil. Supprimer les données du navigateur peut supprimer votre historique. Les informations sur l’éditeur, l’hébergeur, les durées de conservation, le contact et l’exercice des droits restent à compléter avant publication.',
+'Conditions':'Application expérimentale de bien-être destinée aux adultes, sans diagnostic médical ni promesse de résultat. Les calories sont des estimations renseignées manuellement. Aucun compte en ligne, aucun abonnement, aucune analyse de photo et aucune notification automatique ne sont proposés ici. Éditeur et conditions contractuelles définitives à compléter.',
+'Cookies':'Aucun traceur publicitaire ou outil de mesure d’audience facultatif n’est intégré au code. Une fois le consentement donné, le suivi utilise le stockage local du navigateur. Les traitements techniques éventuels de l’hébergeur restent à vérifier.',
+'Mentions légales':'Informations sur l’éditeur, l’adresse, le contact, le directeur de publication et l’hébergeur : à compléter avant publication.',
+'Remboursements':'Aucun achat ni abonnement n’est proposé dans ce prototype.'};
+function chartSVG(items,width=340,height=154,small=false){
+if(items.length<2)return '<div class="spark-empty">Ajoutez plusieurs mesures pour afficher la courbe.</div>';
+const rows=sorted(items),values=rows.map(x=>Number(x.value)),lo=Math.min(...values)-.65,hi=Math.max(...values)+.65,left=small?6:25,right=small?6:15,top=small?8:16,bottom=small?8:29;
+const plotW=width-left-right,plotH=height-top-bottom;
+const timestamps=rows.map(x=>Date.parse(x.date+'T12:00:00')),minT=Math.min(...timestamps),maxT=Math.max(...timestamps);
+const pt=rows.map((r,i)=>({x:left+(maxT===minT?i/(rows.length-1):(timestamps[i]-minT)/(maxT-minT))*plotW,y:top+(hi-r.value)/(hi-lo)*plotH}));
+const line=pt.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+const area=left+','+(height-bottom)+' '+line+' '+(width-right)+','+(height-bottom);
+if(small)return '<svg class="spark" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Mini courbe du poids"><path d="M '+area.replaceAll(' ',' L ')+' Z"/><polyline points="'+line+'"/>'+pt.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="3.5"/>').join('')+'</svg>';
+return '<svg class="graph" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Courbe de poids entre '+esc(rows[0].date)+' et '+esc(rows.at(-1).date)+'"><line class="graph-grid" x1="'+left+'" y1="'+(height-bottom)+'" x2="'+(width-right)+'" y2="'+(height-bottom)+'"/><line class="graph-grid" x1="'+left+'" y1="'+(top+plotH/2)+'" x2="'+(width-right)+'" y2="'+(top+plotH/2)+'"/><polygon class="graph-area" points="'+area+'"/><polyline class="graph-line" points="'+line+'"/>'+pt.map(p=>'<circle class="graph-dot" cx="'+p.x+'" cy="'+p.y+'" r="3.5"/>').join('')+'<text class="graph-text" x="'+left+'" y="'+(height-7)+'">'+esc(rows[0].date.slice(5))+'</text><text class="graph-text" text-anchor="end" x="'+(width-right)+'" y="'+(height-7)+'">'+esc(rows.at(-1).date.slice(5))+'</text></svg>';
+}
+function list(type,items=data[type]){
+if(!items.length)return '<div class="empty-state">'+icon(type==='weights'?'scale':type==='meals'?'meal':'heart')+'<h3>Rien pour le moment</h3><p>Commencez quand vous le souhaitez.</p></div>';
+return '<ul class="records-list">'+sorted(items).reverse().map(e=>'<li><div><div class="record-name">'+esc(type==='weights'?shownWeight(e.value)+' '+unit:e.name)+'</div><div class="record-info">'+esc(e.date)+(type==='meals'?' · '+esc(e.quantity)+' · ≈ '+fmt(e.value)+' kcal':'')+(e.note?' · '+esc(e.note):'')+'</div></div><div class="record-actions">'+btn('Modifier','edit:'+type+':'+e.id,'secondary small')+btn('Suppr.','delete:'+type+':'+e.id,'ghost small')+'</div></li>').join('')+'</ul>';
+}
+function topbar(){return '<header class="topbar"><span class="topbar-brand">Mon Suivi</span>'+btn(icon('user'),'go:Profil','icon-button')+'</header>'}
+function screenHome(){
+const w=newest(data.weights),cur=data.moods.find(m=>m.date===today());
+return '<div class="screen">'+topbar()+(demo?'<p class="demo-note">Mode démonstration · données fictives · '+btn('Quitter','exit','')+'</p>':'')+
+'<section class="hello"><h1>Bonjour'+(data.name?' '+esc(data.name):'')+'</h1><p>Chaque petit pas compte.</p></section>'+
+'<section class="section-card pink-card"><div class="card-top"><h2>Mon évolution</h2>'+btn(icon('chevron'),'go:Progrès','arrow-link')+'</div><div class="weight-row"><div class="weight-value">'+(w?shownWeight(w.value)+' <small>'+unit+'</small>':'—')+'</div>'+(data.weights.length>=2?chartSVG(data.weights.slice(-12),200,110,true):'<span class="spark-empty">Votre évolution apparaîtra ici.</span>')+'</div><p class="weight-description">'+(w?(demo?'Données de démonstration':'Dernière mesure · '+esc(w.date)):'Votre première mesure vous attend.')+'</p></section>'+
+'<section class="section-card yellow-card"><div class="card-top"><h2>Mon journal</h2>'+btn(icon('chevron'),'go:Repas','arrow-link')+'</div><div class="action-grid"><button class="quick-tile" data-action="add:meals">'+icon('meal')+'<span>Ajouter<br>un repas</span>'+icon('chevron').replace('aria-hidden="true"','class="tile-arrow" aria-hidden="true"')+'</button><button class="quick-tile" data-action="add:weights">'+icon('scale')+'<span>Noter<br>mon poids</span>'+icon('chevron').replace('aria-hidden="true"','class="tile-arrow" aria-hidden="true"')+'</button></div></section>'+
+'<section class="section-card pink-card"><div class="card-top"><h2>Comment vous sentez-vous ?</h2>'+btn(icon('chevron'),'go:Progrès','arrow-link')+'</div><div class="mood-row">'+[['À plat','sad'],['Bien','neutral'],['En forme','happy']].map(([name,symbol])=>'<button class="mood-tile '+(cur?.name===name?'selected':'')+'" aria-pressed="'+(cur?.name===name)+'" data-action="quickmood:'+name+'">'+icon(symbol)+'<span>'+name+'</span></button>').join('')+'</div></section></div>';
+}
+function screenMeals(){const sum=data.meals.filter(x=>x.date===today()).reduce((s,m)=>s+Number(m.value),0);return '<div class="screen">'+topbar()+'<h1 class="page-title">Mon journal.</h1><p class="section-sub">Vos repas, à votre rythme.</p><div class="section-card yellow-card"><h2>Pour aujourd’hui</h2><div class="weight-value" style="margin-top:9px">'+fmt(sum)+' <small>kcal</small></div><p class="info-note">Total des estimations que vous avez renseignées, sans objectif imposé.</p></div>'+btn(icon('plus')+' Ajouter un repas','add:meals','wide')+'<div class="data-section"><h2>Historique des repas</h2>'+list('meals')+'</div></div>'}
+function screenProgress(){
+const filtered=period==='all'?data.weights:data.weights.filter(x=>x.date>=past(Number(period)-1));
+const current=newest(data.weights),old=sorted(data.weights)[0],diff=current&&old&&data.weights.length>1?Number(current.value)-Number(old.value):null;
+return '<div class="screen">'+topbar()+'<h1 class="page-title">Vos progrès.</h1><p class="section-sub">Observer votre chemin, sans pression.</p><div class="section-card pink-card"><div class="card-top"><h2>Évolution du poids</h2>'+icon('chart')+'</div><div class="filter-row">'+[['7','7 jours'],['30','30 jours'],['all','Tout']].map(([v,t])=>btn(t,'period:'+v,period===v?'active':'')).join('')+'</div>'+(filtered.length>=2?chartSVG(filtered):'<div class="empty-state">Ajoutez au moins deux mesures sur cette période pour voir votre courbe.</div>')+'</div><div class="summary-strip"><div class="section-card white-card"><span class="muted small-text">Dernière mesure</span><strong>'+(current?shownWeight(current.value)+' '+unit:'—')+'</strong></div><div class="section-card white-card"><span class="muted small-text">Depuis le début</span><strong>'+(diff!==null?(diff>0?'+':'')+shownWeight(Math.abs(diff))*(diff<0?-1:1)+' '+unit:'—')+'</strong></div></div>'+btn('Ajouter une mesure','add:weights','wide')+'<section class="data-section"><h2>Historique du poids</h2>'+list('weights')+'</section><section class="data-section"><div class="card-top"><h2>Votre humeur</h2>'+btn(icon('plus'),'add:moods','icon-button')+'</div>'+list('moods')+'</section></div>';
+}
+function screenProfile(){return '<div class="screen">'+topbar()+'<h1 class="page-title">Votre espace.</h1><p class="section-sub">Un suivi personnel, sur cet appareil.</p><section class="section-card white-card"><h2>Votre prénom ou pseudonyme</h2><label for="name" class="sr-only">Prénom ou pseudonyme</label><input id="name" maxlength="60" value="'+esc(data.name)+'" autocomplete="nickname" placeholder="Votre prénom">'+btn('Enregistrer','name','wide')+'</section><section class="section-card white-card"><div class="setting-line"><div><h2>Unité du poids</h2><span class="small-text muted">Vos données sont conservées en kg.</span></div><select id="unit" aria-label="Unité du poids"><option value="kg" '+(unit==='kg'?'selected':'')+'>kg</option><option value="lb" '+(unit==='lb'?'selected':'')+'>lb</option></select></div></section><section class="section-card yellow-card"><h2>Vos données vous appartiennent.</h2><p class="info-note">'+(demo?'Mode démonstration : aucune donnée n’est conservée.':'Sauvegarde uniquement dans ce navigateur après votre accord. Aucun compte en ligne et aucune synchronisation automatique.')+'</p><div class="profile-actions">'+btn(icon('download')+' Exporter mes données','export','secondary wide')+btn(icon('upload')+' Importer une sauvegarde','import','secondary wide')+btn('Retirer mon accord et tout effacer','clear','ghost wide')+'</div><input type="file" id="import-file" accept=".json,application/json" hidden></section><section class="section-card white-card"><h2>À savoir</h2><p class="info-note">Effacer les données du navigateur peut supprimer votre suivi. L’application ne remplace pas un professionnel de santé.</p></section></div>'}
+function render(){
+const showNav=!['Accueil','Bienvenue',...Object.keys(legal)].includes(page);
+nav.hidden=!showNav;
+nav.innerHTML=showNav?[['Aujourd’hui','Accueil','home'],['Repas','Repas','meal'],['Progrès','Progrès','chart'],['Profil','Profil','user']].map(([target,label,symbol])=>'<button type="button" data-action="go:'+target+'" aria-label="'+label+'" aria-current="'+(page===target?'page':'false')+'">'+icon(symbol)+'<span>'+label+'</span></button>').join(''):'';
+let content='';
+if(page==='Accueil')content='<section class="welcome"><div class="welcome-header">Mon Suivi</div><div class="welcome-content"><h1>Un peu<br>chaque jour.</h1><p>Poids, repas et humeur,<br>au même endroit.</p><div class="btn-stack">'+btn(data.consent?'Retrouver mon suivi':'Commencer','start','wide')+btn('Explorer la démo','demo','secondary wide')+'</div></div></section>';
+else if(page==='Bienvenue')content='<section class="setup">'+btn(icon('back'),'go:Accueil','back')+'<h1>Votre espace<br>personnel</h1><p>Suivez votre parcours à votre rythme, sur cet appareil, sans créer de compte en ligne.</p><form id="setup-form"><div class="field"><label for="setup-name">Prénom ou pseudonyme</label><input id="setup-name" name="name" maxlength="60" placeholder="Comment souhaitez-vous être appelé ?" autocomplete="nickname"><p class="explain">Facultatif. Ne renseignez aucune information sensible.</p></div><div class="consent-row"><label><input name="terms" type="checkbox" required><span>J’ai lu les <a href="#" data-action="go:Conditions">conditions d’utilisation</a>.</span></label></div><div class="consent-row"><label><input name="consent" type="checkbox" required><span>J’accepte d’enregistrer localement mes données de suivi (poids, repas et humeur), et je peux retirer mon accord et effacer mes données à tout moment.</span></label></div><p class="info-note"><a href="#" data-action="go:Confidentialité">Confidentialité et retrait du consentement</a></p><div class="btn-stack" style="margin-top:24px"><button class="wide" type="submit">Créer mon espace local</button>'+btn('Découvrir sans compte','demo','secondary wide')+'</div></form>'+footer()+'</section>';
+else if(legal[page])content='<section class="legal-page">'+btn(icon('back')+' Retour','back','ghost')+'<h1>'+esc(page)+'</h1><div class="section-card white-card"><p>'+esc(legal[page])+'</p></div>'+footer()+'</section>';
+else if(page==='Aujourd’hui')content=screenHome();
+else if(page==='Repas')content=screenMeals();
+else if(page==='Progrès')content=screenProgress();
+else if(page==='Profil')content=screenProfile();
+if(!storageOK)content='<p class="notice-error" role="alert">Sauvegarde locale indisponible. Exportez vos données avant de quitter cette page.</p>'+content;
+app.innerHTML=content+(showNav?footer():'');
+}
+function modal(html){restoreFocus=document.activeElement;dlg.innerHTML=html;dlg.showModal()}
+dlg.addEventListener('close',()=>{if(restoreFocus?.isConnected)restoreFocus.focus();restoreFocus=null});
+function openForm(type,id){
+const items=data[type],entry=items.find(x=>String(x.id)===String(id))||{},heading={weights:'Noter mon poids',meals:'Ajouter un repas',moods:'Mon humeur'}[type];
+const fields=type==='weights'?'<label>Poids ('+unit+')<input name="value" type="number" inputmode="decimal" min="1" max="'+(unit==='lb'?'1543':'700')+'" step="0.01" required value="'+esc(entry.value?unit==='lb'?(entry.value*unitFactor).toFixed(2):entry.value:'')+'"></label>':type==='meals'?'<label>Repas ou aliment<input name="name" maxlength="150" required value="'+esc(entry.name||'')+'" placeholder="Ex. Déjeuner"></label><label>Quantité et unité<input name="quantity" maxlength="80" required value="'+esc(entry.quantity||'')+'" placeholder="Ex. 1 portion"></label><label>Calories estimées<input name="value" type="number" inputmode="numeric" min="0" max="50000" step="1" required value="'+esc(entry.value??'')+'"></label><p class="modal-explain">Estimation manuelle : aucune analyse nutritionnelle automatique.</p>':'<label>Humeur<select name="name">'+['À plat','Moyen','Bien','En forme'].map(v=>'<option '+(entry.name===v?'selected':'')+'>'+v+'</option>').join('')+'</select></label><label>Note facultative<textarea name="note" maxlength="300" rows="2">'+esc(entry.note||'')+'</textarea></label>';
+modal('<form id="entry-form"><h2>'+heading+'</h2><label>Date<input type="date" name="date" required max="'+today()+'" value="'+esc(entry.date||today())+'"></label>'+fields+'<p id="entry-error" class="notice-error" role="alert" hidden></p><div class="row"><button type="submit">Enregistrer</button>'+btn('Annuler','close','secondary')+'</div></form>');
+document.querySelector('#entry-form').addEventListener('submit',event=>{
+event.preventDefault();const v=Object.fromEntries(new FormData(event.target));v.id=entry.id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7);
+if(type==='weights')v.value=Number(v.value)/(unit==='lb'?unitFactor:1);
+if(type==='meals')v.value=Number(v.value);
+try{const payload=blank();payload[type]=[v];const valid=validatePayload(payload)[type][0];data[type]=items.filter(item=>String(item.id)!==String(entry.id)).concat(valid);dlg.close();save()}catch(e){const error=document.querySelector('#entry-error');error.textContent=e.message;error.hidden=false}
+});
+}
+function quickMood(name){let item={id:String(Date.now()),date:today(),name,note:''};data.moods=data.moods.filter(x=>x.date!==today()).concat(item);save()}
+function exportData(){const blob=new Blob([JSON.stringify({...data,unit},null,2)],{type:'application/json'}),href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download='mon-suivi-'+today()+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),5000)}
+function clearData(){if(!confirm('Effacer définitivement vos données locales ? Pensez à les exporter avant de continuer.'))return;try{localStorage.removeItem(KEY)}catch{storageOK=false}data=blank();demo=false;unit='kg';go('Accueil')}
+document.addEventListener('submit',e=>{if(e.target.id!=='setup-form')return;e.preventDefault();const f=new FormData(e.target);if(!f.has('consent')||!f.has('terms'))return;data=blank();data.name=String(f.get('name')||'').trim().slice(0,60);data.consent=true;data.consentAt=new Date().toISOString();data.consentVersion='1';demo=false;unit='kg';page='Aujourd’hui';save()});
+document.addEventListener('click',e=>{
+const el=e.target.closest('[data-action]');if(!el)return;e.preventDefault();
+const [action,type,id]=el.dataset.action.split(':');
+if(action==='go'){go(type);return}
+if(action==='start'){if(data.consent){go('Aujourd’hui')}else go('Bienvenue');return}
+if(action==='back'){go(data.consent||demo?'Aujourd’hui':'Accueil');return}
+if(action==='demo'){startDemo();return}
+if(action==='exit'){leaveDemo();return}
+if(action==='add'){openForm(type);return}
+if(action==='edit'){openForm(type,id);return}
+if(action==='delete'){if(confirm('Supprimer cette entrée ?')){data[type]=data[type].filter(x=>String(x.id)!==id);save()}return}
+if(action==='quickmood'){quickMood(type);return}
+if(action==='period'){period=type;render();return}
+if(action==='close'){dlg.close();return}
+if(action==='name'){data.name=document.querySelector('#name').value.trim().slice(0,60);save();return}
+if(action==='export'){exportData();return}
+if(action==='import'){document.querySelector('#import-file')?.click();return}
+if(action==='clear'){clearData();return}
+});
+document.addEventListener('change',async e=>{
+if(e.target.id==='unit'){unit=e.target.value==='lb'?'lb':'kg';if(!demo){data.unit=unit;save()}else render();return}
+if(e.target.id!=='import-file')return;
+const file=e.target.files?.[0];if(!file)return;
+try{
+if(file.size>2_000_000)throw Error('Le fichier est trop volumineux (2 Mo maximum).');
+const parsed=validatePayload(JSON.parse(await file.text()));
+modal('<h2>Importer votre sauvegarde ?</h2><p>Ce fichier contient '+parsed.weights.length+' mesures, '+parsed.meals.length+' repas et '+parsed.moods.length+' humeurs.</p><p class="notice-error">Attention : votre suivi actuel sera remplacé. Pensez à l’exporter avant.</p><div class="row">'+btn('Remplacer mon suivi','confirm-import')+btn('Annuler','close','secondary')+'</div>');
+dlg.querySelector('[data-action="confirm-import"]').onclick=()=>{parsed.consent=true;parsed.consentAt=new Date().toISOString();data=parsed;demo=false;unit=data.unit;dlg.close();go('Profil');save()};
+}catch(error){alert('Import impossible : '+error.message)}finally{e.target.value=''}
+});
 render();
