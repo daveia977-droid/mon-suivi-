@@ -11,11 +11,13 @@ Fonctionnalités présentes
 
 • Accueil et mode démonstration avec données fictives.
 • Ajout, modification et suppression des mesures de poids en kilogrammes.
-• Courbe de l’historique du poids.
+• Courbe de l’historique du poids, avec filtres 7/30 jours et dates réelles sur l’axe.
 • Journal des repas : aliment, quantité et calories estimées saisies manuellement.
 • Suivi de l’humeur avec note facultative.
 • Sauvegarde dans le navigateur après consentement explicite.
-• Export des données au format JSON.
+• Export et import des données au format JSON, avec vérification et confirmation avant remplacement.
+• Interface mobile inspirée des maquettes : accueil pastel, espace local, cartes rose et jaune, navigation avec icônes.
+• Affichage du poids en kg ou en lb.
 • Retrait du consentement et effacement des données locales.
 • Pages de confidentialité, conditions, cookies, mentions légales et remboursements à compléter.
 
@@ -27,7 +29,10 @@ Fichiers
 
 |Fichier           |Rôle                                      |
 |------------------|------------------------------------------|
-|index.html        |Structure et styles                       |
+|index.html        |Structure HTML                            |
+|styles.css        |Styles responsive rose et jaune            |
+|artwork.svg       |Illustration pastel originale             |
+|favicon.svg       |Icône de l’application                      |
 |app.js            |Navigation, suivi et sauvegarde locale    |
 |REPRISE_MISTRAL.md|Consignes pour poursuivre le développement|
 |README.md         |Présentation et installation              |
@@ -42,7 +47,7 @@ python3 -m http.server 8000
 
 Ouvrir ensuite http://localhost:8000.
 
-La sauvegarde dépend du navigateur et de l’adresse utilisée. Les données locales ne sont pas automatiquement transférées vers le site publié.
+La sauvegarde dépend du navigateur et de l’adresse utilisée. L’application comporte un espace personnel **local**, sans authentification en ligne ni mot de passe. Les données locales ne sont pas automatiquement transférées vers le site publié.
 
 Héberger sur GitHub Pages
 
@@ -71,23 +76,21 @@ Limites actuelles
 • Pas de compte utilisateur ni d’authentification.
 • Pas de synchronisation ou de sauvegarde distante.
 • Pas d’analyse de photo, de conseiller IA ou de notifications automatiques.
-• Pas de conversion kg/lb ni de filtres 7/30 jours.
+• Conversion kg/lb et filtres 7/30 jours maintenant disponibles.
 • Calories saisies manuellement, sans base nutritionnelle connectée.
-• Courbe avec points espacés uniformément : les intervalles entre dates ne sont pas encore proportionnels.
+• Courbe avec espacement proportionnel aux dates des mesures.
 • Textes juridiques en brouillon, sans certification de conformité.
 
 Vérifications
 
-La syntaxe JavaScript de la base a été vérifiée avec :
-
-node --check app.js
+La syntaxe JavaScript de la nouvelle version a été validée. Des tests simulés ont vérifié accueil, démonstration, navigation, progression, repas, profil, isolation de la démonstration et validation JSON.
 
 Les tests fonctionnels complets dans le navigateur et sur un véritable iPhone restent à réaliser. Aucun test matériel n’est revendiqué.
 
 Prochaines étapes
 
 • Renforcer la validation des données et tester les parcours.
-• Ajouter un import JSON sécurisé, les unités kg/lb et les filtres temporels.
+• Tester et renforcer l’import JSON, les unités kg/lb et les filtres temporels sur plusieurs navigateurs.
 • Améliorer les graphiques, l’accessibilité et les formulaires mobiles.
 • Étudier un backend pour les comptes et la synchronisation.
 • Ajouter éventuellement IA, photos et rappels après validation technique et budgétaire.
