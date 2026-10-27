@@ -52,7 +52,7 @@ La sauvegarde dépend du navigateur et de l’adresse utilisée. L’application
 Héberger sur GitHub Pages
 
 1. Placer index.html et app.js à la racine du dépôt.
-2. Ouvrir Settings → Pages.
+2. Vérifier que les fichiers index.html, app.js, styles.css, artwork.svg et favicon.svg sont tous présents. Ouvrir Settings → Pages.
 3. Choisir Deploy from a branch.
 4. Sélectionner main et / (root), puis enregistrer.
 5. Ouvrir l’adresse fournie par GitHub après le déploiement.
@@ -89,7 +89,7 @@ Les tests fonctionnels complets dans le navigateur et sur un véritable iPhone r
 
 Prochaines étapes
 
-• Renforcer la validation des données et tester les parcours.
+• Tester les parcours utilisateur sur navigateur mobile et améliorer la gestion des erreurs.
 • Tester et renforcer l’import JSON, les unités kg/lb et les filtres temporels sur plusieurs navigateurs.
 • Améliorer les graphiques, l’accessibilité et les formulaires mobiles.
 • Étudier un backend pour les comptes et la synchronisation.
