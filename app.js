@@ -30,6 +30,61 @@ steps:'<ellipse cx="7" cy="7.5" rx="2.2" ry="3.2"/><ellipse cx="17" cy="9.5" rx=
 };return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(shapes[name]||shapes.heart)+'</svg>'};
 const moodClass=name=>({'À plat':'m-blue','Moyen':'m-yellow','Bien':'m-pink','En forme':'m-green'})[name]||'m-pink';
 const stepsToday=()=>data.steps.find(x=>x.date===today());
+const OFF_BASE='https://fr.openfoodfacts.org',OFF_TTL=604800000,OFF_CAP=40;
+let mealMode='manual',offResults=[],offPicked=null,offAlts=[],offEditing={};
+function offCacheAll(){try{return JSON.parse(localStorage.getItem(KEY+'-off')||'{}')}catch{return{}}}
+function offCacheGet(key){try{const e=offCacheAll()[key];if(!e||Date.now()-e.t>OFF_TTL)return null;return e.v}catch{return null}}
+function offCacheSet(key,val){try{const c=offCacheAll();c[key]={t:Date.now(),v:val};const ks=Object.keys(c);while(ks.length>OFF_CAP)delete c[ks.shift()];localStorage.setItem(KEY+'-off',JSON.stringify(c))}catch{}}
+const offNum=n=>{const v=Number(n);return Number.isFinite(v)&&v>=0?v:null};
+const offProd=p=>({code:String(p.code||''),name:String(p.product_name||'').trim()||'(sans nom)',brand:String((p.brands||'').split(',')[0]||'').trim(),kcal:offNum(p.nutriments?.['energy-kcal_100g']),nutri:['a','b','c','d','e'].includes(p.nutriscore_grade)?p.nutriscore_grade:null,cats:Array.isArray(p.categories_tags)?p.categories_tags.filter(c=>String(c).startsWith('en:')).slice(0,6):[]});
+async function offFetch(url){const r=await fetch(url,{headers:{Accept:'application/json'}});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
+async function offSearch(q){const key='s:'+q.toLowerCase();const hit=offCacheGet(key);if(hit)return hit;const d=await offFetch(OFF_BASE+'/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&search_simple=1&action=process&json=1&page_size=20');const items=(d.products||[]).map(offProd).filter(p=>p.name!=='(sans nom)'&&p.kcal!==null);offCacheSet(key,items);return items}
+async function offByCode(code){const key='c:'+code;const hit=offCacheGet(key);if(hit)return hit;const d=await offFetch(OFF_BASE+'/api/v2/product/'+encodeURIComponent(code)+'.json?fields=code,product_name,brands,nutriments,nutriscore_grade,categories_tags');if(!d||d.status!==1||!d.product)throw Error('Produit introuvable.');const p=offProd(d.product);offCacheSet(key,p);return p}
+async function offCategory(cats){const key='g:'+cats.join(',');const hit=offCacheGet(key);if(hit)return hit;for(const tag of cats.slice(0,3)){try{const d=await offFetch(OFF_BASE+'/api/v2/search?categories_tags='+encodeURIComponent(tag)+'&fields=code,product_name,brands,nutriments,nutriscore_grade&page_size=30');const items=(d.products||[]).map(offProd).filter(p=>p.name!=='(sans nom)'&&p.kcal!==null&&(!offPicked||p.code!==offPicked.code));if(items.length>=3){const sorted=items.slice().sort((a,b)=>(a.nutri?a.nutri.charCodeAt(0):99)-(b.nutri?b.nutri.charCodeAt(0):99)||a.kcal-b.kcal);const top=sorted.slice(0,4);offCacheSet(key,top);return top}}catch{}}return[]}
+function offListHtml(items,action){return '<ul class="off-list">'+items.map((p,i)=>'<li class="off-item"><div class="off-item-info"><span class="record-name">'+esc(p.name)+'</span><span class="record-info">'+esc(p.brand)+(p.kcal!==null?' · '+fmt(p.kcal)+' kcal/100 g':'')+'</span></div>'+(p.nutri?'<span class="nutri nutri-'+p.nutri+'" title="Nutri-Score">'+p.nutri.toUpperCase()+'</span>':'')+'<button type="button" class="secondary small" data-action="'+action+':'+i+'">Choisir</button></li>').join('')+'</ul>'}
+const offNote=()=>'<p class="off-credit">Source : Open Food Facts (openfoodfacts.org), base collaborative sous licence ODbL. Les valeurs restent des estimations.</p>';
+function renderOffResults(html){const el=document.querySelector('#off-results');if(el)el.innerHTML=html}
+function offKcalFor(g){const k=Number(offPicked?.kcal);return Number.isFinite(k)&&k>=0&&g>0?Math.max(0,Math.round(k*g/100)):''}
+async function doOffSearch(){
+const q=String(document.querySelector('#off-q')?.value||'').trim();
+if(q.length<2){renderOffResults('<p class="off-msg">Tapez au moins 2 caractères.</p>');return}
+if(typeof fetch==='undefined'){renderOffResults('<p class="off-msg">Recherche indisponible ici. La saisie manuelle reste possible.</p>');return}
+renderOffResults('<p class="off-msg">Recherche en cours…</p>');
+try{offResults=await offSearch(q);offPicked=null;renderOffResults(offResults.length?offListHtml(offResults,'offpick'):'<p class="off-msg">Aucun résultat. Essayez un autre nom, un code-barres, ou saisissez manuellement.</p>')}catch{renderOffResults('<p class="off-msg">Recherche indisponible (réseau ou service). La saisie manuelle reste possible.</p>')}
+}
+async function doOffBarcode(){
+const code=String(document.querySelector('#off-code')?.value||'').replace(/[^0-9]/g,'');
+if(code.length<8||code.length>14){renderOffResults('<p class="off-msg">Un code-barres contient 8 à 14 chiffres.</p>');return}
+if(typeof fetch==='undefined'){renderOffResults('<p class="off-msg">Recherche indisponible ici. La saisie manuelle reste possible.</p>');return}
+renderOffResults('<p class="off-msg">Recherche en cours…</p>');
+try{offPicked=await offByCode(code);offResults=[offPicked];mealMode='confirm';offAlts=[];renderMealDialog();loadAlts()}catch{renderOffResults('<p class="off-msg">Produit introuvable ou service indisponible. La saisie manuelle reste possible.</p>')}
+}
+async function offPick(i){const p=offResults[i];if(!p)return;offPicked=p;mealMode='confirm';offAlts=[];renderMealDialog();loadAlts()}
+async function offPickAlt(i){const p=offAlts[i];if(!p)return;offPicked=p;mealMode='confirm';renderMealDialog();loadAlts()}
+async function loadAlts(){
+if(!offPicked||!offPicked.cats.length)return;
+try{const alts=await offCategory(offPicked.cats);if(alts.length){offAlts=alts;const slot=document.querySelector('#off-alts-slot');if(slot&&mealMode==='confirm')slot.innerHTML='<p class="off-sub">Alternatives, même famille :</p>'+offListHtml(offAlts,'offpick-alt')}}catch{}
+}
+function openMealForm(entry){
+mealMode='manual';offResults=[];offPicked=null;offAlts=[];offEditing=entry||{};
+renderMealDialog();
+}
+function renderMealDialog(){
+const entry=offEditing||{};
+const isForm=mealMode==='manual'||mealMode==='confirm';
+let body='';
+if(mealMode==='manual')body='<label>Repas ou aliment<input name="name" maxlength="150" required value="'+esc(entry.name||'')+'" placeholder="Ex. Déjeuner"></label><label>Quantité et unité<input name="quantity" maxlength="80" required value="'+esc(entry.quantity||'')+'" placeholder="Ex. 1 portion"></label><label>Calories estimées<input name="value" type="number" inputmode="numeric" min="0" max="50000" step="1" required value="'+esc(entry.value??'')+'"></label><p class="modal-explain">Estimation manuelle : aucune analyse nutritionnelle automatique.</p>';
+else if(mealMode==='search')body='<label>Aliment ou marque<input id="off-q" maxlength="80" autocomplete="off" placeholder="Ex. pain, yaourt, compote…"></label>'+btn('Rechercher','offsearch','wide')+'<div id="off-results"></div>'+offNote();
+else if(mealMode==='barcode')body='<label>Code-barres (chiffres du produit)<input id="off-code" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="Ex. 3017620422003"></label>'+btn('Chercher le produit','offbarcode','wide')+'<div id="off-results"></div>'+offNote();
+else if(mealMode==='confirm')body='<label>Repas ou aliment<input name="name" maxlength="150" required value="'+esc(offPicked.name)+'"></label><div class="off-grid"><label>Poids (g)<input id="off-grams" name="grams" type="number" inputmode="numeric" min="1" max="3000" step="1" value="100"></label><label>Calories estimées<input id="off-kcal" name="value" type="number" inputmode="numeric" min="0" max="50000" step="1" required value="'+esc(String(offKcalFor(100)))+'"></label></div><p class="modal-explain">'+(offPicked.kcal!==null?'Environ '+fmt(offPicked.kcal)+' kcal pour 100 g d’après Open Food Facts — ajustez librement.':'Calories inconnues dans la base : estimez-les vous-même.')+'</p>'+(offPicked.cats.length?'<div id="off-alts-slot"></div>':'')+offNote();
+modal('<'+(isForm?'form id="entry-form"':'div class="off-panel"')+'><h2>'+(entry.id?'Modifier le repas':'Ajouter un repas')+'</h2><div class="mode-tabs">'+[['search','Rechercher'],['barcode','Code-barres'],['manual','Saisie manuelle']].map(([m,l])=>'<button type="button" class="mode-tab'+((mealMode===m)||(mealMode==='confirm'&&m==='search')?' active':'')+'" data-action="mealmode:'+m+'">'+l+'</button>').join('')+'</div>'+body+(isForm?'<label>Date<input type="date" name="date" required max="'+today()+'" value="'+esc(entry.date||today())+'"></label><p id="entry-error" class="notice-error" role="alert" hidden></p><div class="row"><button type="submit">Enregistrer</button>'+btn('Annuler','close','secondary')+'</div>':btn('Fermer','close','secondary wide'))+'</'+(isForm?'form':'div')+'>');
+if(isForm)document.querySelector('#entry-form').addEventListener('submit',event=>{
+event.preventDefault();const v=Object.fromEntries(new FormData(event.target));v.id=entry.id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7);
+if(mealMode==='confirm'){const g=Number(v.grams);v.quantity=(Number.isFinite(g)&&g>0?g:100)+' g';delete v.grams}
+v.value=Number(v.value);
+try{const payload=blank();payload.meals=[v];const valid=validatePayload(payload).meals[0];data.meals=data.meals.filter(item=>String(item.id)!==String(entry.id)).concat(valid);dlg.close();save()}catch(e){const error=document.querySelector('#entry-error');error.textContent=e.message;error.hidden=false}
+});
+}
 let data=blank(),demo=false,page='Accueil',period='30',unit='kg',storageOK=true,restoreFocus=null;
 const isDate=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T12:00:00'))&&iso(new Date(v+'T12:00:00'))===v;
 function validatePayload(raw){
@@ -70,8 +125,8 @@ function startDemo(){demo=true;data=blank();data.name='Camille';data.weights=[{i
 function leaveDemo(){demo=false;data=blank();storageOK=true;reload();unit=data.unit||'kg';go('Accueil')}
 function footer(){return '<footer>'+Object.keys(legal).map(name=>'<a href="#" data-action="go:'+esc(name)+'">'+esc(name)+'</a>').join('')+'</footer>'}
 const legal={
-'Confidentialité':'Ce prototype ne crée aucun compte et ne transmet pas vos données de suivi à un serveur applicatif. Après votre consentement, vos mesures de poids, repas, humeur et pas sont enregistrées dans le stockage local de ce navigateur. Elles ne sont pas chiffrées par cette application. Une personne accédant à votre session peut les consulter. Vous pouvez exporter ou effacer ces données dans Profil. Supprimer les données du navigateur peut supprimer votre historique. Les informations sur l’éditeur, l’hébergeur, les durées de conservation, le contact et l’exercice des droits restent à compléter avant publication.',
-'Conditions':'Application expérimentale de bien-être destinée aux adultes, sans diagnostic médical ni promesse de résultat. Les calories sont des estimations renseignées manuellement. Aucun compte en ligne, aucun abonnement, aucune analyse de photo et aucune notification automatique ne sont proposés ici. Éditeur et conditions contractuelles définitives à compléter.',
+'Confidentialité':'Ce prototype ne crée aucun compte et ne transmet pas vos données de suivi à un serveur applicatif. Après votre consentement, vos mesures de poids, repas, humeur et pas sont enregistrées dans le stockage local de ce navigateur. Elles ne sont pas chiffrées par cette application. Une personne accédant à votre session peut les consulter. Vous pouvez exporter ou effacer ces données dans Profil. Les recherches d’aliments (nom ou code-barres) interrogent le service public Open Food Facts : seuls les termes de recherche sont envoyés, aucune donnée personnelle ne l’est, et les résultats peuvent être conservés dans un cache local pour économiser des requêtes. Supprimer les données du navigateur peut supprimer votre historique. Les informations sur l’éditeur, l’hébergeur, les durées de conservation, le contact et l’exercice des droits restent à compléter avant publication.',
+'Conditions':'Application expérimentale de bien-être destinée aux adultes, sans diagnostic médical ni promesse de résultat. Les calories sont des estimations : saisies manuellement ou issues de la base collaborative Open Food Facts (licence ODbL), elles ne constituent pas des mesures exactes. Aucun compte en ligne, aucun abonnement, aucune analyse de photo et aucune notification automatique ne sont proposés ici. Éditeur et conditions contractuelles définitives à compléter.',
 'Cookies':'Aucun traceur publicitaire ou outil de mesure d’audience facultatif n’est intégré au code. Une fois le consentement donné, le suivi utilise le stockage local du navigateur. Les traitements techniques éventuels de l’hébergeur restent à vérifier.',
 'Mentions légales':'Informations sur l’éditeur, l’adresse, le contact, le directeur de publication et l’hébergeur : à compléter avant publication.',
 'Remboursements':'Aucun achat ni abonnement n’est proposé dans ce prototype.'};
@@ -169,6 +224,9 @@ document.addEventListener('submit',e=>{
 if(e.target.id==='goal-form'){e.preventDefault();const g=Number(new FormData(e.target).get('goal'));if(!Number.isInteger(g)||g<500||g>100000){const err=document.querySelector('#goal-error');err.textContent='Choisissez un objectif entre 500 et 100 000 pas.';err.hidden=false;return}data.stepsGoal=g;dlg.close();save();return}
 if(e.target.id==='wgoal-form'){e.preventDefault();let g=Number(new FormData(e.target).get('goal'));if(unit==='lb')g=g/unitFactor;if(!Number.isFinite(g)||g<=0||g>700){const err=document.querySelector('#wgoal-error');err.textContent='Objectif invalide.';err.hidden=false;return}data.weightGoal=Math.round(g*100)/100;dlg.close();save();return}
 });
+document.addEventListener('input',e=>{
+if(e.target.id!=='off-grams')return;const g=Number(e.target.value);const k=document.querySelector('#off-kcal');if(k&&offPicked)k.value=offKcalFor(Number.isFinite(g)&&g>0?g:100);
+});
 document.addEventListener('click',e=>{
 const el=e.target.closest('[data-action]');if(!el)return;e.preventDefault();
 const [action,type,id]=el.dataset.action.split(':');
@@ -177,8 +235,13 @@ if(action==='start'){if(data.consent){go('Aujourd’hui')}else go('Bienvenue');r
 if(action==='back'){go(data.consent||demo?'Aujourd’hui':'Accueil');return}
 if(action==='demo'){startDemo();return}
 if(action==='exit'){leaveDemo();return}
-if(action==='add'){openForm(type);return}
-if(action==='edit'){openForm(type,id);return}
+if(action==='add'){type==='meals'?openMealForm():openForm(type);return}
+if(action==='edit'){type==='meals'?openMealForm(data.meals.find(x=>String(x.id)===String(id))):openForm(type,id);return}
+if(action==='mealmode'){mealMode=type;if(type==='search'||type==='barcode')offResults=[];renderMealDialog();return}
+if(action==='offsearch'){doOffSearch();return}
+if(action==='offbarcode'){doOffBarcode();return}
+if(action==='offpick'){offPick(Number(type));return}
+if(action==='offpick-alt'){offPickAlt(Number(type));return}
 if(action==='delete'){if(confirm('Supprimer cette entrée ?')){data[type]=data[type].filter(x=>String(x.id)!==id);save()}return}
 if(action==='quickmood'){quickMood(type);return}
 if(action==='period'){period=type;render();return}
