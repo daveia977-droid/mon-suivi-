@@ -1,103 +1,63 @@
-# mon-suivi-
-Mon Suivi
+# Mon Suivi
 
-Une application de bien-être en français pour noter son poids, ses repas et son humeur, à son rythme.
+Application de bien-être en français pour noter son poids, ses repas, ses pas et son humeur, à son rythme. Conçue pour une utilisation mobile personnelle (iPhone), sans compte en ligne ni abonnement.
 
-Interface rose et jaune, conçue pour le mobile et inspirée des principes de simplicité des interfaces Apple.
+> Version 1 « Fusion Premium ». Ce projet ne fournit aucun diagnostic ni promesse de perte de poids. Les calories sont toujours des estimations modifiables.
 
-> Première version de travail. Ce projet ne fournit aucun diagnostic ni promesse de perte de poids.
+## Fonctionnalités (V1)
 
-Fonctionnalités présentes
+- **Aujourd'hui** : tableau de bord avec « Bonjour ! », poids récent, mini-courbe, pas du jour, humeur en un geste.
+- **Poids** : historique, courbe interactive (toucher un point : écart avec la mesure précédente, modifier, supprimer), objectif facultatif en pointillés.
+- **Repas** : 4 modes — recherche Open Food Facts, code-barres saisi, photo (estimation IA modifiable), saisie manuelle. Alternatives « même famille » avec Nutri-Score affiché seulement quand la base le fournit.
+- **Activité** : pas saisis manuellement (aucune lecture du podomètre — impossible dans une app web iOS), objectif par défaut 6 000 pas/jour personnalisable ou désactivable, anneau de progression, historique.
+- **Humeur** : 4 humeurs colorées (À plat, Moyen, Bien, En forme) avec note facultative.
+- **Profil** : prénom, unité kg/lb, export/import JSON (version 2), effacement, autorisation photo révocable.
+- **Confidentialité** : tout reste dans le navigateur (localStorage) ; rien ne sort sans consentement explicite. Consentement photo distinct, non précoché, révocable.
 
-• Accueil et mode démonstration avec données fictives.
-• Ajout, modification et suppression des mesures de poids en kilogrammes.
-• Courbe de l’historique du poids, avec filtres 7/30 jours et dates réelles sur l’axe.
-• Journal des repas : aliment, quantité et calories estimées saisies manuellement.
-• Suivi de l’humeur avec note facultative.
-• Sauvegarde dans le navigateur après consentement explicite.
-• Export et import des données au format JSON, avec vérification et confirmation avant remplacement.
-• Interface mobile inspirée des maquettes : accueil pastel, espace local, cartes rose et jaune, navigation avec icônes.
-• Affichage du poids en kg ou en lb.
-• Retrait du consentement et effacement des données locales.
-• Pages de confidentialité, conditions, cookies, mentions légales et remboursements à compléter.
+## Budget : 0 € strict
 
-Technologies
+Aucune carte bancaire nulle part. GitHub (code), GitHub Pages (version de référence), Vercel Hobby (hébergement live + fonction photo), Mistral AI free mode (analyse photo), Upstash Redis gratuit (compteur anti-abus), Open Food Facts (base alimentaire, ODbL) — tous structurellement non facturables : quota atteint = service en pause ou erreur, jamais de prélèvement.
 
-HTML, CSS et JavaScript, sans dépendance externe ni étape de compilation.
+## Fichiers
 
-Fichiers
+| Fichier | Rôle |
+|---|---|
+| index.html | Structure HTML |
+| styles.css | Styles Fusion Premium (palette ivoire/rose/jaune/framboise) |
+| app.js | Application complète, sans dépendance |
+| api/photo.js | Fonction Vercel : analyse photo (clé Mistral en variable d'environnement uniquement) |
+| artwork.svg, favicon.svg | Illustration et icône |
+| DEPLOIEMENT_VERCEL.md | Guide de déploiement pas à pas (sans carte) |
+| REPRISE_MISTRAL.md | Consignes historiques |
 
-|Fichier           |Rôle                                      |
-|------------------|------------------------------------------|
-|index.html        |Structure HTML                            |
-|styles.css        |Styles responsive rose et jaune            |
-|artwork.svg       |Illustration pastel originale             |
-|favicon.svg       |Icône de l’application                      |
-|app.js            |Navigation, suivi et sauvegarde locale    |
-|REPRISE_MISTRAL.md|Consignes pour poursuivre le développement|
-|README.md         |Présentation et installation              |
+## Analyse photo — fonctionnement et limites
 
-Essayer l’application
+1. La photo est compressée dans le navigateur (~768 px, JPEG, < 1 Mo).
+2. Après consentement explicite (non précoché, révocable dans Profil), elle est envoyée à la fonction Vercel.
+3. La fonction vérifie le compteur quotidien (Upstash Redis, incrément atomique, 20/jour par défaut), appelle Mistral AI et renvoie une estimation prudente.
+4. **Fail-closed** : Upstash injoignable → photo refusée, jamais de comptage approximatif. Tout erreur → bascule douce vers la recherche et la saisie manuelle.
+5. **Aucun stockage** : la fonction est sans état, l'image n'est ni journalisée ni persistée. Mistral conserve les entrées/sorties d'API jusqu'à 30 jours glissants (surveillance anti-abus) avant suppression — c'est affiché noir sur blanc à l'utilisatrice.
 
-Télécharger les fichiers et ouvrir index.html pour une première inspection.
+L'estimation IA est un ordre de grandeur (souvent ±30–50 %), toujours modifiable avant enregistrement.
 
-Pour un environnement web local stable, depuis le dossier du projet :
+## État des tests — honnêteté radicale
 
-python3 -m http.server 8000
+- **Réalisés (simulés, sandbox)** : syntaxe, validation des données, écrans, flux complets repas/pas/poids/humeur, OFF (recherche, code-barres, alternatives, cache), photo (consentement, quota, fail-closed, repli modèle), export/import. 41 + 46 + 10 + 30 + 25 + 22 + 21 = **195 vérifications vertes** au 28/10/2026, avec DOM et réseau simulés.
+- **Non réalisés** : test dans un vrai navigateur, sur un vrai iPhone ; appel réel à Open Food Facts et à Mistral avec de vraies photos (porte GO/NO-GO avant activation photo) ; comportement réel du compteur Upstash.
 
-Ouvrir ensuite http://localhost:8000.
+Aucun test matériel n'est revendiqué. La photo ne fonctionne pas sur GitHub Pages (pas de backend) : elle nécessite le déploiement Vercel (voir DEPLOIEMENT_VERCEL.md).
 
-La sauvegarde dépend du navigateur et de l’adresse utilisée. L’application comporte un espace personnel **local**, sans authentification en ligne ni mot de passe. Les données locales ne sont pas automatiquement transférées vers le site publié.
+## Limites connues
 
-Héberger sur GitHub Pages
+- Pas de compte, pas de synchronisation multi-appareils (choix assumé).
+- Pas de lecture automatique du podomètre : restriction d'Apple pour les applications web ; nécessiterait une app native (Capacitor + compte développeur Apple 99 $/an — hors périmètre).
+- Pas de scan de code-barres par caméra (saisie des chiffres).
+- localStorage ≈ 5 Mo : les vignettes photo ne sont pas persistées volontairement.
+- Textes juridiques en brouillon, à compléter avant publication officielle.
 
-1. Placer index.html et app.js à la racine du dépôt.
-2. Vérifier que les fichiers index.html, app.js, styles.css, artwork.svg et favicon.svg sont tous présents. Ouvrir Settings → Pages.
-3. Choisir Deploy from a branch.
-4. Sélectionner main et / (root), puis enregistrer.
-5. Ouvrir l’adresse fournie par GitHub après le déploiement.
+## Références de design
 
-Compléter les textes juridiques et vérifier le fonctionnement avant de partager publiquement le site.
-
-Confidentialité
-
-Cette version ne crée pas de compte en ligne. Elle ne synchronise pas les données entre appareils et ne les transmet pas à un serveur applicatif.
-
-Après consentement, les données de suivi sont conservées dans localStorage. Elles ne sont pas chiffrées par l’application et peuvent être accessibles à une personne utilisant la même session de navigateur.
-
-Effacer les données du navigateur peut supprimer le suivi. Effectuer régulièrement un export ; l’import de sauvegarde n’est pas encore implémenté.
-
-Ne jamais ajouter au dépôt GitHub d’exports personnels, de données réelles de santé, de mots de passe ou de clés API.
-
-Aucun outil publicitaire ou de mesure d’audience n’est intégré au code. L’hébergeur peut toutefois traiter des informations techniques de connexion selon ses propres règles.
-
-Limites actuelles
-
-• Pas de compte utilisateur ni d’authentification.
-• Pas de synchronisation ou de sauvegarde distante.
-• Pas d’analyse de photo, de conseiller IA ou de notifications automatiques.
-• Conversion kg/lb et filtres 7/30 jours maintenant disponibles.
-• Calories saisies manuellement, sans base nutritionnelle connectée.
-• Courbe avec espacement proportionnel aux dates des mesures.
-• Textes juridiques en brouillon, sans certification de conformité.
-
-Vérifications
-
-La syntaxe JavaScript de la nouvelle version a été validée. Des tests simulés ont vérifié accueil, démonstration, navigation, progression, repas, profil, isolation de la démonstration et validation JSON.
-
-Les tests fonctionnels complets dans le navigateur et sur un véritable iPhone restent à réaliser. Aucun test matériel n’est revendiqué.
-
-Prochaines étapes
-
-• Tester les parcours utilisateur sur navigateur mobile et améliorer la gestion des erreurs.
-• Tester et renforcer l’import JSON, les unités kg/lb et les filtres temporels sur plusieurs navigateurs.
-• Améliorer les graphiques, l’accessibilité et les formulaires mobiles.
-• Étudier un backend pour les comptes et la synchronisation.
-• Ajouter éventuellement IA, photos et rappels après validation technique et budgétaire.
-
-Références de design
-
-• Apple Design — Emil Kowalski
-• Mobile Native — Emil Kowalski
+- Maquettes originales du projet (Fusion Premium : maquette 2 dominante, graphiques maquette 1)
+- Apple Design — Emil Kowalski ; Mobile Native — Emil Kowalski
 
 Ces références guident le développement ; elles ne constituent pas une affiliation à Apple ni une certification.
