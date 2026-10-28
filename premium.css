@@ -697,3 +697,18 @@ nav button[aria-current=page] svg{stroke-width:2.2}
 .photo-alt-list small{font-size:11px;color:#86767b;line-height:1.4}
 .photo-alt-note{font-size:10.5px;line-height:1.5;color:#8b7980;margin:11px 0}
 .photo-alt-compare{width:auto;max-width:100%;min-height:44px;padding:9px 13px;font-size:12px;line-height:1.35;border:1px solid #f0cbd7!important;color:#a63d68!important;background:white!important;box-shadow:none!important;border-radius:999px;white-space:normal}
+
+/* V3 — ergonomie iPhone, accueil plus fluide, alternatives accessibles */
+.premium-welcome{height:auto;min-height:100svh;overflow:visible}
+.premium-welcome .welcome-content{position:relative;z-index:1;padding:5px 0 0}
+.premium-welcome .btn-stack button{width:100%;background:linear-gradient(115deg,#fd75a5,#eb3978);box-shadow:0 8px 21px rgba(206,69,116,.23)}
+.premium-welcome .welcome-privacy{font-size:11px;line-height:1.5}
+.photo-fallback-card{margin:17px 0 12px;padding:15px 13px 17px;background:linear-gradient(130deg,#fff8ed,#fff0f5);border:1px solid #f7e0da;border-radius:20px}
+.photo-fallback-label{font-size:10px;letter-spacing:.08em;color:#b56571;font-weight:800}
+.photo-fallback-card>label{display:block;margin:10px 0 9px;font-size:12px;color:#533d4b;font-weight:750}
+.photo-fallback-card input{display:block;width:100%;font-size:16px;min-height:44px;margin-top:7px;border-radius:13px}
+.photo-fallback-card .compact-outline{font-size:12px;min-height:44px}
+.photo-fallback-card .photo-alt-panel{margin-top:14px;margin-bottom:0;padding:11px}
+.photo-fallback-card .off-msg{margin:10px 0 0}
+@media(max-height:700px){.premium-welcome{padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(24px + env(safe-area-inset-bottom))}.premium-welcome .welcome-visual{transform:none}}
+@media(max-width:355px){.premium-welcome{padding-left:17px;padding-right:17px}.photo-fallback-card{padding:13px 11px}}
