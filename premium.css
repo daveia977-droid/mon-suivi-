@@ -552,3 +552,112 @@ nav button[aria-current=page] svg{stroke-width:2.2}
  .premium-welcome h1{margin:5px 0 8px}
  .premium-welcome .welcome-content>p:not(.welcome-privacy){margin-bottom:10px}
 }
+
+
+/* Graphiques premium : poids et pas, fidèles aux écrans 5 et 6 des maquettes */
+@media(max-width:470px){.home-greeting .date-stamp{display:none}}
+.greeting-sun{display:inline-block;white-space:nowrap}
+.activity-hero-card{
+ border-radius:26px;border:1px solid #f8e4dc;background:linear-gradient(135deg,#fffefa,#fff4e6 65%,#ffefef);
+ padding:19px 17px 15px;box-shadow:0 9px 27px #a66f7b1c;text-align:center;
+}
+.activity-hero-heading{display:flex;align-items:center;justify-content:space-between}
+.activity-hero-heading h2{font-size:16px;letter-spacing:-.035em;margin:0;font-weight:790}
+.activity-hero-spark{height:35px;width:35px;border-radius:12px;display:grid;place-items:center;background:#fff0d6;color:#d69a34}
+.activity-hero-spark svg{width:20px;height:20px}
+.activity-main-ring{display:flex;justify-content:center;align-items:center;margin:8px 0}
+.activity-main-ring .ring{width:198px;height:198px;max-width:70vw}
+.activity-main-ring .ring-bg{stroke:#ffe9ca;stroke-width:12}
+.activity-main-ring .ring-val{stroke:#ffb436;stroke-width:12}
+.activity-main-ring .ring-num{font-size:26px}
+.activity-main-ring .ring-cap{fill:#bb9c77;font-size:12px}
+.activity-hero-caption{font-size:12px;color:#987a71;margin:7px 0 1px}
+.activity-data-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:13px 0}
+.activity-data-grid>div{
+ min-width:0;background:#fff;border-radius:18px;border:1px solid #f7e9e3;
+ padding:13px 6px 11px;display:flex;align-items:center;flex-direction:column;
+ box-shadow:0 4px 17px #c2878c17;
+}
+.activity-data-grid>div:nth-child(1){background:#fff7f7}
+.activity-data-grid>div:nth-child(2){background:#fffbef}
+.activity-data-grid>div:nth-child(3){background:#f3fff6}
+.activity-data-grid>div>span{
+ width:30px;height:30px;display:grid;place-items:center;border-radius:11px;
+ background:#ffe8ed;color:#f15a88;margin-bottom:5px;
+}
+.activity-data-grid>div:nth-child(2)>span{background:#fff0c7;color:#d9a13e}
+.activity-data-grid>div:nth-child(3)>span{background:#ddf5e8;color:#31946b}
+.activity-data-grid svg{width:16px;height:16px}
+.activity-data-grid strong{font-size:19px;font-weight:840;letter-spacing:-.05em;line-height:1.2;overflow-wrap:anywhere;text-align:center}
+.activity-data-grid small{color:#867681;font-size:10.5px;margin-top:4px}
+.steps-chart-card{
+ background:#fff;border:1px solid #f6e9e4;border-radius:23px;padding:17px 17px 12px;
+ box-shadow:0 6px 22px #bb7a8215;margin:14px 0;
+}
+.steps-chart-card h2{margin:0;font-size:16px;font-weight:790;letter-spacing:-.035em}
+.small-muted{font-size:10px;color:#a9949a}
+.steps-week-chart{
+ display:flex;justify-content:space-around;align-items:flex-end;gap:9px;
+ margin:18px 0 7px;height:142px;padding:0 7px 0;
+ background:repeating-linear-gradient(to top,transparent 0%,transparent calc(25% - 1px),#f6eff0 calc(25% - 1px),#f6eff0 25%);
+ border-radius:6px;
+}
+.steps-bar-column{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%;flex:1;min-width:0}
+.steps-bar-track{height:118px;width:clamp(10px,3.3vw,18px);max-width:100%;display:flex;align-items:flex-end;justify-content:center}
+.steps-bar-fill{
+ display:block;width:100%;border-radius:8px 8px 2px 2px;
+ background:linear-gradient(to top,#f75e97,#ffc052);
+ min-height:0;box-shadow:0 3px 9px #ffc18a2c;
+}
+.steps-bar-label{font-size:10.5px;color:#8f7b83}
+.step-goal-card,.weight-goal-card{
+ display:flex;align-items:center;gap:11px;background:linear-gradient(115deg,#fff8e9,#ffecde);
+ border:1px solid #ffead8;border-radius:22px;padding:15px 14px;box-shadow:0 5px 21px #d8a08913;
+}
+.step-goal-card{justify-content:space-between;flex-wrap:wrap}
+.step-goal-card h2{margin:0;font-size:14px;font-weight:800}
+.step-goal-card p{font-size:11.5px;line-height:1.35;margin:5px 0 0;color:#917a76}
+.goal-buttons{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.compact-outline{
+ min-height:44px;padding:9px 13px;background:#fff!important;color:#c94879!important;
+ border:1px solid #f5cfd9!important;box-shadow:none!important;border-radius:999px;font-size:11px;font-weight:760;
+}
+.quiet-link{
+ min-height:44px;padding:8px 9px;background:transparent!important;box-shadow:none!important;
+ font-size:11px;color:#a48b8c!important;font-weight:610;
+}
+.weight-hero-card{
+ border:1px solid #f7e6e5;background:linear-gradient(120deg,#fff,#fff4f5 72%,#fffaf0);
+ border-radius:23px;padding:18px 17px 15px;box-shadow:0 10px 28px #cc839019;margin:5px 0 13px;
+}
+.weight-hero-label{color:#907b88;font-size:12px;font-weight:700}
+.weight-current{font-size:45px;font-weight:850;letter-spacing:-.065em;line-height:1.1;margin:9px 0 7px}
+.weight-current small{font-size:18px;letter-spacing:-.02em;font-weight:700}
+.weight-trend{display:flex;gap:6px;align-items:center;font-size:12px;font-weight:710;color:#4a9b74;margin:7px 0}
+.weight-trend svg{width:15px;height:15px}
+.weight-date{color:#aa99a0;font-size:10.5px}
+.weight-chart-card{
+ background:#fff;border:1px solid #f6e8e8;border-radius:23px;
+ box-shadow:0 8px 29px #be77851a;padding:17px 14px;margin:13px 0;
+}
+.weight-chart-card h2{font-weight:800;font-size:16px;margin:0}
+.chart-badge{width:32px;height:32px;display:grid;place-items:center;border-radius:11px;background:#ffeff4;color:#ef6c9b}
+.chart-badge svg{width:19px;height:19px}
+.weight-chart-card .filter-row{margin:11px 0 8px}
+.weight-chart-card .graph{width:100%;margin:16px 0 0}
+.weight-goal-card{margin:13px 0;padding:16px 14px;flex-wrap:wrap}
+.weight-goal-icon{
+ width:42px;height:42px;border-radius:15px;display:grid;place-items:center;
+ background:#fff0c7;color:#d79d32;flex-shrink:0;
+}
+.weight-goal-icon svg{width:22px;height:22px}
+.weight-goal-card>div:nth-child(2){flex:1;min-width:110px;display:flex;flex-direction:column;gap:3px}
+.weight-goal-card>div:nth-child(2)>span{font-size:11px;color:#947e7b;font-weight:630}
+.weight-goal-card>div:nth-child(2)>strong{font-size:21px;letter-spacing:-.045em;font-weight:850}
+.weight-goal-card>div:nth-child(2)>small{font-size:10px;color:#9a8580}
+@media(max-width:370px){
+ .activity-data-grid{gap:6px}
+ .activity-data-grid>div{padding:11px 4px}
+ .step-goal-card,.weight-goal-card{gap:7px}
+ .step-goal-card .goal-buttons{width:100%}
+}
