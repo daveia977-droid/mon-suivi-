@@ -4,6 +4,17 @@ Application de bien-être en français pour noter son poids, ses repas, ses pas 
 
 > **Version 3 « Fusion Premium »** — destinée aux essais sur iPhone. Ce projet ne fournit aucun diagnostic médical ni promesse de perte de poids. Les calories restent des estimations modifiables.
 
+## Guide repas et alternatives illustrées (V3.1)
+
+- **42 fiches de plats**, dont **24 ivoiriens** et 18 autres idées de repas. Chacune contient les ingrédients avec des quantités indicatives pour 1 personne, une préparation courte et une remarque pratique.
+- Dans **Repas → On mange quoi aujourd’hui ?**, filtres Cuisine ivoirienne / Autres idées / Tous ; Déjeuner / Dîner / Les deux ; recherche par nom ou ingrédient ; affichage progressif pour un téléphone.
+- Le bouton **Alternatives alimentaires** ouvre une galerie de **15 familles** avec une illustration de l’aliment de départ et **deux alternatives illustrées** avec leurs ingrédients ; pas de téléversement de photo ni d’appel IA.
+- Les images sont des **illustrations vectorielles originales intégrées au code**, et non des photographies. Elles ne sollicitent aucun réseau ni service payant et restent disponibles hors ligne une fois les fichiers du site chargés.
+- **Ajouter au journal** préremplit le nom du plat et la portion ; les calories doivent être renseignées manuellement, car les données d'une recette composée varient selon les ingrédients et les quantités. **Aucune calorie ni valeur nutritionnelle n'est inventée.**
+- Les recettes sont des suggestions de préparation, pas des recettes régionales officielles ni des programmes nutritionnels ou thérapeutiques ; elles peuvent varier selon les familles. Les propositions ne qualifient pas les aliments comme « bons » ou « mauvais ».
+- Aucun changement au stockage local existant, à l'icône ou à l'analyse photo désactivée. Coût supplémentaire : **0 €**.
+- Tests automatisés : intégrité de 42 recettes et 15 familles, images originales et parcours Playwright sur viewports 320/393/430 px. **Un essai physique sur iPhone reste conseillé.**
+
 ## Fonctionnalités (V3)
 
 - **Aujourd'hui** : tableau de bord avec « Bonjour ! », poids récent, mini-courbe, pas du jour, humeur en un geste.
