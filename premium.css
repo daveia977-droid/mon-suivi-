@@ -661,3 +661,54 @@ nav button[aria-current=page] svg{stroke-width:2.2}
  .step-goal-card,.weight-goal-card{gap:7px}
  .step-goal-card .goal-buttons{width:100%}
 }
+
+/* V2.1 — trophée de progression et connexion locale Santé via Raccourcis */
+.progress-trophy{margin:18px 0 10px;padding:19px 17px;display:flex;align-items:center;gap:13px;position:relative;overflow:hidden;border-radius:24px;border:1px solid #ffe6b8;background:linear-gradient(115deg,#fff5d9,#fff8e5 64%,#ffe9ef);box-shadow:0 10px 28px rgba(208,145,59,.12)}
+.progress-trophy-icon{width:54px;height:54px;display:grid;place-items:center;flex-shrink:0;border-radius:17px;background:linear-gradient(145deg,#ffde77,#ffbc47);color:#9e5d00;box-shadow:0 6px 12px rgba(207,149,44,.18)}
+.progress-trophy-icon svg{height:29px;width:29px;stroke-width:1.8}
+.progress-trophy-text{position:relative;z-index:1;min-width:0}
+.progress-trophy-kicker{font-weight:800;font-size:10px;letter-spacing:.09em;color:#b58131}
+.progress-trophy-text h2{font-size:15px;line-height:1.24;font-weight:820;letter-spacing:-.02em;margin:5px 0 6px;color:#573a35}
+.progress-trophy-text p{font-size:12px;line-height:1.5;color:#866866;margin:0}
+.progress-trophy-star{position:absolute;right:12px;top:-7px;font-size:42px;color:rgba(253,189,73,.28)}
+.health-sync-card{display:flex;align-items:center;gap:11px;margin:14px 0;padding:14px;background:#fff;border:1px solid #f3e2ea;border-radius:20px;box-shadow:0 5px 18px rgba(116,62,90,.06)}
+.health-sync-icon{width:39px;height:39px;flex-shrink:0;display:grid;place-items:center;background:#fce7f0;border-radius:13px;color:#d04e85}
+.health-sync-icon svg{width:20px;height:20px}
+.health-sync-body{flex:1;min-width:0}
+.health-sync-body h2{font-size:13px;line-height:1.3;font-weight:780;margin:0 0 4px}
+.health-sync-body p{color:#887881;font-size:11px;line-height:1.4;margin:0}
+.health-sync-card .compact-outline{flex-shrink:0;padding:8px 11px}
+.sante-help{max-width:520px}.sante-help-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:15px;background:#fce7f0;color:#c2185b}.sante-help-icon svg{width:23px;height:23px}
+.sante-help h2{margin:9px 0}.sante-help p{line-height:1.5;font-size:13px}.sante-help ol{padding-left:20px;font-size:13px;line-height:1.58}.sante-help li{margin:8px 0}.shortcut-url{padding:11px;border-radius:12px;border:1px solid #f4dfc4;background:#fff8e9;overflow-wrap:anywhere;word-break:break-word}.shortcut-url code{font-size:12px}
+@media(max-width:350px){.health-sync-card{flex-wrap:wrap}.health-sync-card .compact-outline{margin-left:50px}.progress-trophy{align-items:flex-start;padding:15px 12px}.progress-trophy-icon{width:44px;height:44px;border-radius:14px}.progress-trophy-icon svg{width:23px;height:23px}}
+@media(prefers-reduced-motion:reduce){.progress-trophy,.health-sync-card{transition:none}}
+
+
+/* Alternatives facultatives à la suite de l'estimation d'une photo */
+.photo-alt-panel{margin:16px 0 14px;padding:15px;border-radius:21px;border:1px solid #f5dfe7;background:linear-gradient(145deg,#fffaf1,#fff2f5 75%,#fff9f5);box-shadow:0 5px 19px rgba(172,98,111,.055)}
+.photo-alt-head{display:flex;gap:9px;align-items:flex-start}
+.photo-alt-symbol{width:36px;height:36px;flex-shrink:0;border-radius:12px;background:#ffe7a3;color:#966017;display:grid;place-items:center}
+.photo-alt-symbol svg{width:19px;height:19px}
+.photo-alt-head h3{font-size:14px;line-height:1.35;font-weight:800;color:#553342;margin:0 0 3px}
+.photo-alt-head p{font-size:11.5px;line-height:1.4;color:#8d7380;margin:0}
+.photo-alt-list{list-style:none;margin:12px 0 10px;padding:0;display:grid;gap:8px}
+.photo-alt-list li{background:rgba(255,255,255,.8);border:1px solid #f9e8e4;border-radius:13px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;overflow-wrap:anywhere}
+.photo-alt-list strong{font-size:12.5px;color:#57404a;line-height:1.35}
+.photo-alt-list small{font-size:11px;color:#86767b;line-height:1.4}
+.photo-alt-note{font-size:10.5px;line-height:1.5;color:#8b7980;margin:11px 0}
+.photo-alt-compare{width:auto;max-width:100%;min-height:44px;padding:9px 13px;font-size:12px;line-height:1.35;border:1px solid #f0cbd7!important;color:#a63d68!important;background:white!important;box-shadow:none!important;border-radius:999px;white-space:normal}
+
+/* V3 — ergonomie iPhone, accueil plus fluide, alternatives accessibles */
+.premium-welcome{height:auto;min-height:100svh;overflow:visible}
+.premium-welcome .welcome-content{position:relative;z-index:1;padding:5px 0 0}
+.premium-welcome .btn-stack button{width:100%;background:linear-gradient(115deg,#fd75a5,#eb3978);box-shadow:0 8px 21px rgba(206,69,116,.23)}
+.premium-welcome .welcome-privacy{font-size:11px;line-height:1.5}
+.photo-fallback-card{margin:17px 0 12px;padding:15px 13px 17px;background:linear-gradient(130deg,#fff8ed,#fff0f5);border:1px solid #f7e0da;border-radius:20px}
+.photo-fallback-label{font-size:10px;letter-spacing:.08em;color:#b56571;font-weight:800}
+.photo-fallback-card>label{display:block;margin:10px 0 9px;font-size:12px;color:#533d4b;font-weight:750}
+.photo-fallback-card input{display:block;width:100%;font-size:16px;min-height:44px;margin-top:7px;border-radius:13px}
+.photo-fallback-card .compact-outline{font-size:12px;min-height:44px}
+.photo-fallback-card .photo-alt-panel{margin-top:14px;margin-bottom:0;padding:11px}
+.photo-fallback-card .off-msg{margin:10px 0 0}
+@media(max-height:700px){.premium-welcome{padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(24px + env(safe-area-inset-bottom))}.premium-welcome .welcome-visual{transform:none}}
+@media(max-width:355px){.premium-welcome{padding-left:17px;padding-right:17px}.photo-fallback-card{padding:13px 11px}}

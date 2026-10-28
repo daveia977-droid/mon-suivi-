@@ -39,4 +39,27 @@ const restored=vm.runInNewContext(script);
 assert.equal(restored.meals[0].value,420);
 assert.equal(restored.meals[0].protein,null);
 assert.equal(restored.meals[0].source,'manual');
-console.log('Tests Mon Suivi : Ciqual, kcal null, macros, consentement et sauvegarde V1 OK.');
+assert.ok(app.includes('function weightEncouragement(){'),'Encouragement du trophée');
+assert.ok(app.includes("class=\"progress-trophy\""),'Trophée présent en bas de Progrès');
+assert.ok(app.includes("window.addEventListener('hashchange',importSanteSteps)"),'Réception des pas depuis Raccourcis');
+assert.ok(app.includes("window.history.replaceState(null,''"),'Suppression du fragment privé');
+const healthSaved={weights:[],moods:[],meals:[],steps:[{id:'sante-2026-10-27',date:'2026-10-27',value:6432,source:'sante-raccourcis'}]};
+const healthScript='const blank=()=>({name:"",weights:[],moods:[],meals:[],steps:[],stepsGoal:6000,weightGoal:null,consent:false,unit:"kg"});const today=()=> "2026-10-28";const isDate=d=> /^\\d{4}-\\d{2}-\\d{2}$/.test(d);'+validate+';validatePayload('+JSON.stringify(healthSaved)+')';
+const healthRestored=vm.runInNewContext(healthScript);
+assert.equal(healthRestored.steps[0].source,'sante-raccourcis','La sauvegarde conserve la provenance des pas');
+
+const ideaDefs=app.match(/const PHOTO_IDEAS=\[[\s\S]*?\n\];/)?.[0];
+const ideaFn=app.match(/function photoAlternatives\(name\)\{[\s\S]*?\n\}/)?.[0];
+assert.ok(ideaDefs&&ideaFn,'Suggestions après photo intégrées');
+const ideaContext='function ciqualClean(s){return String(s).toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")}'+ideaDefs+';'+ideaFn+';';
+function ideasOf(name){return vm.runInNewContext(ideaContext+';photoAlternatives('+JSON.stringify(name)+')')}
+assert.equal(ideasOf('Chips de pommes de terre').specific,true);
+assert.match(ideasOf('Chips').items[0][0],/Pop-corn/);
+assert.match(ideasOf('Pizza industrielle').items[0][0],/Pizza maison/);
+assert.match(ideasOf('Soda cola').items[0][0],/Eau pétillante/);
+assert.equal(ideasOf('Carottes').specific,false,'Ne jamais inférer sans preuve un produit transformé');
+assert.equal(ideasOf('Biscuits industriels').specific,true,'Reconnaît le pluriel');
+assert.equal(ideasOf('Céréales sucrées').specific,true,'Reconnaît les accents et le pluriel');
+assert.ok(app.includes('photoAlternativesHtml(offPicked.name)'),'Suggestions affichées après analyse photo');
+assert.ok(app.includes("if(action==='photo-compare')"),'Recherche Open Food Facts seulement sur un clic');
+console.log('Tests Mon Suivi : Ciqual, nutrition, sauvegardes, Apple Santé et alternatives photo OK.');

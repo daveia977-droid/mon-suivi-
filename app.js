@@ -26,7 +26,8 @@ upload:'<path d="M12 16V4m-4 4 4-4 4 4M4 17v4h16v-4"/>',
 trash:'<path d="M4 7h16M10 4h4M6 7l1 14h10l1-14M10 11v6m4-6v6"/>',
 heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
 plus:'<path d="M12 5v14M5 12h14"/>',
-steps:'<ellipse cx="7" cy="7.5" rx="2.2" ry="3.2"/><ellipse cx="17" cy="9.5" rx="2.2" ry="3.2"/><path d="M5.5 12c-1.6 1.4-2.3 3.5-1.8 5.5l.3 1.2"/><path d="M18.5 14c1.6 1.4 2.3 3.5 1.8 5.5l-.3 1.2"/>'
+steps:'<ellipse cx="7" cy="7.5" rx="2.2" ry="3.2"/><ellipse cx="17" cy="9.5" rx="2.2" ry="3.2"/><path d="M5.5 12c-1.6 1.4-2.3 3.5-1.8 5.5l.3 1.2"/><path d="M18.5 14c1.6 1.4 2.3 3.5 1.8 5.5l-.3 1.2"/>',
+trophy:'<path d="M8 21h8M12 17v4M7 4h10v6a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4"/>'
 };return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(shapes[name]||shapes.heart)+'</svg>'};
 const moodClass=name=>({'À plat':'m-blue','Moyen':'m-yellow','Bien':'m-pink','En forme':'m-green'})[name]||'m-pink';
 const stepsToday=()=>data.steps.find(x=>x.date===today());
@@ -74,6 +75,51 @@ async function loadAlts(){
 if(!offPicked||!offPicked.cats.length)return;
 try{const alts=await offCategory(offPicked.cats);if(alts.length){offAlts=alts;const slot=document.querySelector('#off-alts-slot');if(slot&&mealMode==='confirm')slot.innerHTML='<p class="off-sub">Alternatives, même famille :</p>'+offListHtml(offAlts,'offpick-alt')}}catch{}
 }
+
+/* Idées facultatives après une photo, indépendantes des estimations IA.
+   Aucune qualité nutritionnelle n'est déduite automatiquement de l'image. */
+const PHOTO_IDEAS=[
+ {re:/\b(chips|crisps|crackers|biscuits? aperitifs?|snacks? sales?|tortilla chips)\b/,q:'chips',items:[['Pop-corn nature maison','À assaisonner selon vos goûts.'],['Bâtonnets de légumes et houmous','Une autre option à partager ou grignoter.']]},
+ {re:/\b(sodas?|cola|limonades?|boissons? sucrees?|boissons? gazeuses?|thes? glaces?|energy drink)\b/,q:'soda',items:[['Eau pétillante et agrumes','Une boisson à personnaliser sans obligation.'],['Infusion froide maison','Une option à préparer et doser selon vos goûts.']]},
+ {re:/\b(biscuits?|cookies?|gateaux?|gateau|brownies?|donuts?|muffins?|barres? chocolatees?|viennoiseries?|madeleines?)\b/,q:'biscuits',items:[['Yaourt nature et fruit de saison','Un goûter à composer soi-même.'],['Tartine avec purée de fruits','Ajustez les quantités à votre faim.']]},
+ {re:/\b(cereales?|corn flakes|granola sucre|muesli sucre|chocapic)\b/,q:'céréales',items:[['Flocons d’avoine et fruits','Une alternative pour le petit-déjeuner.'],['Muesli nature sans sucres ajoutés','Comparez les étiquettes selon vos préférences.']]},
+ {re:/\b(pizzas?|calzones?)\b/,q:'pizza',items:[['Pizza maison aux légumes','Choisissez la garniture et la quantité de fromage.'],['Tartine au four, tomates et légumes','Une version simple à personnaliser.']]},
+ {re:/\b(burger|hamburger|cheeseburger|sandwich industriel|hot dog)\b/,q:'burger',items:[['Sandwich maison avec légumes','Ajoutez les ingrédients que vous aimez.'],['Pain complet garni, légumes et houmous','Une autre combinaison possible.']]},
+ {re:/\b(frites|french fries|potatoes|pomme de terre frite)\b/,q:'frites',items:[['Pommes de terre rôties au four','Assaisonnez selon votre goût.'],['Légumes rôtis au four','Une autre façon de varier l’accompagnement.']]},
+ {re:/\b(nuggets?|cordon bleu|poulet pane|poisson pane)\b/,q:'nuggets',items:[['Poulet ou poisson cuisiné maison','À accompagner de légumes si vous aimez.'],['Tofu doré et légumes','Une autre idée de préparation.']]},
+ {re:/\b(charcuterie|saucissons?|salamis?|chorizo|lardons?)\b/,q:'charcuterie',items:[['Houmous et légumes','À essayer en tartine ou dans un sandwich.'],['Œuf dur et crudités','Une garniture alternative possible.']]},
+ {re:/\b(plats? prepares?|nouilles? instantanees?|lasagnes?|pizza surgelee|soupes? instantanees?)\b/,q:'plat préparé',items:[['Version maison du même plat','Vous pouvez choisir les ingrédients et l’assaisonnement.'],['Plat simple avec légumes et féculent','Une alternative facile à adapter.']]},
+ {re:/\b(yaourt sucre|dessert lacte|creme dessert|flan industriel)\b/,q:'dessert lacté',items:[['Yaourt nature avec fruits','Dosez vous-même les ajouts.'],['Compote sans sucres ajoutés','À choisir selon vos envies.']]},
+ {re:/\b(bonbon|confiserie|gomme sucree)\b/,q:'confiserie',items:[['Fruits frais de saison','Une autre option si vous en avez envie.'],['Compote sans sucres ajoutés','Une possibilité pour varier les collations.']]}
+];
+function photoAlternatives(name){
+ const normalized=ciqualClean(name);
+ const match=PHOTO_IDEAS.find(row=>row.re.test(normalized));
+ return {specific:!!match,query:match?.q||String(name||'').trim().slice(0,80),
+ items:match?.items||[['Version maison de ce plat','Vous pouvez adapter les ingrédients à vos goûts.'],['Accompagner de fruits ou de légumes','Une idée pour varier le repas, si elle vous convient.']]};
+}
+function photoAlternativesHtml(name){
+ const suggestions=photoAlternatives(name);
+ return '<div class="photo-alt-head"><span class="photo-alt-symbol">'+icon('heart')+'</span><div><h3>Des idées pour varier</h3><p>'+(suggestions.specific?'Alternatives possibles à ce type de produit.':'Le type de produit n’est pas clairement reconnu : voici deux pistes générales.')+'</p></div></div>'+
+ '<ul class="photo-alt-list">'+suggestions.items.map(([title,info])=>'<li><strong>'+esc(title)+'</strong><small>'+esc(info)+'</small></li>').join('')+'</ul>'+
+ '<p class="photo-alt-note">Une photo ne permet pas de savoir si un produit est « sain ». Être transformé ne signifie pas forcément être moins intéressant sur le plan nutritionnel. Vérifiez les ingrédients, allergènes et portions selon vos besoins.</p>'+
+ btn('Comparer des produits','photo-compare','photo-alt-compare');
+}
+function showPhotoAlternativesManual(){
+ const name=document.querySelector('#photo-product-name')?.value.trim()||'';
+ const slot=document.querySelector('#photo-fallback-results');if(!slot)return;
+ if(name.length<2){slot.innerHTML='<p class="off-msg" role="alert">Saisissez au moins deux caractères.</p>';return}
+ slot.innerHTML='<section class="photo-alt-panel">'+photoAlternativesHtml(name)+'</section>';
+}
+function photoCompareProducts(){
+ const entered=document.querySelector('#entry-form input[name="name"]')?.value.trim()||document.querySelector('#photo-product-name')?.value.trim();
+ const name=entered||offPicked?.name;
+ if(!name)return;
+ const q=photoAlternatives(name).query;
+ mealMode='search';renderMealDialog();
+ const input=document.querySelector('#off-q');if(input){input.value=q;if(q.length>=2)doOffSearch()}
+}
+
 let photoSessionApproved=false;
 const photoConsent=()=>photoSessionApproved;
 const photoNote=() =>'<p class="off-credit">Analyse via Mistral AI, strictement après votre consentement. Aucune photo n’est stockée par l’application ; Mistral conserve les données d’API jusqu’à 30 jours glissants (surveillance anti-abus) avant suppression. La désactivation de l’entraînement n’entraîne pas de suppression immédiate.</p>';
@@ -128,9 +174,9 @@ if(mealMode==='manual')body='<label>Repas ou aliment<input name="name" maxlength
 else if(mealMode==='search')body='<label>Aliment ou marque<input id="off-q" maxlength="80" autocomplete="off" placeholder="Ex. pain, yaourt, compote…"></label>'+btn('Rechercher','offsearch','wide')+'<div id="off-results"></div>'+offNote();
 else if(mealMode==='ciqual')body='<label>Aliment courant (Ciqual 2025)<input id="ciqual-q" maxlength="80" autocomplete="off" placeholder="Ex. riz cuit, œuf, poulet…"></label>'+btn('Chercher dans Ciqual','ciqualsearch','wide')+'<div id="off-results"></div>'+ciqualNote();
 else if(mealMode==='barcode')body='<label>Code-barres (chiffres du produit)<input id="off-code" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="Ex. 3017620422003"></label>'+btn('Chercher le produit','offbarcode','wide')+'<div id="off-results"></div>'+offNote();
-else if(mealMode==='photo')body='<p class="modal-explain">Photographiez votre repas : l’estimation IA est un ordre de grandeur, toujours modifiable.</p><label class="photo-pick" for="photo-file"><span class="photo-pick-icon">'+icon('meal')+'</span>'+(photoData?'Photo prête ✓ — en choisir une autre':'Choisir ou prendre une photo')+'</label><input type="file" id="photo-file" accept="image/*" capture="environment" hidden>'+btn('Analyser la photo','photoanalyze','wide')+'<div id="photo-results"></div>'+photoNote();
-else if(mealMode==='confirm')body='<label>Repas ou aliment<input name="name" maxlength="150" required value="'+esc(offPicked.name)+'"></label><div class="off-grid"><label>Poids (g)<input id="off-grams" name="grams" type="number" inputmode="numeric" min="1" max="3000" step="1" value="'+(photoAI&&photoAI.grams?photoAI.grams:100)+'"></label><label>Calories estimées<input id="off-kcal" name="value" type="number" inputmode="numeric" min="0" max="50000" step="1" required value="'+esc(String(offKcalFor(photoAI&&photoAI.grams?photoAI.grams:100)))+'"></label></div>'+macroInputs({},photoAI&&photoAI.grams?photoAI.grams:100)+'<p class="modal-explain">'+(photoAI?(offPicked.kcal!==null?'Estimation IA ('+photoAI.confidence+' confiance) : '+fmt(offPicked.kcal)+' kcal pour 100 g — ordre de grandeur, souvent ±30–50 % : ajustez librement. Aucune photo n’est stockée par l’application.':'L’estimation IA n’a pas pu évaluer les calories : renseignez-les vous-même. Aucune photo n’est stockée par l’application.'):(offPicked.kcal!==null?'Environ '+fmt(offPicked.kcal)+' kcal pour 100 g d’après '+(offPicked.source==='ciqual'?'Ciqual 2025 (Anses)':'Open Food Facts')+' — ajustez librement.':'Calories inconnues dans la base : estimez-les vous-même.'))+'</p>'+(photoAI?'':(offPicked.cats.length?'<div id="off-alts-slot"></div>':''))+(photoAI?'':(offPicked.source==='ciqual'?ciqualNote():offNote()));
-modal('<'+(isForm?'form id="entry-form"':'div class="off-panel"')+'><h2>'+(entry.id?'Modifier le repas':'Ajouter un repas')+'</h2><div class="mode-tabs">'+[['search','Produits'],['ciqual','Aliments'],['barcode','Code-barres'],['photo','Photo'],['manual','Manuelle']].map(([m,l])=>'<button type="button" class="mode-tab'+((mealMode===m)||(mealMode==='confirm'&&((m==='photo'&&photoAI)||(m==='search'&&!photoAI)))?' active':'')+'" data-action="mealmode:'+m+'">'+l+'</button>').join('')+'</div>'+body+(isForm?'<label>Date<input type="date" name="date" required max="'+today()+'" value="'+esc(entry.date||today())+'"></label><p id="entry-error" class="notice-error" role="alert" hidden></p><div class="row"><button type="submit">Enregistrer</button>'+btn('Annuler','close','secondary')+'</div>':btn('Fermer','close','secondary wide'))+'</'+(isForm?'form':'div')+'>');
+else if(mealMode==='photo')body='<p class="modal-explain">L’analyse photo n’est pas encore activée. En attendant, découvrez gratuitement des alternatives en indiquant le nom du produit, sans envoyer d’image.</p><section class="photo-fallback-card"><span class="photo-fallback-label">IDÉES D’ALTERNATIVES</span><label>Quel aliment souhaitez-vous comparer ?<input id="photo-product-name" maxlength="80" autocomplete="off" placeholder="Ex. chips, biscuits, pizza…"></label>'+btn('Voir des alternatives','photo-alt-manual','compact-outline')+'<div id="photo-fallback-results" aria-live="polite"></div></section><p class="off-credit">Les suggestions sont des idées générales : elles ne prouvent pas qu’un aliment soit plus sain. Les photos ne sont pas acceptées dans cette version tant que le service IA n’est pas configuré et vérifié.</p>';
+else if(mealMode==='confirm')body='<label>Repas ou aliment<input name="name" maxlength="150" required value="'+esc(offPicked.name)+'"></label><div class="off-grid"><label>Poids (g)<input id="off-grams" name="grams" type="number" inputmode="numeric" min="1" max="3000" step="1" value="'+(photoAI&&photoAI.grams?photoAI.grams:100)+'"></label><label>Calories estimées<input id="off-kcal" name="value" type="number" inputmode="numeric" min="0" max="50000" step="1" required value="'+esc(String(offKcalFor(photoAI&&photoAI.grams?photoAI.grams:100)))+'"></label></div>'+macroInputs({},photoAI&&photoAI.grams?photoAI.grams:100)+'<p class="modal-explain">'+(photoAI?(offPicked.kcal!==null?'Estimation IA ('+photoAI.confidence+' confiance) : '+fmt(offPicked.kcal)+' kcal pour 100 g — ordre de grandeur, souvent ±30–50 % : ajustez librement. Aucune photo n’est stockée par l’application.':'L’estimation IA n’a pas pu évaluer les calories : renseignez-les vous-même. Aucune photo n’est stockée par l’application.'):(offPicked.kcal!==null?'Environ '+fmt(offPicked.kcal)+' kcal pour 100 g d’après '+(offPicked.source==='ciqual'?'Ciqual 2025 (Anses)':'Open Food Facts')+' — ajustez librement.':'Calories inconnues dans la base : estimez-les vous-même.'))+'</p>'+(photoAI?'<section class="photo-alt-panel" aria-label="Idées d’alternatives après la photo"><div id="photo-alt-content">'+photoAlternativesHtml(offPicked.name)+'</div></section>':(offPicked.cats.length?'<div id="off-alts-slot"></div>':''))+(photoAI?'':(offPicked.source==='ciqual'?ciqualNote():offNote()));
+modal('<'+(isForm?'form id="entry-form"':'div class="off-panel"')+'><h2>'+(entry.id?'Modifier le repas':'Ajouter un repas')+'</h2><div class="mode-tabs">'+[['search','Produits'],['ciqual','Aliments'],['barcode','Code-barres'],['photo','Alternatives'],['manual','Manuelle']].map(([m,l])=>'<button type="button" class="mode-tab'+((mealMode===m)||(mealMode==='confirm'&&((m==='photo'&&photoAI)||(m==='search'&&!photoAI)))?' active':'')+'" data-action="mealmode:'+m+'">'+l+'</button>').join('')+'</div>'+body+(isForm?'<label>Date<input type="date" name="date" required max="'+today()+'" value="'+esc(entry.date||today())+'"></label><p id="entry-error" class="notice-error" role="alert" hidden></p><div class="row"><button type="submit">Enregistrer</button>'+btn('Annuler','close','secondary')+'</div>':btn('Fermer','close','secondary wide'))+'</'+(isForm?'form':'div')+'>');
 if(isForm)document.querySelector('#entry-form').addEventListener('submit',event=>{
 event.preventDefault();const v=Object.fromEntries(new FormData(event.target));v.id=entry.id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7);
 if(mealMode==='confirm'){const g=Number(v.grams);v.quantity=(Number.isFinite(g)&&g>0?g:100)+' g';delete v.grams}
@@ -160,7 +206,7 @@ out.steps=out.steps.map((entry,i)=>{
  if(!entry||typeof entry!=='object'||!isDate(entry.date)||entry.date>today())throw Error('Date invalide dans les pas.');
  const sid=typeof entry.id==='string'||typeof entry.id==='number'?String(entry.id).slice(0,90):String(i);
  const svalue=Number(entry.value);if(!Number.isFinite(svalue)||svalue<0||svalue>200000||!Number.isInteger(svalue))throw Error('Nombre de pas invalide.');
- return {id:sid,date:entry.date,value:svalue};
+ return {id:sid,date:entry.date,value:svalue,...(entry.source==='sante-raccourcis'?{source:'sante-raccourcis'}:{})};
 });
 const sg=raw.stepsGoal;
 out.stepsGoal=sg===null?null:(Number.isFinite(Number(sg))&&Number(sg)>=500&&Number(sg)<=100000?Math.round(Number(sg)):6000);
@@ -171,11 +217,27 @@ return out;
 }
 function reload(){try{const raw=localStorage.getItem(KEY);if(raw){const item=validatePayload(JSON.parse(raw));if(item.consent){data=item;unit=data.unit}}}catch(err){storageOK=false}}
 reload();
+// Import local depuis Raccourcis iOS via fragment URL (non transmis au serveur).
+// Ce mécanisme ne lit jamais Santé directement et reste limité au navigateur utilisé.
+function importSanteSteps(){
+ const hash=window.location.hash;
+ if(!hash.startsWith('#sante-pas='))return;
+ // Retirer immédiatement le fragment de l'adresse visible et de l'historique actif.
+ window.history.replaceState(null,'',window.location.pathname+window.location.search);
+ const params=new URLSearchParams(hash.slice(1)),raw=params.get('sante-pas');
+ if(!raw||!/^(0|[1-9][0-9]{0,5})$/.test(raw))return;
+ const value=Number(raw),date=params.get('date')||today();
+ if(!Number.isSafeInteger(value)||value>200000||!isDate(date)||date>today()||date<past(7))return;
+ if(demo||!data.consent){window.alert('Pour importer les pas de Santé, créez d’abord votre espace Mon Suivi dans ce navigateur.');return}
+ const old=data.steps.find(e=>e.date===date);
+ if(old?.value===value&&old.source==='sante-raccourcis'){page='Activité';render();return}
+ data.steps=data.steps.filter(e=>e.date!==date).concat([{id:old?.id||'sante-'+date,date,value,source:'sante-raccourcis'}]);
+ page='Activité';save();
+}
+window.addEventListener('hashchange',importSanteSteps);
 function save(){if(!demo&&data.consent){try{localStorage.setItem(KEY,JSON.stringify(data));storageOK=true}catch{storageOK=false}}render()}
 function go(where){page=where;render();window.scrollTo({top:0,behavior:'instant'})}
 function btn(text,action,cl=''){return '<button type="button" class="'+cl+'" data-action="'+esc(action)+'">'+text+'</button>'}
-function startDemo(){demo=true;data=blank();data.name='Camille';data.weights=[{id:'demo1',date:past(28),value:84.4},{id:'demo2',date:past(21),value:83.7},{id:'demo3',date:past(14),value:83.8},{id:'demo4',date:past(7),value:82.9},{id:'demo5',date:today(),value:82.4}];data.meals=[{id:'demo-meal',date:today(),name:'Déjeuner',quantity:'1 portion',value:520}];data.moods=[{id:'demo-mood',date:today(),name:'Bien',note:''}];data.steps=[{id:'demo-s1',date:past(2),value:5400},{id:'demo-s2',date:past(1),value:7300},{id:'demo-s3',date:today(),value:8260}];data.stepsGoal=6000;data.weightGoal=78;unit='kg';page='Aujourd’hui';render()}
-function leaveDemo(){demo=false;data=blank();storageOK=true;reload();unit=data.unit||'kg';go('Accueil')}
 function footer(){return '<footer>'+Object.keys(legal).filter(name=>name!=='Remboursements').map(name=>'<a href="#" data-action="go:'+esc(name)+'">'+esc(name)+'</a>').join('')+'</footer>'}
 const legal={
 'Confidentialité':'Ce prototype ne crée aucun compte et ne transmet pas vos données de suivi à un serveur applicatif. Après votre consentement, vos mesures de poids, repas, humeur et pas sont enregistrées dans le stockage local de ce navigateur. Elles ne sont pas chiffrées par cette application. Une personne accédant à votre session peut les consulter. Vous pouvez exporter ou effacer ces données dans Profil. Les valeurs des aliments génériques proviennent d’un extrait statique de 42 aliments Ciqual 2025 (Anses, Licence Ouverte 2.0). Les recherches d’aliments (nom ou code-barres) interrogent le service public Open Food Facts : seuls les termes de recherche sont envoyés, aucune donnée personnelle ne l’est, et les résultats peuvent être conservés dans un cache local pour économiser des requêtes. L’analyse photo, strictement facultative et précédée d’un consentement explicite non précoché avant chaque envoi, envoie l’image compressée vers notre fonction d’estimation (infrastructure Vercel, États-Unis) puis vers Mistral AI (Union européenne) ; la photo n’est pas stockée par l’application, mais Mistral conserve les entrées et sorties d’API jusqu’à 30 jours glissants pour la surveillance anti-abus avant suppression, et la désactivation de l’entraînement n’entraîne pas de suppression immédiate. Supprimer les données du navigateur peut supprimer votre historique. Les informations sur l’éditeur, l’hébergeur, les durées de conservation, le contact et l’exercice des droits restent à compléter avant publication.',
@@ -227,7 +289,7 @@ const macros=macroFields.map(([key,label])=>{const known=todayMeals.filter(m=>m[
 return '<div class="screen meals-screen">'+topbar()+
 '<section class="page-heading"><div><span class="page-eyebrow">MON ALIMENTATION</span><h1>Mes repas<span class="page-dot">.</span></h1><p>Manger à son rythme, sans pression.</p></div>'+btn(icon('plus')+' Ajouter','add:meals','compact-add')+'</section>'+
 '<section class="meal-summary-card"><div class="meal-summary-head"><span>'+icon('meal')+' Aujourd’hui</span><span class="soft-pill">'+fmt(todayMeals.length)+' repas</span></div><div class="meal-summary-total">'+fmt(sum)+' <small>kcal notées</small></div><p>Une estimation pour vos repas enregistrés, sans limite imposée.</p><div class="macro-mini-row">'+macros.map(m=>'<div><span>'+esc(m.label)+'</span><strong>'+(m.value===null?'—':fmt(m.value)+' g')+'</strong></div>').join('')+'</div></section>'+
-'<div class="meal-entry-choices"><button type="button" class="meal-entry-choice photo-choice" data-action="addphoto"><span class="choice-icon">'+icon('meal')+'</span><span><strong>Photo du repas</strong><small>Estimation facultative par IA</small></span>'+icon('chevron')+'</button><button type="button" class="meal-entry-choice manual-choice" data-action="add:meals"><span class="choice-icon">'+icon('plus')+'</span><span><strong>Saisie manuelle</strong><small>Un repas, à votre façon</small></span>'+icon('chevron')+'</button></div>'+
+'<div class="meal-entry-choices"><button type="button" class="meal-entry-choice photo-choice" data-action="addphoto"><span class="choice-icon">'+icon('meal')+'</span><span><strong>Alternatives alimentaires</strong><small>Photo IA bientôt disponible</small></span>'+icon('chevron')+'</button><button type="button" class="meal-entry-choice manual-choice" data-action="add:meals"><span class="choice-icon">'+icon('plus')+'</span><span><strong>Saisie manuelle</strong><small>Un repas, à votre façon</small></span>'+icon('chevron')+'</button></div>'+
 '<section class="data-section meal-history-section"><div class="home-section-title"><div><h2>Mon journal</h2><p>Retrouvez et modifiez vos repas</p></div><span class="soft-pill">'+fmt(data.meals.length)+' au total</span></div>'+list('meals')+'</section></div>';
 }
 function screenActivity(){
@@ -243,21 +305,36 @@ return '<div class="screen activity-screen">'+topbar()+
 '<section class="activity-hero-card"><div class="activity-hero-heading"><h2>Aujourd’hui</h2><span class="activity-hero-spark">'+icon('steps')+'</span></div><div class="activity-main-ring">'+ringSVG(s,goal)+'</div><p class="activity-hero-caption">'+(goal?(s>=goal?'Votre objectif du jour est atteint.':fmt(s)+' pas sur '+fmt(goal)+' aujourd’hui.'):'Vos pas du jour, sans objectif imposé.')+'</p></section>'+
 '<section class="activity-data-grid"><div><span>'+icon('steps')+'</span><strong>'+fmt(s)+'</strong><small>pas notés</small></div><div><span>'+icon('chart')+'</span><strong>'+(goal?Math.min(pct,999)+' %':'—')+'</strong><small>objectif</small></div><div><span>'+icon('heart')+'</span><strong>'+(goal?fmt(goal):'Libre')+'</strong><small>pas visés</small></div></section>'+
 '<section class="steps-chart-card"><div class="card-top"><h2>Cette semaine</h2><span class="small-muted">Pas enregistrés</span></div><div class="steps-week-chart" role="img" aria-label="Pas enregistrés sur les sept derniers jours">'+bars+'</div></section>'+
+'<section class="health-sync-card"><span class="health-sync-icon">'+icon('heart')+'</span><div class="health-sync-body"><h2>Pas depuis Apple Santé</h2><p>'+(stepsToday()?.source==='sante-raccourcis'?'Dernière synchronisation : '+fmt(s)+' pas aujourd’hui.':'Récupérez vos pas avec un raccourci iPhone. Rien n’est envoyé à nos serveurs.')+'</p></div>'+btn('Configurer','sante-help','compact-outline')+'</section>'+
 '<section class="step-goal-card"><div><h2>Mon objectif</h2><p>'+(goal?fmt(goal)+' pas par jour, à mon rythme.':'Aucun objectif imposé.')+'</p></div><div class="goal-buttons">'+btn(goal?'Modifier':'Définir','steps-goal','compact-outline')+(goal?btn('Désactiver','steps-goal-off','quiet-link'):'')+'</div></section>'+
 '<section class="data-section"><div class="home-section-title"><div><h2>Historique des pas</h2><p>Mes enregistrements précédents</p></div></div>'+list('steps')+'</section></div>';
+}
+function weightEncouragement(){
+ const current=newest(data.weights),first=sorted(data.weights)[0],goal=data.weightGoal;
+ if(!current)return {title:'Votre parcours commence ici',message:'Ajoutez une première mesure pour voir votre évolution, à votre rythme.'};
+ if(!goal)return {title:'Chaque étape compte',message:'Vous suivez déjà votre évolution. Un objectif personnel peut être défini, seulement si vous le souhaitez.'};
+ const remaining=Math.abs(current.value-goal);
+ if(remaining<0.1)return {title:'Votre objectif est atteint !',message:'Votre dernière mesure correspond à votre repère personnel. Prenez le temps de reconnaître votre parcours.'};
+ if(!first||first.id===current.id||first.value===current.value)return {title:'Votre parcours prend forme',message:'Votre objectif est enregistré. De nouvelles mesures permettront de visualiser votre évolution.'};
+ const gain=Math.abs(first.value-goal)-remaining;
+ if(gain>0.05)return {title:'Vous vous rapprochez de votre objectif !',message:'Vous vous êtes rapproché(e) de '+shownWeight(gain)+' '+unit+' de votre repère depuis votre première mesure. Continuez à votre rythme.'};
+ return {title:'Chaque étape compte',message:'Les variations font partie du parcours. Continuez à observer votre évolution avec bienveillance.'};
 }
 function screenProgress(){
 const filtered=period==='all'?data.weights:data.weights.filter(x=>x.date>=past(Number(period)-1));
 const current=newest(data.weights),old=sorted(data.weights)[0],diff=current&&old&&data.weights.length>1?Number(current.value)-Number(old.value):null;
 const changeLabel=diff===null?'Aucune évolution calculée':(diff>0?'+':'')+shownWeight(diff)+' '+unit+' depuis le début';
 const goalLabel=data.weightGoal?shownWeight(data.weightGoal)+' '+unit:'À définir';
+const goalDetail=current&&data.weightGoal?(Math.abs(current.value-data.weightGoal)<.1?'Votre repère personnel est atteint':'À '+shownWeight(Math.abs(current.value-data.weightGoal))+' '+unit+' de votre repère'):'Un repère personnel, toujours facultatif';
+const encouragement=weightEncouragement();
 return '<div class="screen progress-screen">'+topbar()+
 '<section class="page-heading"><div><span class="page-eyebrow">MON ÉVOLUTION</span><h1>Mon poids<span class="page-dot">.</span></h1><p>Observer son parcours, avec douceur.</p></div>'+btn(icon('plus')+' Noter','add:weights','compact-add')+'</section>'+
 '<section class="weight-hero-card"><span class="weight-hero-label">Dernière mesure</span><div class="weight-current">'+(current?shownWeight(current.value):'—')+' <small>'+unit+'</small></div><p class="weight-trend">'+(diff===null?icon('heart'):icon('chart'))+' '+esc(changeLabel)+'</p>'+(current?'<span class="weight-date">Mesuré le '+esc(current.date.split('-').reverse().join('/'))+'</span>':'')+'</section>'+
 '<section class="weight-chart-card"><div class="card-top"><h2>Ma courbe</h2><span class="chart-badge">'+icon('chart')+'</span></div><div class="filter-row">'+[['7','Semaine'],['30','Mois'],['all','Tout']].map(([v,t])=>btn(t,'period:'+v,period===v?'active':'')).join('')+'</div>'+(filtered.length>=2?chartSVG(filtered,340,175,false,data.weightGoal):'<div class="empty-state">Deux mesures suffisent pour dessiner votre courbe.</div>')+'</section>'+
-'<section class="weight-goal-card"><div class="weight-goal-icon">'+icon('heart')+'</div><div><span>Mon objectif</span><strong>'+goalLabel+'</strong><small>Un repère personnel, toujours facultatif</small></div>'+btn(data.weightGoal?'Modifier':'Définir','weight-goal','compact-outline')+(data.weightGoal?btn('Retirer','weight-goal-off','quiet-link'):'')+'</section>'+
+'<section class="weight-goal-card"><div class="weight-goal-icon">'+icon('heart')+'</div><div><span>Mon objectif</span><strong>'+goalLabel+'</strong><small>'+esc(goalDetail)+'</small></div>'+btn(data.weightGoal?'Modifier':'Définir','weight-goal','compact-outline')+(data.weightGoal?btn('Retirer','weight-goal-off','quiet-link'):'')+'</section>'+
 '<section class="data-section"><div class="home-section-title"><div><h2>Mes mesures</h2><p>Mes notes de poids</p></div>'+btn(icon('plus')+' Ajouter','add:weights','subtle-link')+'</div>'+list('weights')+'</section>'+
-'<section class="data-section"><div class="home-section-title"><div><h2>Mon humeur</h2><p>Un moment pour soi</p></div>'+btn(icon('plus')+' Ajouter','add:moods','subtle-link')+'</div>'+list('moods')+'</section></div>';
+'<section class="data-section"><div class="home-section-title"><div><h2>Mon humeur</h2><p>Un moment pour soi</p></div>'+btn(icon('plus')+' Ajouter','add:moods','subtle-link')+'</div>'+list('moods')+'</section>'+
+'<section class="progress-trophy" aria-label="Encouragement sur votre progression"><span class="progress-trophy-icon">'+icon('trophy')+'</span><div class="progress-trophy-text"><span class="progress-trophy-kicker">VOTRE PETITE VICTOIRE</span><h2>'+esc(encouragement.title)+'</h2><p>'+esc(encouragement.message)+'</p></div><span class="progress-trophy-star" aria-hidden="true">✦</span></section></div>';
 }
 function screenProfile(){
 const name=data.name?esc(data.name):'Mon espace';
@@ -267,7 +344,7 @@ return '<div class="screen profile-screen">'+topbar()+
 '<h2 class="settings-heading">Mes informations</h2><section class="section-card white-card profile-settings-card"><div class="setting-block"><label for="name">Prénom ou pseudonyme</label><div class="name-control"><input id="name" maxlength="60" value="'+esc(data.name)+'" autocomplete="nickname" placeholder="Votre prénom">'+btn('Enregistrer','name','compact-secondary')+'</div></div><div class="setting-block"><label for="unit">Unité du poids</label><select id="unit" aria-label="Unité du poids"><option value="kg" '+(unit==='kg'?'selected':'')+'>Kilogrammes (kg)</option><option value="lb" '+(unit==='lb'?'selected':'')+'>Livres (lb)</option></select></div></section>'+
 '<h2 class="settings-heading">Mes données</h2><section class="section-card white-card backup-card"><div class="backup-copy"><span class="backup-icon">'+icon('download')+'</span><div><h3>Ma sauvegarde</h3><p>Exportez ou restaurez votre suivi en toute simplicité.</p></div></div><div class="backup-actions">'+btn(icon('download')+' Exporter','export','backup-btn')+btn(icon('upload')+' Importer','import','backup-btn')+'</div><input type="file" id="import-file" accept=".json,application/json" hidden><div class="privacy-caption">'+icon('heart')+' Aucune synchronisation automatique</div></section>'+
 '<h2 class="settings-heading">Confidentialité</h2><section class="settings-list"><button class="settings-list-item" type="button" data-action="go:Confidentialité"><span class="settings-glyph">'+icon('heart')+'</span><span>Politique de confidentialité</span>'+icon('chevron')+'</button><button class="settings-list-item" type="button" data-action="go:Conditions"><span class="settings-glyph">'+icon('chart')+'</span><span>Conditions d’utilisation</span>'+icon('chevron')+'</button><button class="settings-list-item" type="button" data-action="go:Mentions légales"><span class="settings-glyph">'+icon('user')+'</span><span>Mentions légales</span>'+icon('chevron')+'</button></section>'+
-'<section class="profile-help"><span>'+icon('heart')+'</span><p>L’analyse photo reste facultative et demande votre autorisation à chaque envoi.</p></section>'+
+'<section class="profile-help"><span>'+icon('heart')+'</span><p>Vos données sont conservées sur cet appareil. Exportez une sauvegarde avant de changer de téléphone. L’analyse photo requiert votre autorisation à chaque envoi.</p></section>'+
 '<div class="delete-area">'+btn('Effacer mes données de cet appareil','clear','delete-link')+'</div></div>';
 }
 function render(){
@@ -275,15 +352,15 @@ const showNav=!['Accueil','Bienvenue',...Object.keys(legal)].includes(page);
 nav.hidden=!showNav;
 nav.innerHTML=showNav?[['Aujourd’hui','Aujourd’hui','home'],['Repas','Repas','meal'],['Activité','Activité','steps'],['Progrès','Progrès','chart'],['Profil','Profil','user']].map(([target,label,symbol])=>'<button type="button" data-action="go:'+target+'" aria-label="'+label+'" aria-current="'+(page===target?'page':'false')+'">'+icon(symbol)+'<span>'+label+'</span></button>').join(''):'';
 let content='';
-if(page==='Accueil')content='<section class="welcome premium-welcome"><header class="welcome-brand"><span class="brand-mark">'+icon('heart')+'</span><span>Mon <strong>Suivi</strong></span></header><div class="welcome-visual" aria-hidden="true"><div class="welcome-preview"><div class="welcome-preview-top"><span>Mon équilibre</span><span>✦</span></div><div class="welcome-preview-main"><div class="welcome-preview-ring"><div>'+icon('heart')+'<strong>Moi, à mon rythme</strong><small>Chaque jour compte</small></div></div><div class="welcome-preview-numbers"><span class="preview-label">Une douce routine</span><span class="preview-dash">✦</span><span class="preview-chips"><i></i><i></i><i></i></span></div></div></div><div class="welcome-float-card"><span>'+icon('heart')+'</span><div><strong>Bien-être au quotidien</strong><small>Repas · Poids · Humeur · Pas</small></div></div></div><div class="welcome-content"><span class="welcome-eyebrow">VOTRE ESPACE PERSONNEL</span><h1>Chaque jour,<br><em>un peu plus vous.</em></h1><p>Un joli espace pour suivre vos habitudes, sans pression et à votre rythme.</p><div class="btn-stack">'+btn(data.consent?'Retrouver mon suivi':'Commencer','start','wide')+btn('Explorer la démo','demo','secondary wide')+'</div><p class="welcome-privacy">'+icon('heart')+' Gratuit · Vos données restent sur cet appareil</p></div></section>';
-else if(page==='Bienvenue')content='<section class="setup">'+btn(icon('back'),'go:Accueil','back')+'<h1>Votre espace<br>personnel</h1><p>Suivez votre parcours à votre rythme, sur cet appareil, sans créer de compte en ligne.</p><form id="setup-form"><div class="field"><label for="setup-name">Prénom ou pseudonyme</label><input id="setup-name" name="name" maxlength="60" placeholder="Comment souhaitez-vous être appelé ?" autocomplete="nickname"><p class="explain">Facultatif. Ne renseignez aucune information sensible.</p></div><div class="consent-row"><label><input name="terms" type="checkbox" required><span>J’ai lu les <a href="#" data-action="go:Conditions">conditions d’utilisation</a>.</span></label></div><div class="consent-row"><label><input name="consent" type="checkbox" required><span>J’accepte d’enregistrer localement mes données de suivi (poids, repas, humeur et pas), et je peux retirer mon accord et effacer mes données à tout moment.</span></label></div><p class="info-note"><a href="#" data-action="go:Confidentialité">Confidentialité et retrait du consentement</a></p><div class="btn-stack" style="margin-top:24px"><button class="wide" type="submit">Créer mon espace local</button>'+btn('Découvrir sans compte','demo','secondary wide')+'</div></form>'+footer()+'</section>';
+if(page==='Accueil')content='<section class="welcome premium-welcome"><header class="welcome-brand"><span class="brand-mark">'+icon('heart')+'</span><span>Mon <strong>Suivi</strong></span></header><div class="welcome-visual" aria-hidden="true"><div class="welcome-preview"><div class="welcome-preview-top"><span>Mon équilibre</span><span>✦</span></div><div class="welcome-preview-main"><div class="welcome-preview-ring"><div>'+icon('heart')+'<strong>Moi, à mon rythme</strong><small>Chaque jour compte</small></div></div><div class="welcome-preview-numbers"><span class="preview-label">Une douce routine</span><span class="preview-dash">✦</span><span class="preview-chips"><i></i><i></i><i></i></span></div></div></div><div class="welcome-float-card"><span>'+icon('heart')+'</span><div><strong>Bien-être au quotidien</strong><small>Repas · Poids · Humeur · Pas</small></div></div></div><div class="welcome-content"><span class="welcome-eyebrow">MON SUIVI · VERSION 3</span><h1>Chaque jour,<br><em>un peu plus vous.</em></h1><p>Vos repas, vos pas et vos progrès dans un espace doux, privé et simple à utiliser.</p><div class="btn-stack">'+btn(data.consent?'Retrouver mon suivi':'Commencer mon suivi','start','wide')+'</div><p class="welcome-privacy">'+icon('heart')+' Gratuit · Vos données restent sur cet appareil</p></div></section>';
+else if(page==='Bienvenue')content='<section class="setup">'+btn(icon('back'),'go:Accueil','back')+'<h1>Votre espace<br>personnel</h1><p>Suivez votre parcours à votre rythme, sur cet appareil, sans créer de compte en ligne.</p><form id="setup-form"><div class="field"><label for="setup-name">Prénom ou pseudonyme</label><input id="setup-name" name="name" maxlength="60" placeholder="Comment souhaitez-vous être appelé ?" autocomplete="nickname"><p class="explain">Facultatif. Ne renseignez aucune information sensible.</p></div><div class="consent-row"><label><input name="terms" type="checkbox" required><span>J’ai lu les <a href="#" data-action="go:Conditions">conditions d’utilisation</a>.</span></label></div><div class="consent-row"><label><input name="consent" type="checkbox" required><span>J’accepte d’enregistrer localement mes données de suivi (poids, repas, humeur et pas), et je peux retirer mon accord et effacer mes données à tout moment.</span></label></div><p class="info-note"><a href="#" data-action="go:Confidentialité">Confidentialité et retrait du consentement</a></p><div class="btn-stack" style="margin-top:24px"><button class="wide" type="submit">Créer mon espace local</button>'+'</div></form>'+footer()+'</section>';
 else if(legal[page])content='<section class="legal-page">'+btn(icon('back')+' Retour','back','ghost')+'<h1>'+esc(page)+'</h1><div class="section-card white-card"><p>'+esc(legal[page])+'</p></div>'+footer()+'</section>';
 else if(page==='Aujourd’hui')content=screenHome();
 else if(page==='Repas')content=screenMeals();
 else if(page==='Activité')content=screenActivity();
 else if(page==='Progrès')content=screenProgress();
 else if(page==='Profil')content=screenProfile();
-if(demo&&showNav)content='<p class="demo-note" style="margin:calc(10px + env(safe-area-inset-top)) 0 12px">Mode démonstration · données fictives · <button type="button" data-action="exit">Quitter</button></p>'+content;if(!storageOK)content='<p class="notice-error" role="alert">Sauvegarde locale indisponible. Exportez vos données avant de quitter cette page.</p>'+content;
+if(!storageOK)content='<p class="notice-error" role="alert">Sauvegarde locale indisponible. Exportez vos données avant de quitter cette page.</p>'+content;
 app.innerHTML=content+(showNav?footer():'');
 }
 function modal(html){restoreFocus=document.activeElement;dlg.innerHTML=html;dlg.showModal()}
@@ -306,6 +383,9 @@ const rows=sorted(data.weights),i=rows.findIndex(x=>String(x.id)===String(id));i
 const e=rows[i],prev=rows[i-1],diff=prev?Number(e.value)-Number(prev.value):null,fr=e.date.split('-').reverse().join('/');
 modal('<h2>Mesure du '+fr+'</h2><div class="weight-value" style="margin:4px 0 10px">'+shownWeight(e.value)+' <small>'+unit+'</small></div><p class="modal-explain">'+(diff===null?'Votre première mesure.':(diff>0?'+':'')+(diff<0?'-':'')+fmt(Math.abs(unit==='lb'?diff*unitFactor:diff))+' '+unit+' par rapport à la mesure précédente.')+'</p><div class="row">'+btn('Modifier','pointedit:weights:'+e.id)+btn('Supprimer','pointdel:weights:'+e.id,'secondary')+btn('Fermer','close','ghost')+'</div>');
 }
+function openSanteHelp(){
+ modal('<div class="sante-help"><span class="sante-help-icon">'+icon('heart')+'</span><h2>Importer mes pas depuis Santé</h2><p>Safari ne peut pas lire Santé directement. Avec Raccourcis, vous pouvez récupérer votre total quotidien et ouvrir Mon Suivi pour l’enregistrer sur cet iPhone, gratuitement.</p><ol><li>Sur l’iPhone, ouvrez <strong>Raccourcis</strong> et créez un nouveau raccourci.</li><li>Ajoutez <strong>Rechercher des échantillons Santé</strong> : type <strong>Pas</strong>, date de début <strong>aujourd’hui</strong> ; autorisez l’accès si demandé.</li><li>Ajoutez <strong>Calculer des statistiques</strong> et choisissez la <strong>somme des valeurs</strong>. Vérifiez que le total correspond à Santé.</li><li>Ajoutez l’action <strong>Texte</strong> avec l’adresse ci-dessous. Remplacez le mot <em>RÉSULTAT</em> par la variable magique issue du calcul, puis ajoutez <strong>Ouvrir les URL</strong>.</li><li>Lancez le raccourci : Mon Suivi enregistrera les pas du jour dans ce navigateur. Vous pouvez ensuite ajouter une automatisation quotidienne si votre iPhone le permet.</li></ol><div class="shortcut-url"><code>https://mon-suivi-six.vercel.app/#sante-pas=RÉSULTAT</code></div><p class="modal-explain">Le nombre est transmis uniquement dans le fragment du lien, sans requête vers notre serveur. Il est retiré de la barre d’adresse dès l’ouverture. Les données restent dans le stockage local du navigateur ; le suivi installé sur l’écran d’accueil peut utiliser un stockage différent de Safari.</p><p class="modal-explain">La lecture automatique en arrière-plan n’est pas garantie : un essai réel avec votre iPhone est nécessaire.</p><div class="row">'+btn('Compris','close','secondary')+'</div></div>');
+}
 function openStepsGoal(){
 modal('<form id="goal-form"><h2>Mon objectif de pas</h2><p class="modal-explain">Par défaut : 6 000 pas par jour. Personnalisez-le ou choisissez de suivre vos pas sans objectif.</p><label>Objectif quotidien<input name="goal" type="number" inputmode="numeric" min="500" max="100000" step="100" required value="'+(data.stepsGoal||6000)+'"></label><p id="goal-error" class="notice-error" role="alert" hidden></p><div class="row"><button type="submit">Enregistrer</button>'+btn('Annuler','close','secondary')+'</div></form>');
 }
@@ -318,7 +398,7 @@ const payload=JSON.stringify({format:'mon-suivi',version:2,...data,unit},null,2)
 try{const file=new File([payload],filename,{type:'application/json'});
 if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Mon Suivi — export de mes données'}).catch(()=>{});return}}catch(err){}
 const blob=new Blob([payload],{type:'application/json'}),href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),5000)}
-function clearData(){if(demo){leaveDemo();return}if(!confirm('Effacer définitivement vos données locales ? Pensez à les exporter avant de continuer.'))return;try{for(const key of [KEY,KEY+'-photo-consent',KEY+'-off',KEY+'-backup'])localStorage.removeItem(key)}catch{storageOK=false}photoData=null;photoSessionApproved=false;offResults=[];data=blank();demo=false;unit='kg';go('Accueil')}
+function clearData(){if(!confirm('Effacer définitivement vos données locales ? Pensez à les exporter avant de continuer.'))return;try{for(const key of [KEY,KEY+'-photo-consent',KEY+'-off',KEY+'-backup'])localStorage.removeItem(key)}catch{storageOK=false}photoData=null;photoSessionApproved=false;offResults=[];data=blank();demo=false;unit='kg';go('Accueil')}
 document.addEventListener('submit',e=>{if(e.target.id!=='setup-form')return;e.preventDefault();const f=new FormData(e.target);if(!f.has('consent')||!f.has('terms'))return;data=blank();data.name=String(f.get('name')||'').trim().slice(0,60);data.consent=true;data.consentAt=new Date().toISOString();data.consentVersion='1';demo=false;unit='kg';page='Aujourd’hui';save()});
 document.addEventListener('submit',e=>{
 if(e.target.id==='photo-consent-form'){e.preventDefault();const f=new FormData(e.target);if(!f.has('agree')){const err=document.querySelector('#photo-consent-error');if(err){err.textContent='Cochez la case pour autoriser l’envoi de la photo.';err.hidden=false}return}photoSessionApproved=true;try{localStorage.removeItem(KEY+'-photo-consent')}catch{}dlg.close();analyzePhoto();return}
@@ -326,6 +406,7 @@ if(e.target.id==='goal-form'){e.preventDefault();const g=Number(new FormData(e.t
 if(e.target.id==='wgoal-form'){e.preventDefault();let g=Number(new FormData(e.target).get('goal'));if(unit==='lb')g=g/unitFactor;if(!Number.isFinite(g)||g<=0||g>700){const err=document.querySelector('#wgoal-error');err.textContent='Objectif invalide.';err.hidden=false;return}data.weightGoal=Math.round(g*100)/100;dlg.close();save();return}
 });
 document.addEventListener('input',e=>{
+if(e.target.name==='name'&&mealMode==='confirm'&&photoAI){const slot=document.querySelector('#photo-alt-content');if(slot)slot.innerHTML=photoAlternativesHtml(e.target.value);return}
 if(e.target.id!=='off-grams')return;const g=Number(e.target.value),grams=Number.isFinite(g)&&g>0?g:100;const k=document.querySelector('#off-kcal');if(k&&offPicked)k.value=offKcalFor(grams);for(const [key] of macroFields){const input=document.querySelector('#off-'+key);if(input)input.value=macroFor(key,grams)}
 });
 document.addEventListener('click',e=>{
@@ -334,8 +415,6 @@ const [action,type,id]=el.dataset.action.split(':');
 if(action==='go'){go(type);return}
 if(action==='start'){if(data.consent){go('Aujourd’hui')}else go('Bienvenue');return}
 if(action==='back'){go(data.consent||demo?'Aujourd’hui':'Accueil');return}
-if(action==='demo'){startDemo();return}
-if(action==='exit'){leaveDemo();return}
 if(action==='add'){type==='meals'?openMealForm():openForm(type);return}
 if(action==='addphoto'){openMealForm();mealMode='photo';renderMealDialog();return}
 if(action==='edit'){type==='meals'?openMealForm(data.meals.find(x=>String(x.id)===String(id))):openForm(type,id);return}
@@ -347,6 +426,8 @@ if(action==='ciqualpick'){ciqualPick(Number(type));return}
 if(action==='offpick'){offPick(Number(type));return}
 if(action==='offpick-alt'){offPickAlt(Number(type));return}
 if(action==='photoanalyze'){analyzePhoto();return}
+if(action==='photo-alt-manual'){showPhotoAlternativesManual();return}
+if(action==='photo-compare'){photoCompareProducts();return}
 if(action==='photo-consent-off'){photoSessionApproved=false;try{localStorage.removeItem(KEY+'-photo-consent')}catch{}render();return}
 if(action==='delete'){if(confirm('Supprimer cette entrée ?')){data[type]=data[type].filter(x=>String(x.id)!==id);save()}return}
 if(action==='quickmood'){quickMood(type);return}
@@ -354,6 +435,7 @@ if(action==='period'){period=type;render();return}
 if(action==='close'){dlg.close();return}
 if(action==='point'){pointDialog(type);return}
 if(action==='steps-goal'){openStepsGoal();return}
+if(action==='sante-help'){openSanteHelp();return}
 if(action==='steps-goal-off'){data.stepsGoal=null;save();return}
 if(action==='weight-goal'){openWeightGoal();return}
 if(action==='weight-goal-off'){data.weightGoal=null;save();return}
@@ -361,13 +443,13 @@ if(action==='pointedit'){dlg.close();openForm(type,id);return}
 if(action==='pointdel'){dlg.close();if(confirm('Supprimer cette mesure ?')){data[type]=data[type].filter(x=>String(x.id)!==id);save()}return}
 if(action==='name'){data.name=document.querySelector('#name').value.trim().slice(0,60);save();return}
 if(action==='export'){exportData();return}
-if(action==='import'){if(demo){alert('Quittez la démonstration pour importer vos propres données.');return}document.querySelector('#import-file')?.click();return}
+if(action==='import'){document.querySelector('#import-file')?.click();return}
 if(action==='clear'){clearData();return}
 });
 document.addEventListener('change',async e=>{
 if(e.target.id==='photo-file'){photoPicked(e.target.files?.[0]);e.target.value='';return}
 if(e.target.id==='unit'){unit=e.target.value==='lb'?'lb':'kg';if(!demo){data.unit=unit;save()}else render();return}
-if(e.target.id!=='import-file')return;if(demo)return;
+if(e.target.id!=='import-file')return;
 const file=e.target.files?.[0];if(!file)return;
 try{
 if(file.size>2_000_000)throw Error('Le fichier est trop volumineux (2 Mo maximum).');
@@ -376,4 +458,5 @@ modal('<h2>Importer votre sauvegarde ?</h2><p>Ce fichier contient '+parsed.weigh
 dlg.querySelector('[data-action="confirm-import"]').onclick=()=>{parsed.consent=true;parsed.consentAt=new Date().toISOString();data=parsed;demo=false;unit=data.unit;dlg.close();go('Profil');save()};
 }catch(error){alert('Import impossible : '+error.message)}finally{e.target.value=''}
 });
+importSanteSteps();
 render();
