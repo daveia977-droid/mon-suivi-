@@ -682,3 +682,18 @@ nav button[aria-current=page] svg{stroke-width:2.2}
 .sante-help h2{margin:9px 0}.sante-help p{line-height:1.5;font-size:13px}.sante-help ol{padding-left:20px;font-size:13px;line-height:1.58}.sante-help li{margin:8px 0}.shortcut-url{padding:11px;border-radius:12px;border:1px solid #f4dfc4;background:#fff8e9;overflow-wrap:anywhere;word-break:break-word}.shortcut-url code{font-size:12px}
 @media(max-width:350px){.health-sync-card{flex-wrap:wrap}.health-sync-card .compact-outline{margin-left:50px}.progress-trophy{align-items:flex-start;padding:15px 12px}.progress-trophy-icon{width:44px;height:44px;border-radius:14px}.progress-trophy-icon svg{width:23px;height:23px}}
 @media(prefers-reduced-motion:reduce){.progress-trophy,.health-sync-card{transition:none}}
+
+
+/* Alternatives facultatives à la suite de l'estimation d'une photo */
+.photo-alt-panel{margin:16px 0 14px;padding:15px;border-radius:21px;border:1px solid #f5dfe7;background:linear-gradient(145deg,#fffaf1,#fff2f5 75%,#fff9f5);box-shadow:0 5px 19px rgba(172,98,111,.055)}
+.photo-alt-head{display:flex;gap:9px;align-items:flex-start}
+.photo-alt-symbol{width:36px;height:36px;flex-shrink:0;border-radius:12px;background:#ffe7a3;color:#966017;display:grid;place-items:center}
+.photo-alt-symbol svg{width:19px;height:19px}
+.photo-alt-head h3{font-size:14px;line-height:1.35;font-weight:800;color:#553342;margin:0 0 3px}
+.photo-alt-head p{font-size:11.5px;line-height:1.4;color:#8d7380;margin:0}
+.photo-alt-list{list-style:none;margin:12px 0 10px;padding:0;display:grid;gap:8px}
+.photo-alt-list li{background:rgba(255,255,255,.8);border:1px solid #f9e8e4;border-radius:13px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;overflow-wrap:anywhere}
+.photo-alt-list strong{font-size:12.5px;color:#57404a;line-height:1.35}
+.photo-alt-list small{font-size:11px;color:#86767b;line-height:1.4}
+.photo-alt-note{font-size:10.5px;line-height:1.5;color:#8b7980;margin:11px 0}
+.photo-alt-compare{width:auto;max-width:100%;min-height:44px;padding:9px 13px;font-size:12px;line-height:1.35;border:1px solid #f0cbd7!important;color:#a63d68!important;background:white!important;box-shadow:none!important;border-radius:999px;white-space:normal}
