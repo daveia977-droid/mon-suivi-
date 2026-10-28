@@ -2,27 +2,27 @@
 
 Application de bien-être en français pour noter son poids, ses repas, ses pas et son humeur, à son rythme. Conçue pour une utilisation mobile personnelle (iPhone), sans compte en ligne ni abonnement.
 
-> Version 1 « Fusion Premium ». Ce projet ne fournit aucun diagnostic ni promesse de perte de poids. Les calories sont toujours des estimations modifiables.
+> **Version 3 « Fusion Premium »** — destinée aux essais sur iPhone. Ce projet ne fournit aucun diagnostic médical ni promesse de perte de poids. Les calories restent des estimations modifiables.
 
-## Fonctionnalités (V1)
+## Fonctionnalités (V3)
 
 - **Aujourd'hui** : tableau de bord avec « Bonjour ! », poids récent, mini-courbe, pas du jour, humeur en un geste.
 - **Poids** : historique, courbe interactive (toucher un point : écart avec la mesure précédente, modifier, supprimer), objectif facultatif en pointillés.
-- **Repas** : 5 modes — Open Food Facts, extrait Ciqual 2025 (42 aliments vérifiés), code-barres saisi, photo (estimation IA modifiable), saisie manuelle. Protéines, glucides et lipides facultatifs et modifiables. Alternatives « même famille » avec Nutri-Score uniquement quand la base le fournit.
+- **Repas** : 5 modes — Open Food Facts, extrait Ciqual 2025 (42 aliments vérifiés), code-barres saisi, alternatives alimentaires sans photo (saisie du nom), saisie manuelle. Le code de photo IA est présent mais la fonction demeure désactivée en l'absence de configuration du serveur. Protéines, glucides et lipides facultatifs et modifiables. Alternatives « même famille » avec Nutri-Score uniquement quand la base le fournit.
 - **Activité** : pas saisis manuellement ou importés depuis Santé via un raccourci iOS personnel, objectif par défaut 6 000 pas/jour personnalisable ou désactivable, anneau de progression, historique. Le site ne lit jamais Santé directement.
 - **Humeur** : 4 humeurs colorées (À plat, Moyen, Bien, En forme) avec note facultative.
 - **Profil** : prénom, unité kg/lb, export/import JSON (version 2), effacement, autorisation photo révocable.
 - **Confidentialité** : tout reste dans le navigateur (localStorage) ; rien ne sort sans consentement explicite. Consentement photo distinct, non précoché, révocable.
 
 
-## Alternatives alimentaires après photo (préparation V2.1)
+## Alternatives alimentaires (V3)
 
-- Après une analyse photo réussie, Mon Suivi suggère automatiquement deux idées de repas ou collations pour certaines familles de produits reconnaissables dans le nom retourné par l'IA (chips, sodas, biscuits, pizza, frites, etc.). Un nom incertain déclenche uniquement des idées générales.
-- Si le nom est corrigé par l'utilisateur, les idées se mettent à jour immédiatement. Elles sont des propositions à adapter, **pas** un diagnostic nutritionnel, une preuve qu'un produit est ultra-transformé ou une comparaison certifiée.
+- Dans l'onglet Repas > Alternatives, on indique le nom d'un produit (chips, soda, biscuit, pizza, etc.) : Mon Suivi affiche deux idées de repas ou collations possibles. Si la famille n'est pas clairement reconnue, seules des suggestions générales s'affichent. Aucun envoi de photo n'est possible tant que l'IA n'est pas activée et validée.
+- Lorsqu'une future estimation par photo sera disponible, les idées seront également adaptées au nom corrigé par l'utilisateur. Elles sont des propositions à adapter, **pas** un diagnostic nutritionnel, une preuve qu'un produit est ultra-transformé ou une comparaison certifiée.
 - Le bouton **Comparer des produits** effectue, seulement sur action explicite, une recherche Open Food Facts avec un nom de famille alimentaire ; les Nutri-Scores affichés dépendent des données disponibles dans cette base collaborative.
-- Cette aide ne transmet aucune photo supplémentaire à Open Food Facts et ne modifie pas les repas enregistrés sans action explicite de l'utilisateur. Le service d'analyse photo IA demeure désactivé tant que les clés Mistral/Upstash et les essais réels ne sont pas validés.
+- L'aide ne transmet aucune photo à Open Food Facts et ne modifie pas les repas enregistrés sans action explicite. Le service photo IA demeure désactivé tant que Mistral, Upstash et les essais réels ne sont pas validés.
 
-## Apple Santé via Raccourcis (préparation V2.1)
+## Apple Santé via Raccourcis (V3, à essayer sur iPhone)
 
 - Dans **Activité → Configurer**, suivre les instructions pour créer un raccourci iOS personnel.
 - Le raccourci lit les échantillons « Pas » de la journée via **Rechercher des échantillons Santé**, calcule leur somme, puis ouvre `https://mon-suivi-six.vercel.app/#sante-pas=RÉSULTAT`, où RÉSULTAT est une variable numérique de Raccourcis et non le mot lui-même.
@@ -63,7 +63,8 @@ L'estimation IA est un ordre de grandeur (souvent ±30–50 %), toujours modifia
 ## État des tests — honnêteté radicale
 
 - **Réalisés (simulés, sandbox)** : syntaxe, validation des données, écrans, flux complets repas/pas/poids/humeur, OFF (recherche, code-barres, alternatives, cache), photo (consentement, quota, fail-closed, repli modèle), export/import. 41 + 46 + 10 + 30 + 25 + 22 + 21 = **195 vérifications vertes** au 28/10/2026, avec DOM et réseau simulés.
-- **Non réalisés** : test dans un vrai navigateur, sur un vrai iPhone ; appel réel à Open Food Facts et à Mistral avec de vraies photos (porte GO/NO-GO avant activation photo) ; comportement réel du compteur Upstash.
+- **Réalisés après la V2** : tests Playwright automatisés sous Chromium, sur des viewports mobiles 320/393/430 px ; scénarios de création de suivi, pas, trophée, repas, alternatives sans IA, profil et export/import ; validation de syntaxe et tests de non-régression.
+- **Non réalisés** : essai sur un véritable iPhone ; synchronisation Santé/Raccourcis en conditions réelles ; appel réel à Open Food Facts depuis l'iPhone ; analyse de photo par Mistral et contrôle Upstash (services non configurés).
 
 Aucun test matériel n'est revendiqué. La photo ne fonctionne pas sur GitHub Pages (pas de backend) : elle nécessite le déploiement Vercel (voir DEPLOIEMENT_VERCEL.md).
 
@@ -73,7 +74,8 @@ Aucun test matériel n'est revendiqué. La photo ne fonctionne pas sur GitHub Pa
 - Pas de lecture automatique du podomètre : restriction d'Apple pour les applications web ; nécessiterait une app native (Capacitor + compte développeur Apple 99 $/an — hors périmètre).
 - Pas de scan de code-barres par caméra (saisie des chiffres).
 - localStorage ≈ 5 Mo : les vignettes photo ne sont pas persistées volontairement.
-- Textes juridiques en brouillon, à compléter avant publication officielle.
+- Textes juridiques en brouillon, à compléter avant diffusion large. La V3 publiée est une version de test, pas un produit médical ni un service avec compte en ligne.
+- L'écran d'accueil ne propose plus de mode démo ; la saisie initiale demande un accord pour l'enregistrement local. Aucune icône n'a été modifiée.
 
 ## Références de design
 
