@@ -49,6 +49,19 @@ const {chromium}=require('playwright');
   await page.locator('#dialog button[data-action="mealmode:photo"]').click();
   await page.locator('#dialog .photo-pick').waitFor();
   await page.locator('#dialog button[data-action="close"]').click();
+  // Chemin post-analyse photo : sans appeler le serveur IA ni exposer une photo.
+  await page.evaluate(()=>{
+    offPicked={code:'',name:'Chips de pommes de terre',brand:'',kcal:540,protein:null,carbs:null,fat:null,source:'photo',nutri:null,cats:[]};
+    photoAI={grams:30,confidence:'faible'};
+    mealMode='confirm';renderMealDialog();
+  });
+  await page.locator('#dialog .photo-alt-panel').waitFor();
+  assert.match(await page.locator('#dialog .photo-alt-list').textContent(),/Pop-corn nature maison/,'Alternative aux chips proposée');
+  await page.locator('#dialog input[name="name"]').fill('Pizza industrielle');
+  assert.match(await page.locator('#dialog .photo-alt-list').textContent(),/Pizza maison/,'Alternatives mises à jour après correction du nom');
+  assert.equal(await page.locator('#dialog button[data-action="photo-compare"]').count(),1,'Recherche OFF sur demande explicite');
+  await page.screenshot({path:'screenshots/photo-alternatives-'+size.width+'.png',fullPage:true});
+  await page.locator('#dialog button[data-action="close"]').click();
   await page.locator('nav#nav button[data-action="go:Profil"]').click();
   const backups=page.locator('.backup-btn');
   assert.equal(await backups.count(),2,'Exporter/Importer côte à côte');
