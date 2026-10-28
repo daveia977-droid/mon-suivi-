@@ -26,7 +26,7 @@ function json(res, status, body) {
 
 function sanitizeAI(v) {
   const name = typeof v?.name === 'string' && v.name.trim() ? v.name.trim().slice(0, 150) : 'Repas photographié';
-  const kcal = Number(v?.kcal100g);
+  const kcal = v?.kcal100g===null||v?.kcal100g===undefined||v?.kcal100g===''?NaN:Number(v.kcal100g);
   const grams = Number(v?.grams);
   return {
     name,
@@ -48,7 +48,8 @@ async function quotaCheck(url, token, limit) {
   if (!Number.isInteger(n) || n < 1) throw new Error('counter');
   if (n === 1) {
     // Le compteur du jour expire de lui-même (26 h > 24 h, marge de fuseaux).
-    await fetch(url + '/expire/' + encodeURIComponent(key) + '/93600', { method: 'POST', headers }).catch(() => {});
+    const expire = await fetch(url + '/expire/' + encodeURIComponent(key) + '/93600', { method: 'POST', headers });
+    if (!expire.ok) throw new Error('counter');
   }
   return { n, left: Math.max(0, limit - n) };
 }
@@ -107,7 +108,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { res.statusCode = 204; res.end(); return; }
   if (req.method !== 'POST') { json(res, 405, { ok: false, error: 'method' }); return; }
 
-  if (process.env.PHOTO_ENABLED === 'false') { json(res, 503, { ok: false, error: 'disabled' }); return; }
+  if (process.env.PHOTO_ENABLED !== 'true') { json(res, 503, { ok: false, error: 'disabled' }); return; }
   const apiKey = process.env.MISTRAL_API_KEY, upUrl = process.env.UPSTASH_REDIS_REST_URL, upToken = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!apiKey || !upUrl || !upToken) { json(res, 503, { ok: false, error: 'config' }); return; }
 

@@ -1,0 +1,21 @@
+name: Mon Suivi — Vérifications
+on:
+  push:
+    branches: [main, fix/v1-audit-nutrition-privacy]
+  pull_request:
+    branches: [main]
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Vérification de syntaxe
+        run: |
+          node --check app.js
+          node --check ciqual-2025.js
+          node --check api/photo.js
+      - name: Tests de non-régression
+        run: node tests/smoke.cjs

@@ -8,7 +8,7 @@ Application de bien-être en français pour noter son poids, ses repas, ses pas 
 
 - **Aujourd'hui** : tableau de bord avec « Bonjour ! », poids récent, mini-courbe, pas du jour, humeur en un geste.
 - **Poids** : historique, courbe interactive (toucher un point : écart avec la mesure précédente, modifier, supprimer), objectif facultatif en pointillés.
-- **Repas** : 4 modes — recherche Open Food Facts, code-barres saisi, photo (estimation IA modifiable), saisie manuelle. Alternatives « même famille » avec Nutri-Score affiché seulement quand la base le fournit.
+- **Repas** : 5 modes — Open Food Facts, extrait Ciqual 2025 (42 aliments vérifiés), code-barres saisi, photo (estimation IA modifiable), saisie manuelle. Protéines, glucides et lipides facultatifs et modifiables. Alternatives « même famille » avec Nutri-Score uniquement quand la base le fournit.
 - **Activité** : pas saisis manuellement (aucune lecture du podomètre — impossible dans une app web iOS), objectif par défaut 6 000 pas/jour personnalisable ou désactivable, anneau de progression, historique.
 - **Humeur** : 4 humeurs colorées (À plat, Moyen, Bien, En forme) avec note facultative.
 - **Profil** : prénom, unité kg/lb, export/import JSON (version 2), effacement, autorisation photo révocable.
@@ -25,6 +25,7 @@ Aucune carte bancaire nulle part. GitHub (code), GitHub Pages (version de réfé
 | index.html | Structure HTML |
 | styles.css | Styles Fusion Premium (palette ivoire/rose/jaune/framboise) |
 | app.js | Application complète, sans dépendance |
+| ciqual-2025.js | Extrait statique de 42 aliments (Anses, Ciqual 2025, Licence Ouverte 2.0) |
 | api/photo.js | Fonction Vercel : analyse photo (clé Mistral en variable d'environnement uniquement) |
 | artwork.svg, favicon.svg | Illustration et icône |
 | DEPLOIEMENT_VERCEL.md | Guide de déploiement pas à pas (sans carte) |
@@ -61,3 +62,12 @@ Aucun test matériel n'est revendiqué. La photo ne fonctionne pas sur GitHub Pa
 - Apple Design — Emil Kowalski ; Mobile Native — Emil Kowalski
 
 Ces références guident le développement ; elles ne constituent pas une affiliation à Apple ni une certification.
+
+## Mise à jour de l'audit nutrition et confidentialité
+
+- Ciqual 2025 : 42 aliments courants vérifiés, valeurs pour 100 g, source **Anses. 2025. Table de composition nutritionnelle des aliments Ciqual** (https://doi.org/10.57745/RDMHWY), licence Etalab 2.0. Aucun aliment ou chiffre ajouté sans preuve ; cet extrait est limité, il n'est pas encore le catalogue de 200 aliments envisagé.
+- Calories inconnues : `null` ne se transforme plus en 0 kcal dans la fonction photo ni à l'écran. L'utilisateur saisit lui-même une valeur avant d'enregistrer.
+- Protéines, glucides et lipides (g) facultatifs : valeurs inconnues conservées comme `null`, correction et calcul proportionnel à la portion ; sauvegardes V1/V2 compatibles.
+- Chaque envoi de photo requiert une case de consentement non précochée ; l'autorisation n'est pas persistée.
+- Tout effacer supprime le suivi, les caches et la sauvegarde locale, ainsi que toute ancienne autorisation photo. Les fichiers JSON téléchargés restent à gérer manuellement par l'utilisatrice.
+- L'API photo est **désactivée par défaut** côté serveur : activation uniquement après vérification d'un modèle Mistral vision accessible gratuitement et configuration volontaire des variables privées.
