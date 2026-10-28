@@ -47,4 +47,17 @@ const healthSaved={weights:[],moods:[],meals:[],steps:[{id:'sante-2026-10-27',da
 const healthScript='const blank=()=>({name:"",weights:[],moods:[],meals:[],steps:[],stepsGoal:6000,weightGoal:null,consent:false,unit:"kg"});const today=()=> "2026-10-28";const isDate=d=> /^\\d{4}-\\d{2}-\\d{2}$/.test(d);'+validate+';validatePayload('+JSON.stringify(healthSaved)+')';
 const healthRestored=vm.runInNewContext(healthScript);
 assert.equal(healthRestored.steps[0].source,'sante-raccourcis','La sauvegarde conserve la provenance des pas');
-console.log('Tests Mon Suivi : Ciqual, kcal null, macros, consentement, sauvegardes et import Santé OK.');
+
+const ideaDefs=app.match(/const PHOTO_IDEAS=\\[[\\s\\S]*?\\n\\];/)?.[0];
+const ideaFn=app.match(/function photoAlternatives\\(name\\)\\{[\\s\\S]*?\\n\\}/)?.[0];
+assert.ok(ideaDefs&&ideaFn,'Suggestions après photo intégrées');
+const ideaContext='function ciqualClean(s){return String(s).toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")}'+ideaDefs+';'+ideaFn+';';
+function ideasOf(name){return vm.runInNewContext(ideaContext+';photoAlternatives('+JSON.stringify(name)+')')}
+assert.equal(ideasOf('Chips de pommes de terre').specific,true);
+assert.match(ideasOf('Chips').items[0][0],/Pop-corn/);
+assert.match(ideasOf('Pizza industrielle').items[0][0],/Pizza maison/);
+assert.match(ideasOf('Soda cola').items[0][0],/Eau pétillante/);
+assert.equal(ideasOf('Carottes').specific,false,'Ne jamais inférer sans preuve un produit transformé');
+assert.ok(app.includes('photoAlternativesHtml(offPicked.name)'),'Suggestions affichées après analyse photo');
+assert.ok(app.includes("if(action==='photo-compare')"),'Recherche Open Food Facts seulement sur un clic');
+console.log('Tests Mon Suivi : Ciqual, nutrition, sauvegardes, Apple Santé et alternatives photo OK.');
