@@ -248,6 +248,15 @@ document.addEventListener('click',e=>{
    }return;
  }
 });
+/* Le grand bouton « Alternatives alimentaires » ouvre directement la galerie
+   illustrée plutôt que l'ancien formulaire textuel sans images. */
+document.addEventListener('click',e=>{
+ const direct=e.target.closest('.meals-screen .meal-entry-choice[data-action="addphoto"]');
+ if(!direct)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ state.section='alternatives';renderGuide();
+ document.querySelector('.mealguide-root')?.scrollIntoView({behavior:'smooth',block:'start'});
+},true);
 document.addEventListener('input',e=>{
  if(e.target.id==='mg-recipe-search'){state.query=e.target.value;state.visible=10;renderCardsOnly()}
  if(e.target.id==='mg-alt-search'){state.altQuery=e.target.value;renderCardsOnly()}
