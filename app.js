@@ -26,7 +26,8 @@ upload:'<path d="M12 16V4m-4 4 4-4 4 4M4 17v4h16v-4"/>',
 trash:'<path d="M4 7h16M10 4h4M6 7l1 14h10l1-14M10 11v6m4-6v6"/>',
 heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
 plus:'<path d="M12 5v14M5 12h14"/>',
-steps:'<ellipse cx="7" cy="7.5" rx="2.2" ry="3.2"/><ellipse cx="17" cy="9.5" rx="2.2" ry="3.2"/><path d="M5.5 12c-1.6 1.4-2.3 3.5-1.8 5.5l.3 1.2"/><path d="M18.5 14c1.6 1.4 2.3 3.5 1.8 5.5l-.3 1.2"/>'
+steps:'<ellipse cx="7" cy="7.5" rx="2.2" ry="3.2"/><ellipse cx="17" cy="9.5" rx="2.2" ry="3.2"/><path d="M5.5 12c-1.6 1.4-2.3 3.5-1.8 5.5l.3 1.2"/><path d="M18.5 14c1.6 1.4 2.3 3.5 1.8 5.5l-.3 1.2"/>',
+trophy:'<path d="M8 21h8M12 17v4M7 4h10v6a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v2a4 4 0 0 0 4 4M17 6h3v2a4 4 0 0 1-4 4"/>'
 };return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(shapes[name]||shapes.heart)+'</svg>'};
 const moodClass=name=>({'À plat':'m-blue','Moyen':'m-yellow','Bien':'m-pink','En forme':'m-green'})[name]||'m-pink';
 const stepsToday=()=>data.steps.find(x=>x.date===today());
@@ -160,7 +161,7 @@ out.steps=out.steps.map((entry,i)=>{
  if(!entry||typeof entry!=='object'||!isDate(entry.date)||entry.date>today())throw Error('Date invalide dans les pas.');
  const sid=typeof entry.id==='string'||typeof entry.id==='number'?String(entry.id).slice(0,90):String(i);
  const svalue=Number(entry.value);if(!Number.isFinite(svalue)||svalue<0||svalue>200000||!Number.isInteger(svalue))throw Error('Nombre de pas invalide.');
- return {id:sid,date:entry.date,value:svalue};
+ return {id:sid,date:entry.date,value:svalue,...(entry.source==='sante-raccourcis'?{source:'sante-raccourcis'}:{})};
 });
 const sg=raw.stepsGoal;
 out.stepsGoal=sg===null?null:(Number.isFinite(Number(sg))&&Number(sg)>=500&&Number(sg)<=100000?Math.round(Number(sg)):6000);
@@ -171,6 +172,25 @@ return out;
 }
 function reload(){try{const raw=localStorage.getItem(KEY);if(raw){const item=validatePayload(JSON.parse(raw));if(item.consent){data=item;unit=data.unit}}}catch(err){storageOK=false}}
 reload();
+// Import local depuis Raccourcis iOS via fragment URL (non transmis au serveur).
+// Ce mécanisme ne lit jamais Santé directement et reste limité au navigateur utilisé.
+function importSanteSteps(){
+ const hash=window.location.hash;
+ if(!hash.startsWith('#sante-pas='))return;
+ // Retirer immédiatement le fragment de l'adresse visible et de l'historique actif.
+ window.history.replaceState(null,'',window.location.pathname+window.location.search);
+ const params=new URLSearchParams(hash.slice(1)),raw=params.get('sante-pas');
+ if(!raw||!/^(0|[1-9][0-9]{0,5})$/.test(raw))return;
+ const value=Number(raw),date=params.get('date')||today();
+ if(!Number.isSafeInteger(value)||value>200000||!isDate(date)||date>today()||date<past(7))return;
+ if(demo||!data.consent){window.alert('Pour importer les pas de Santé, créez d’abord votre espace Mon Suivi dans ce navigateur.');return}
+ const old=data.steps.find(e=>e.date===date);
+ if(old?.value===value&&old.source==='sante-raccourcis'){page='Activité';render();return}
+ data.steps=data.steps.filter(e=>e.date!==date).concat([{id:old?.id||'sante-'+date,date,value,source:'sante-raccourcis'}]);
+ page='Activité';save();
+}
+window.addEventListener('hashchange',importSanteSteps);
+importSanteSteps();
 function save(){if(!demo&&data.consent){try{localStorage.setItem(KEY,JSON.stringify(data));storageOK=true}catch{storageOK=false}}render()}
 function go(where){page=where;render();window.scrollTo({top:0,behavior:'instant'})}
 function btn(text,action,cl=''){return '<button type="button" class="'+cl+'" data-action="'+esc(action)+'">'+text+'</button>'}
@@ -243,21 +263,36 @@ return '<div class="screen activity-screen">'+topbar()+
 '<section class="activity-hero-card"><div class="activity-hero-heading"><h2>Aujourd’hui</h2><span class="activity-hero-spark">'+icon('steps')+'</span></div><div class="activity-main-ring">'+ringSVG(s,goal)+'</div><p class="activity-hero-caption">'+(goal?(s>=goal?'Votre objectif du jour est atteint.':fmt(s)+' pas sur '+fmt(goal)+' aujourd’hui.'):'Vos pas du jour, sans objectif imposé.')+'</p></section>'+
 '<section class="activity-data-grid"><div><span>'+icon('steps')+'</span><strong>'+fmt(s)+'</strong><small>pas notés</small></div><div><span>'+icon('chart')+'</span><strong>'+(goal?Math.min(pct,999)+' %':'—')+'</strong><small>objectif</small></div><div><span>'+icon('heart')+'</span><strong>'+(goal?fmt(goal):'Libre')+'</strong><small>pas visés</small></div></section>'+
 '<section class="steps-chart-card"><div class="card-top"><h2>Cette semaine</h2><span class="small-muted">Pas enregistrés</span></div><div class="steps-week-chart" role="img" aria-label="Pas enregistrés sur les sept derniers jours">'+bars+'</div></section>'+
+'<section class="health-sync-card"><span class="health-sync-icon">'+icon('heart')+'</span><div class="health-sync-body"><h2>Pas depuis Apple Santé</h2><p>'+(stepsToday()?.source==='sante-raccourcis'?'Dernière synchronisation : '+fmt(s)+' pas aujourd’hui.':'Récupérez vos pas avec un raccourci iPhone. Rien n’est envoyé à nos serveurs.')+'</p></div>'+btn('Configurer','sante-help','compact-outline')+'</section>'+
 '<section class="step-goal-card"><div><h2>Mon objectif</h2><p>'+(goal?fmt(goal)+' pas par jour, à mon rythme.':'Aucun objectif imposé.')+'</p></div><div class="goal-buttons">'+btn(goal?'Modifier':'Définir','steps-goal','compact-outline')+(goal?btn('Désactiver','steps-goal-off','quiet-link'):'')+'</div></section>'+
 '<section class="data-section"><div class="home-section-title"><div><h2>Historique des pas</h2><p>Mes enregistrements précédents</p></div></div>'+list('steps')+'</section></div>';
+}
+function weightEncouragement(){
+ const current=newest(data.weights),first=sorted(data.weights)[0],goal=data.weightGoal;
+ if(!current)return {title:'Votre parcours commence ici',message:'Ajoutez une première mesure pour voir votre évolution, à votre rythme.'};
+ if(!goal)return {title:'Chaque étape compte',message:'Vous suivez déjà votre évolution. Un objectif personnel peut être défini, seulement si vous le souhaitez.'};
+ const remaining=Math.abs(current.value-goal);
+ if(remaining<0.1)return {title:'Votre objectif est atteint !',message:'Votre dernière mesure correspond à votre repère personnel. Prenez le temps de reconnaître votre parcours.'};
+ if(!first||first.id===current.id||first.value===current.value)return {title:'Votre parcours prend forme',message:'Votre objectif est enregistré. De nouvelles mesures permettront de visualiser votre évolution.'};
+ const gain=Math.abs(first.value-goal)-remaining;
+ if(gain>0.05)return {title:'Vous vous rapprochez de votre objectif !',message:'Vous vous êtes rapproché(e) de '+shownWeight(gain)+' '+unit+' de votre repère depuis votre première mesure. Continuez à votre rythme.'};
+ return {title:'Chaque étape compte',message:'Les variations font partie du parcours. Continuez à observer votre évolution avec bienveillance.'};
 }
 function screenProgress(){
 const filtered=period==='all'?data.weights:data.weights.filter(x=>x.date>=past(Number(period)-1));
 const current=newest(data.weights),old=sorted(data.weights)[0],diff=current&&old&&data.weights.length>1?Number(current.value)-Number(old.value):null;
 const changeLabel=diff===null?'Aucune évolution calculée':(diff>0?'+':'')+shownWeight(diff)+' '+unit+' depuis le début';
 const goalLabel=data.weightGoal?shownWeight(data.weightGoal)+' '+unit:'À définir';
+const goalDetail=current&&data.weightGoal?(Math.abs(current.value-data.weightGoal)<.1?'Votre repère personnel est atteint':'À '+shownWeight(Math.abs(current.value-data.weightGoal))+' '+unit+' de votre repère'):'Un repère personnel, toujours facultatif';
+const encouragement=weightEncouragement();
 return '<div class="screen progress-screen">'+topbar()+
 '<section class="page-heading"><div><span class="page-eyebrow">MON ÉVOLUTION</span><h1>Mon poids<span class="page-dot">.</span></h1><p>Observer son parcours, avec douceur.</p></div>'+btn(icon('plus')+' Noter','add:weights','compact-add')+'</section>'+
 '<section class="weight-hero-card"><span class="weight-hero-label">Dernière mesure</span><div class="weight-current">'+(current?shownWeight(current.value):'—')+' <small>'+unit+'</small></div><p class="weight-trend">'+(diff===null?icon('heart'):icon('chart'))+' '+esc(changeLabel)+'</p>'+(current?'<span class="weight-date">Mesuré le '+esc(current.date.split('-').reverse().join('/'))+'</span>':'')+'</section>'+
 '<section class="weight-chart-card"><div class="card-top"><h2>Ma courbe</h2><span class="chart-badge">'+icon('chart')+'</span></div><div class="filter-row">'+[['7','Semaine'],['30','Mois'],['all','Tout']].map(([v,t])=>btn(t,'period:'+v,period===v?'active':'')).join('')+'</div>'+(filtered.length>=2?chartSVG(filtered,340,175,false,data.weightGoal):'<div class="empty-state">Deux mesures suffisent pour dessiner votre courbe.</div>')+'</section>'+
-'<section class="weight-goal-card"><div class="weight-goal-icon">'+icon('heart')+'</div><div><span>Mon objectif</span><strong>'+goalLabel+'</strong><small>Un repère personnel, toujours facultatif</small></div>'+btn(data.weightGoal?'Modifier':'Définir','weight-goal','compact-outline')+(data.weightGoal?btn('Retirer','weight-goal-off','quiet-link'):'')+'</section>'+
+'<section class="weight-goal-card"><div class="weight-goal-icon">'+icon('heart')+'</div><div><span>Mon objectif</span><strong>'+goalLabel+'</strong><small>'+esc(goalDetail)+'</small></div>'+btn(data.weightGoal?'Modifier':'Définir','weight-goal','compact-outline')+(data.weightGoal?btn('Retirer','weight-goal-off','quiet-link'):'')+'</section>'+
 '<section class="data-section"><div class="home-section-title"><div><h2>Mes mesures</h2><p>Mes notes de poids</p></div>'+btn(icon('plus')+' Ajouter','add:weights','subtle-link')+'</div>'+list('weights')+'</section>'+
-'<section class="data-section"><div class="home-section-title"><div><h2>Mon humeur</h2><p>Un moment pour soi</p></div>'+btn(icon('plus')+' Ajouter','add:moods','subtle-link')+'</div>'+list('moods')+'</section></div>';
+'<section class="data-section"><div class="home-section-title"><div><h2>Mon humeur</h2><p>Un moment pour soi</p></div>'+btn(icon('plus')+' Ajouter','add:moods','subtle-link')+'</div>'+list('moods')+'</section>'+
+'<section class="progress-trophy" aria-label="Encouragement sur votre progression"><span class="progress-trophy-icon">'+icon('trophy')+'</span><div class="progress-trophy-text"><span class="progress-trophy-kicker">VOTRE PETITE VICTOIRE</span><h2>'+esc(encouragement.title)+'</h2><p>'+esc(encouragement.message)+'</p></div><span class="progress-trophy-star" aria-hidden="true">✦</span></section></div>';
 }
 function screenProfile(){
 const name=data.name?esc(data.name):'Mon espace';
@@ -305,6 +340,9 @@ function pointDialog(id){
 const rows=sorted(data.weights),i=rows.findIndex(x=>String(x.id)===String(id));if(i<0)return;
 const e=rows[i],prev=rows[i-1],diff=prev?Number(e.value)-Number(prev.value):null,fr=e.date.split('-').reverse().join('/');
 modal('<h2>Mesure du '+fr+'</h2><div class="weight-value" style="margin:4px 0 10px">'+shownWeight(e.value)+' <small>'+unit+'</small></div><p class="modal-explain">'+(diff===null?'Votre première mesure.':(diff>0?'+':'')+(diff<0?'-':'')+fmt(Math.abs(unit==='lb'?diff*unitFactor:diff))+' '+unit+' par rapport à la mesure précédente.')+'</p><div class="row">'+btn('Modifier','pointedit:weights:'+e.id)+btn('Supprimer','pointdel:weights:'+e.id,'secondary')+btn('Fermer','close','ghost')+'</div>');
+}
+function openSanteHelp(){
+ modal('<div class="sante-help"><span class="sante-help-icon">'+icon('heart')+'</span><h2>Importer mes pas depuis Santé</h2><p>Safari ne peut pas lire Santé directement. Avec Raccourcis, vous pouvez récupérer votre total quotidien et ouvrir Mon Suivi pour l’enregistrer sur cet iPhone, gratuitement.</p><ol><li>Sur l’iPhone, ouvrez <strong>Raccourcis</strong> et créez un nouveau raccourci.</li><li>Ajoutez <strong>Rechercher des échantillons Santé</strong> : type <strong>Pas</strong>, date de début <strong>aujourd’hui</strong> ; autorisez l’accès si demandé.</li><li>Ajoutez <strong>Calculer des statistiques</strong> et choisissez la <strong>somme des valeurs</strong>. Vérifiez que le total correspond à Santé.</li><li>Ajoutez l’action <strong>Texte</strong> avec l’adresse ci-dessous. Remplacez le mot <em>RÉSULTAT</em> par la variable magique issue du calcul, puis ajoutez <strong>Ouvrir les URL</strong>.</li><li>Lancez le raccourci : Mon Suivi enregistrera les pas du jour dans ce navigateur. Vous pouvez ensuite ajouter une automatisation quotidienne si votre iPhone le permet.</li></ol><div class="shortcut-url"><code>https://mon-suivi-six.vercel.app/#sante-pas=RÉSULTAT</code></div><p class="modal-explain">Le nombre est transmis uniquement dans le fragment du lien, sans requête vers notre serveur. Il est retiré de la barre d’adresse dès l’ouverture. Les données restent dans le stockage local du navigateur ; le suivi installé sur l’écran d’accueil peut utiliser un stockage différent de Safari.</p><p class="modal-explain">La lecture automatique en arrière-plan n’est pas garantie : un essai réel avec votre iPhone est nécessaire.</p><div class="row">'+btn('Compris','close','secondary')+'</div></div>');
 }
 function openStepsGoal(){
 modal('<form id="goal-form"><h2>Mon objectif de pas</h2><p class="modal-explain">Par défaut : 6 000 pas par jour. Personnalisez-le ou choisissez de suivre vos pas sans objectif.</p><label>Objectif quotidien<input name="goal" type="number" inputmode="numeric" min="500" max="100000" step="100" required value="'+(data.stepsGoal||6000)+'"></label><p id="goal-error" class="notice-error" role="alert" hidden></p><div class="row"><button type="submit">Enregistrer</button>'+btn('Annuler','close','secondary')+'</div></form>');
@@ -354,6 +392,7 @@ if(action==='period'){period=type;render();return}
 if(action==='close'){dlg.close();return}
 if(action==='point'){pointDialog(type);return}
 if(action==='steps-goal'){openStepsGoal();return}
+if(action==='sante-help'){openSanteHelp();return}
 if(action==='steps-goal-off'){data.stepsGoal=null;save();return}
 if(action==='weight-goal'){openWeightGoal();return}
 if(action==='weight-goal-off'){data.weightGoal=null;save();return}
