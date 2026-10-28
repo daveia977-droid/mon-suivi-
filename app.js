@@ -190,7 +190,6 @@ function importSanteSteps(){
  page='Activité';save();
 }
 window.addEventListener('hashchange',importSanteSteps);
-importSanteSteps();
 function save(){if(!demo&&data.consent){try{localStorage.setItem(KEY,JSON.stringify(data));storageOK=true}catch{storageOK=false}}render()}
 function go(where){page=where;render();window.scrollTo({top:0,behavior:'instant'})}
 function btn(text,action,cl=''){return '<button type="button" class="'+cl+'" data-action="'+esc(action)+'">'+text+'</button>'}
@@ -415,4 +414,5 @@ modal('<h2>Importer votre sauvegarde ?</h2><p>Ce fichier contient '+parsed.weigh
 dlg.querySelector('[data-action="confirm-import"]').onclick=()=>{parsed.consent=true;parsed.consentAt=new Date().toISOString();data=parsed;demo=false;unit=data.unit;dlg.close();go('Profil');save()};
 }catch(error){alert('Import impossible : '+error.message)}finally{e.target.value=''}
 });
+importSanteSteps();
 render();
