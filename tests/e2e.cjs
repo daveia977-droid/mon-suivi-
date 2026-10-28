@@ -140,4 +140,4 @@ const {chromium}=require('playwright');
  assert.equal(imported[0].source,'sante-raccourcis','Provenance conservée');
  await synced.close();
  await browser.close();
-})().catch(err=>{console.error(err);process.exitCode=1});
+})().catch(err=>{console.error(err);process.exit(1)});
