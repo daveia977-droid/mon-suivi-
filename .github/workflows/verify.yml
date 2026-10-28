@@ -1,7 +1,7 @@
 name: Mon Suivi — Vérifications
 on:
   push:
-    branches: [main, fix/v1-audit-nutrition-privacy]
+    branches: [main, fix/v1-audit-nutrition-privacy, design/fusion-premium-maquettes-v2]
   pull_request:
     branches: [main]
 jobs:
@@ -19,3 +19,28 @@ jobs:
           node --check api/photo.js
       - name: Tests de non-régression
         run: node tests/smoke.cjs
+
+  visual:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Installer Chromium (Playwright)
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium
+      - name: Tests visuels iPhone (393px, 320px, 430px)
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/mon-suivi-server.log 2>&1 &
+          sleep 2
+          node tests/e2e.cjs
+      - name: Captures de tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maquettes-fusion-premium
+          path: screenshots/
+          if-no-files-found: ignore
