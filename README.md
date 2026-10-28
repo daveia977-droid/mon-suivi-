@@ -9,10 +9,22 @@ Application de bien-être en français pour noter son poids, ses repas, ses pas 
 - **Aujourd'hui** : tableau de bord avec « Bonjour ! », poids récent, mini-courbe, pas du jour, humeur en un geste.
 - **Poids** : historique, courbe interactive (toucher un point : écart avec la mesure précédente, modifier, supprimer), objectif facultatif en pointillés.
 - **Repas** : 5 modes — Open Food Facts, extrait Ciqual 2025 (42 aliments vérifiés), code-barres saisi, photo (estimation IA modifiable), saisie manuelle. Protéines, glucides et lipides facultatifs et modifiables. Alternatives « même famille » avec Nutri-Score uniquement quand la base le fournit.
-- **Activité** : pas saisis manuellement (aucune lecture du podomètre — impossible dans une app web iOS), objectif par défaut 6 000 pas/jour personnalisable ou désactivable, anneau de progression, historique.
+- **Activité** : pas saisis manuellement ou importés depuis Santé via un raccourci iOS personnel, objectif par défaut 6 000 pas/jour personnalisable ou désactivable, anneau de progression, historique. Le site ne lit jamais Santé directement.
 - **Humeur** : 4 humeurs colorées (À plat, Moyen, Bien, En forme) avec note facultative.
 - **Profil** : prénom, unité kg/lb, export/import JSON (version 2), effacement, autorisation photo révocable.
 - **Confidentialité** : tout reste dans le navigateur (localStorage) ; rien ne sort sans consentement explicite. Consentement photo distinct, non précoché, révocable.
+
+
+## Apple Santé via Raccourcis (préparation V2.1)
+
+- Dans **Activité → Configurer**, suivre les instructions pour créer un raccourci iOS personnel.
+- Le raccourci lit les échantillons « Pas » de la journée via **Rechercher des échantillons Santé**, calcule leur somme, puis ouvre `https://mon-suivi-six.vercel.app/#sante-pas=RÉSULTAT`, où RÉSULTAT est une variable numérique de Raccourcis et non le mot lui-même.
+- Mon Suivi valide un nombre entier entre 0 et 200 000 pour aujourd'hui (une date explicite optionnelle jusqu'à 7 jours en arrière), remplace l'enregistrement de cette date et retire immédiatement le fragment de l'URL. Rien n'est transmis au serveur applicatif : tout est écrit dans le stockage local du navigateur déjà autorisé.
+- **Limitations** : pas de synchronisation HealthKit directe depuis Safari ; l'utilisateur doit configurer et autoriser Raccourcis sur l'iPhone. L'exécution autonome en arrière-plan et l'égalité du total avec Santé restent à vérifier sur l'appareil réel. Safari et l'app installée sur l'écran d'accueil peuvent avoir des stockages distincts ; utiliser toujours la même ouverture.
+
+## Progrès avec encouragement
+
+Dans **Progrès**, l'objectif de poids (facultatif) affiche l'écart à la dernière mesure et une carte trophée en bas de page encourage l'utilisateur selon son évolution vers ce repère, sans jugement ni promesse de résultat. Les données de poids existantes ne sont pas modifiées.
 
 ## Budget : 0 € strict
 
