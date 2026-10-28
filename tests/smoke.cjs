@@ -48,8 +48,8 @@ const healthScript='const blank=()=>({name:"",weights:[],moods:[],meals:[],steps
 const healthRestored=vm.runInNewContext(healthScript);
 assert.equal(healthRestored.steps[0].source,'sante-raccourcis','La sauvegarde conserve la provenance des pas');
 
-const ideaDefs=app.match(/const PHOTO_IDEAS=\\[[\\s\\S]*?\\n\\];/)?.[0];
-const ideaFn=app.match(/function photoAlternatives\\(name\\)\\{[\\s\\S]*?\\n\\}/)?.[0];
+const ideaDefs=app.match(/const PHOTO_IDEAS=\[[\s\S]*?\n\];/)?.[0];
+const ideaFn=app.match(/function photoAlternatives\(name\)\{[\s\S]*?\n\}/)?.[0];
 assert.ok(ideaDefs&&ideaFn,'Suggestions après photo intégrées');
 const ideaContext='function ciqualClean(s){return String(s).toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")}'+ideaDefs+';'+ideaFn+';';
 function ideasOf(name){return vm.runInNewContext(ideaContext+';photoAlternatives('+JSON.stringify(name)+')')}
@@ -58,6 +58,8 @@ assert.match(ideasOf('Chips').items[0][0],/Pop-corn/);
 assert.match(ideasOf('Pizza industrielle').items[0][0],/Pizza maison/);
 assert.match(ideasOf('Soda cola').items[0][0],/Eau pétillante/);
 assert.equal(ideasOf('Carottes').specific,false,'Ne jamais inférer sans preuve un produit transformé');
+assert.equal(ideasOf('Biscuits industriels').specific,true,'Reconnaît le pluriel');
+assert.equal(ideasOf('Céréales sucrées').specific,true,'Reconnaît les accents et le pluriel');
 assert.ok(app.includes('photoAlternativesHtml(offPicked.name)'),'Suggestions affichées après analyse photo');
 assert.ok(app.includes("if(action==='photo-compare')"),'Recherche Open Food Facts seulement sur un clic');
 console.log('Tests Mon Suivi : Ciqual, nutrition, sauvegardes, Apple Santé et alternatives photo OK.');
