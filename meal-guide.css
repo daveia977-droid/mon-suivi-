@@ -1,0 +1,108 @@
+/* Mon Suivi V3.1 — catalogue de repas, original et sans chargement d'images externes */
+.mealguide-root{margin:24px 0 22px;padding:19px 14px 20px;border:1px solid #f3d9da;border-radius:27px;background:linear-gradient(155deg,#fffefd,#fff9f9 47%,#fff7e9);box-shadow:0 11px 35px rgba(179,79,106,.095);color:#32242c;overflow:hidden}
+.mealguide-root button,.mg-dialog button{touch-action:manipulation}
+.mg-eyebrow{display:inline-flex;align-items:center;gap:6px;color:#bb5276;font-size:10px;letter-spacing:.105em;font-weight:830;line-height:1.4}
+.mg-eyebrow svg{width:16px;height:16px}
+.mg-top{padding:0 2px}
+.mg-top h2{font-size:clamp(21px,6vw,27px);letter-spacing:-.055em;line-height:1.15;margin:9px 0 7px;font-weight:840}
+.mg-top>p{font-size:12px;line-height:1.6;color:#81727b;margin:0}
+.mg-tabset{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:4px;border-radius:16px;background:#f9edf0;border:1px solid #f3e1e4;margin:17px 0 16px}
+.mealguide-root .mg-tab{background:transparent;color:#826e79;box-shadow:none;border-radius:12px;min-height:48px;padding:9px 5px;font-size:12px;line-height:1.25;font-weight:720;display:flex;align-items:center;justify-content:center;gap:6px;white-space:normal}
+.mealguide-root .mg-tab svg{width:17px;height:17px;flex-shrink:0}
+.mealguide-root .mg-tab.mg-active{background:white;box-shadow:0 3px 12px rgba(157,84,109,.11);color:#b53869}
+.mg-toolbar{display:flex;flex-direction:column;gap:11px;margin-bottom:13px}
+.mg-chips{display:flex;flex-wrap:wrap;gap:6px}
+.mealguide-root .mg-chip{min-height:44px;padding:9px 12px;background:#fff;color:#856e79;font-size:11px;font-weight:750;border:1px solid #f0e1e4;border-radius:99px;box-shadow:none}
+.mealguide-root .mg-chip.mg-selected{background:linear-gradient(115deg,#ffd6e6,#ffe7ec);border-color:#efbfce;color:#a62f5e}
+.mealguide-root .mg-chip.mg-selected-alt{background:linear-gradient(115deg,#fff0c3,#ffe9b8);border-color:#efd79c;color:#9a712a}
+.mg-search{display:flex;align-items:center;gap:9px;padding:0 12px;background:#fff;border:1px solid #eedfe0;box-shadow:0 3px 9px rgba(125,79,83,.045);border-radius:15px;margin:1px 0 13px}
+.mg-search>svg{width:18px;height:18px;flex-shrink:0;color:#b78893}
+.mealguide-root .mg-search input{margin:0;min-height:49px;background:transparent;border:0;box-shadow:none;outline-offset:0;padding:8px 0 8px 1px;font-size:16px;flex:1;min-width:0;color:#3d3039;appearance:none}
+.mg-search:focus-within{outline:2px solid #ca7297;outline-offset:1px}
+.mg-search input:focus-visible{outline:none}
+.mg-results-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:0 3px;margin:11px 0 10px}
+.mg-results-head strong{font-size:14px;font-weight:830;white-space:nowrap;color:#39252f}
+.mg-results-head span{font-size:10px;text-align:right;color:#9e8b93;line-height:1.3}
+.mg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}
+.mealguide-root .mg-recipe-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;padding:0;min-height:240px;background:white;border:1px solid #f4e5e5;border-radius:19px;color:#342b32;text-align:left;box-shadow:0 4px 15px rgba(167,93,114,.065);transition:transform .17s,box-shadow .17s}
+.mealguide-root .mg-recipe-card:active{transform:scale(.986)}
+.mealguide-root .mg-recipe-card:focus-visible{outline:3px solid #376ec9;outline-offset:2px}
+.mg-card-photo{display:block;width:100%;aspect-ratio:1.46;overflow:hidden;position:relative;background:#fff0dd}
+.mg-img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .25s}
+.mg-recipe-card:hover .mg-img{transform:scale(1.045)}
+.mg-card-minute{position:absolute;right:8px;top:8px;background:#fffcf2ea;box-shadow:0 1px 6px #634d4622;color:#956736;padding:5px 7px;border-radius:99px;font-size:10px;font-weight:800}
+.mg-card-content{flex:1;padding:10px 10px 11px;display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.mg-card-title{font-weight:820;font-size:12px;letter-spacing:-.015em;line-height:1.35;min-height:34px;overflow-wrap:anywhere}
+.mg-card-tag{color:#977b88;font-size:10px;line-height:1.4;margin:5px 0 4px}
+.mg-card-more{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:780;color:#c44c76;margin-top:auto;padding-top:7px;line-height:1.3}
+.mg-card-more svg{width:13px;height:13px;flex-shrink:0}
+.mg-more-wrap{display:flex;justify-content:center;margin:13px 0 0}
+.mealguide-root .mg-more{background:white;box-shadow:none;border:1px solid #e7c8d2;color:#a74771;padding:10px 15px;min-height:44px;font-size:12px;font-weight:750}
+.mg-hint{color:#97838d;font-size:10.5px;line-height:1.55;margin:17px 3px 0}
+.mg-empty{grid-column:1/-1;border:1px dashed #eac9d4;border-radius:16px;color:#896e7b;font-size:12px;line-height:1.5;padding:18px;background:#fff}
+.mg-alternatives-intro{display:flex;gap:10px;padding:13px 11px;margin:4px 0 13px;border:1px solid #e4eddb;border-radius:17px;background:linear-gradient(120deg,#f1f9eb,#fff9e9)}
+.mg-alternatives-intro>svg{flex-shrink:0;width:23px;height:23px;color:#4d9770}
+.mg-alternatives-intro div{display:flex;flex-direction:column;gap:4px}
+.mg-alternatives-intro strong{font-size:12px;font-weight:810;color:#3f6655}
+.mg-alternatives-intro span{font-size:11px;line-height:1.5;color:#6f806e}
+.mg-alt-card .mg-card-title{min-height:30px}
+.mg-alt-card{min-height:218px!important}
+/* Fenêtre de détail */
+#dialog:has(.mg-dialog){width:min(100%,520px);max-height:calc(100dvh - 22px);overflow-y:auto;padding:0 0 calc(18px + env(safe-area-inset-bottom));background:#fffdfa;color:#33272f;border:1px solid #f6e3e4;border-radius:24px 24px 0 0}
+.mg-dialog{padding:18px 17px 24px;max-width:100%;overflow-wrap:anywhere}
+.mg-dialog-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.mg-dialog-top h2{font-size:clamp(21px,6vw,25px);font-weight:850;line-height:1.18;letter-spacing:-.048em;margin:5px 0}
+.mg-dialog .mg-close{display:grid;place-items:center;flex-shrink:0;min-width:44px;min-height:44px;width:44px;height:44px;background:#fff1f3;color:#a44a71;box-shadow:none;border-radius:50%;padding:10px}
+.mg-close svg{width:21px;height:21px}
+.mg-dialog-photo{height:190px;overflow:hidden;border-radius:21px;background:#ffeadf;margin:11px 0 11px}
+.mg-dialog-photo .mg-img{object-fit:cover}
+.mg-info-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:17px}
+.mg-info-row span{display:flex;align-items:center;gap:6px;color:#8a6476;border-radius:99px;background:#fff2e4;padding:8px 10px;font-size:11px;font-weight:700}
+.mg-info-row svg{width:16px;height:16px}
+.mg-dialog h3{font-size:16px;letter-spacing:-.025em;font-weight:830;margin:18px 0 7px}
+.mg-dialog-sub{font-size:11px;color:#8f7d84;margin:0 0 8px;line-height:1.5}
+.mg-ingredient-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr;gap:6px}
+.mg-ingredient-list li{display:flex;align-items:baseline;gap:8px;padding:10px 12px;border-radius:11px;border:1px solid #f4e7e3;background:#fff8f5;font-size:12px;line-height:1.5}
+.mg-ingredient-list li:before{content:"";flex-shrink:0;width:6px;height:6px;border-radius:50%;background:#e47d9b}
+.mg-prep{font-size:13px;line-height:1.65;color:#68575e;margin:0}
+.mg-cooking-note{display:flex;gap:9px;align-items:flex-start;border:1px solid #deead5;background:#f4fbef;padding:12px;border-radius:14px;margin:17px 0}
+.mg-cooking-note svg{width:18px;height:18px;flex-shrink:0;color:#4e9b6b}
+.mg-cooking-note p{margin:0;font-size:11.5px;color:#56755d;line-height:1.5}
+.mg-dialog-disclaimer{font-size:10.5px;line-height:1.55;color:#97848a;margin:16px 0}
+.mg-dialog .mg-primary{display:flex;justify-content:center;align-items:center;gap:10px;width:100%;min-height:48px;border-radius:15px;font-size:13px;font-weight:770;color:white;background:linear-gradient(120deg,#f17ca4,#e93f7f)}
+.mg-primary svg{width:17px;height:17px}
+.mg-dialog .mg-plain{display:block;margin:7px auto 0;min-height:44px;padding:8px 15px;background:transparent;box-shadow:none;border:0;color:#a75775;font-size:12px}
+.mg-log-note{font-size:11px;color:#9e5b65;border-radius:12px;padding:9px 10px;background:#fff2e4;margin:0 0 10px}
+.mg-source{display:grid;grid-template-columns:110px 1fr;gap:11px;align-items:center;background:linear-gradient(120deg,#fff4e6,#fff0f6);border-radius:19px;padding:8px;margin:8px 0 17px;min-width:0}
+.mg-source-img{aspect-ratio:1.24;border-radius:14px;overflow:hidden;background:#ffe8da}
+.mg-source div:last-child{display:flex;flex-direction:column;gap:5px;min-width:0}
+.mg-source div:last-child span{font-size:9px;font-weight:830;letter-spacing:.08em;color:#c46c80}
+.mg-source div:last-child strong{font-size:15px;line-height:1.3;font-weight:850;color:#51323f}
+.mg-source div:last-child small{font-size:10.5px;line-height:1.45;color:#927983}
+.mg-alt-section-title h3{margin:7px 0 4px}
+.mg-alt-section-title p{font-size:11px;color:#96818a;margin:0 0 13px}
+.mg-alt-detail{display:grid;grid-template-columns:98px 1fr;gap:11px;align-items:start;border:1px solid #f3e4e4;border-radius:17px;background:#fff;padding:9px;margin:10px 0}
+.mg-alt-img{aspect-ratio:1;overflow:hidden;border-radius:12px;background:#fff2e5}
+.mg-alt-info{min-width:0}
+.mg-alt-num{font-size:9px;letter-spacing:.09em;color:#ba7890;font-weight:830}
+.mg-alt-info h3{font-size:12.5px;font-weight:820;margin:3px 0 5px;line-height:1.35}
+.mg-alt-info p{font-size:10.5px;line-height:1.5;color:#80727a;margin:0}
+.mg-alt-info p strong{color:#5e505a}
+.mg-dialog .mg-small-link{display:flex;align-items:center;gap:4px;background:#fff0f3;color:#af4771;box-shadow:none;border:1px solid #fae2e8;padding:7px 10px;min-height:44px;margin:8px 0 0;font-size:11px}
+.mg-small-link svg{width:14px;height:14px}
+@media(max-width:355px){
+ .mealguide-root{padding:17px 10px}
+ .mg-grid{gap:8px}
+ .mg-card-content{padding:9px 8px}
+ .mg-card-title{font-size:11.5px}
+ .mg-chips{gap:5px}
+ .mealguide-root .mg-chip{padding:8px 10px;font-size:10.5px}
+ .mg-dialog{padding:15px 13px 20px}
+ .mg-source{grid-template-columns:95px 1fr}
+ .mg-alt-detail{grid-template-columns:86px 1fr;gap:8px}
+}
+@media(min-width:521px){
+ #dialog:has(.mg-dialog){border-radius:23px;max-height:min(86dvh,850px)}
+ .mg-dialog-photo{height:230px}
+}
+@media(prefers-reduced-motion:reduce){.mealguide-root *,.mg-dialog *{transition-duration:0s!important}}
