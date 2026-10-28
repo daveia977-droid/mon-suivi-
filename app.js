@@ -20,7 +20,7 @@ chart:'<path d="M4 21v-7m6 7V9m6 12V5m5 16V3"/>',
 scale:'<rect x="3" y="5" width="18" height="15" rx="3"/><path d="m8 10 4-2 4 2M12 8v5"/>',
 happy:'<circle cx="12" cy="12" r="10"/><path d="M8 14c2.5 3 5.5 3 8 0"/><path d="M8 9h.01M16 9h.01"/>',
 neutral:'<circle cx="12" cy="12" r="10"/><path d="M8 15h8M8 9h.01M16 9h.01"/>',
-sad:'<circle cx="12" cy="12" r="10"/><path d="M8 17c2-3 6-3 8 0"/><path d="M8 9h.01M16 9h.01"/>',
+sad:'<circle cx="12" cy="12" r="10"/><path d="M8 17c2-3 6-3 8 0"/><path d="M8 9h.01M16 9h.01"/>',moyen:'<circle cx="12" cy="12" r="10"/><path d="M9 15.5c1.5-1 4.5-1 6 0"/><path d="M8 9h.01M16 9h.01"/>',great:'<circle cx="12" cy="12" r="10"/><path d="M6.5 13.5c2 4 9 4 11 0"/><path d="M8 8h.01M16 8h.01"/>',
 download:'<path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/>',
 upload:'<path d="M12 16V4m-4 4 4-4 4 4M4 17v4h16v-4"/>',
 trash:'<path d="M4 7h16M10 4h4M6 7l1 14h10l1-14M10 11v6m4-6v6"/>',
@@ -79,11 +79,11 @@ return '<ul class="records-list">'+sorted(items).reverse().map(e=>'<li><div><div
 function topbar(){return '<header class="topbar"><span class="topbar-brand">Mon Suivi</span>'+btn(icon('user'),'go:Profil','icon-button')+'</header>'}
 function screenHome(){
 const w=newest(data.weights),cur=data.moods.find(m=>m.date===today());
-return '<div class="screen">'+topbar()+(demo?'<p class="demo-note">Mode démonstration · données fictives · '+btn('Quitter','exit','')+'</p>':'')+
+return '<div class="screen">'+topbar()+
 '<section class="hello"><h1>Bonjour'+(data.name?' '+esc(data.name):'')+'</h1><p>Chaque petit pas compte.</p></section>'+
 '<section class="section-card pink-card"><div class="card-top"><h2>Mon évolution</h2>'+btn(icon('chevron'),'go:Progrès','arrow-link')+'</div><div class="weight-row"><div class="weight-value">'+(w?shownWeight(w.value)+' <small>'+unit+'</small>':'—')+'</div>'+(data.weights.length>=2?chartSVG(data.weights.slice(-12),200,110,true):'<span class="spark-empty">Votre évolution apparaîtra ici.</span>')+'</div><p class="weight-description">'+(w?(demo?'Données de démonstration':'Dernière mesure · '+esc(w.date)):'Votre première mesure vous attend.')+'</p></section>'+
 '<section class="section-card yellow-card"><div class="card-top"><h2>Mon journal</h2>'+btn(icon('chevron'),'go:Repas','arrow-link')+'</div><div class="action-grid"><button class="quick-tile" data-action="add:meals">'+icon('meal')+'<span>Ajouter<br>un repas</span>'+icon('chevron').replace('aria-hidden="true"','class="tile-arrow" aria-hidden="true"')+'</button><button class="quick-tile" data-action="add:weights">'+icon('scale')+'<span>Noter<br>mon poids</span>'+icon('chevron').replace('aria-hidden="true"','class="tile-arrow" aria-hidden="true"')+'</button></div></section>'+
-'<section class="section-card pink-card"><div class="card-top"><h2>Comment vous sentez-vous ?</h2>'+btn(icon('chevron'),'go:Progrès','arrow-link')+'</div><div class="mood-row">'+[['À plat','sad'],['Bien','neutral'],['En forme','happy']].map(([name,symbol])=>'<button class="mood-tile '+(cur?.name===name?'selected':'')+'" aria-pressed="'+(cur?.name===name)+'" data-action="quickmood:'+name+'">'+icon(symbol)+'<span>'+name+'</span></button>').join('')+'</div></section></div>';
+'<section class="section-card pink-card"><div class="card-top"><h2>Comment vous sentez-vous ?</h2>'+btn(icon('chevron'),'go:Progrès','arrow-link')+'</div><div class="mood-row">'+[['À plat','sad'],['Moyen','moyen'],['Bien','happy'],['En forme','great']].map(([name,symbol])=>'<button class="mood-tile '+(cur?.name===name?'selected':'')+'" aria-pressed="'+(cur?.name===name)+'" data-action="quickmood:'+name+'">'+icon(symbol)+'<span>'+name+'</span></button>').join('')+'</div></section></div>';
 }
 function screenMeals(){const sum=data.meals.filter(x=>x.date===today()).reduce((s,m)=>s+Number(m.value),0);return '<div class="screen">'+topbar()+'<h1 class="page-title">Mon journal.</h1><p class="section-sub">Vos repas, à votre rythme.</p><div class="section-card yellow-card"><h2>Pour aujourd’hui</h2><div class="weight-value" style="margin-top:9px">'+fmt(sum)+' <small>kcal</small></div><p class="info-note">Total des estimations que vous avez renseignées, sans objectif imposé.</p></div>'+btn(icon('plus')+' Ajouter un repas','add:meals','wide')+'<div class="data-section"><h2>Historique des repas</h2>'+list('meals')+'</div></div>'}
 function screenProgress(){
@@ -95,7 +95,7 @@ function screenProfile(){return '<div class="screen">'+topbar()+'<h1 class="page
 function render(){
 const showNav=!['Accueil','Bienvenue',...Object.keys(legal)].includes(page);
 nav.hidden=!showNav;
-nav.innerHTML=showNav?[['Aujourd’hui','Accueil','home'],['Repas','Repas','meal'],['Progrès','Progrès','chart'],['Profil','Profil','user']].map(([target,label,symbol])=>'<button type="button" data-action="go:'+target+'" aria-label="'+label+'" aria-current="'+(page===target?'page':'false')+'">'+icon(symbol)+'<span>'+label+'</span></button>').join(''):'';
+nav.innerHTML=showNav?[['Aujourd’hui','Aujourd’hui','home'],['Repas','Repas','meal'],['Progrès','Progrès','chart'],['Profil','Profil','user']].map(([target,label,symbol])=>'<button type="button" data-action="go:'+target+'" aria-label="'+label+'" aria-current="'+(page===target?'page':'false')+'">'+icon(symbol)+'<span>'+label+'</span></button>').join(''):'';
 let content='';
 if(page==='Accueil')content='<section class="welcome"><div class="welcome-header">Mon Suivi</div><div class="welcome-content"><h1>Un peu<br>chaque jour.</h1><p>Poids, repas et humeur,<br>au même endroit.</p><div class="btn-stack">'+btn(data.consent?'Retrouver mon suivi':'Commencer','start','wide')+btn('Explorer la démo','demo','secondary wide')+'</div></div></section>';
 else if(page==='Bienvenue')content='<section class="setup">'+btn(icon('back'),'go:Accueil','back')+'<h1>Votre espace<br>personnel</h1><p>Suivez votre parcours à votre rythme, sur cet appareil, sans créer de compte en ligne.</p><form id="setup-form"><div class="field"><label for="setup-name">Prénom ou pseudonyme</label><input id="setup-name" name="name" maxlength="60" placeholder="Comment souhaitez-vous être appelé ?" autocomplete="nickname"><p class="explain">Facultatif. Ne renseignez aucune information sensible.</p></div><div class="consent-row"><label><input name="terms" type="checkbox" required><span>J’ai lu les <a href="#" data-action="go:Conditions">conditions d’utilisation</a>.</span></label></div><div class="consent-row"><label><input name="consent" type="checkbox" required><span>J’accepte d’enregistrer localement mes données de suivi (poids, repas et humeur), et je peux retirer mon accord et effacer mes données à tout moment.</span></label></div><p class="info-note"><a href="#" data-action="go:Confidentialité">Confidentialité et retrait du consentement</a></p><div class="btn-stack" style="margin-top:24px"><button class="wide" type="submit">Créer mon espace local</button>'+btn('Découvrir sans compte','demo','secondary wide')+'</div></form>'+footer()+'</section>';
@@ -104,7 +104,7 @@ else if(page==='Aujourd’hui')content=screenHome();
 else if(page==='Repas')content=screenMeals();
 else if(page==='Progrès')content=screenProgress();
 else if(page==='Profil')content=screenProfile();
-if(!storageOK)content='<p class="notice-error" role="alert">Sauvegarde locale indisponible. Exportez vos données avant de quitter cette page.</p>'+content;
+if(demo&&showNav)content='<p class="demo-note" style="margin:calc(10px + env(safe-area-inset-top)) 0 12px">Mode démonstration · données fictives · <button type="button" data-action="exit">Quitter</button></p>'+content;if(!storageOK)content='<p class="notice-error" role="alert">Sauvegarde locale indisponible. Exportez vos données avant de quitter cette page.</p>'+content;
 app.innerHTML=content+(showNav?footer():'');
 }
 function modal(html){restoreFocus=document.activeElement;dlg.innerHTML=html;dlg.showModal()}
@@ -121,7 +121,11 @@ try{const payload=blank();payload[type]=[v];const valid=validatePayload(payload)
 });
 }
 function quickMood(name){let item={id:String(Date.now()),date:today(),name,note:''};data.moods=data.moods.filter(x=>x.date!==today()).concat(item);save()}
-function exportData(){const blob=new Blob([JSON.stringify({...data,unit},null,2)],{type:'application/json'}),href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download='mon-suivi-'+today()+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),5000)}
+function exportData(){
+const payload=JSON.stringify({format:'mon-suivi',version:1,...data,unit},null,2),filename='mon-suivi-'+today()+'.json';
+try{const file=new File([payload],filename,{type:'application/json'});
+if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Mon Suivi — export de mes données'}).catch(()=>{});return}}catch(err){}
+const blob=new Blob([payload],{type:'application/json'}),href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),5000)}
 function clearData(){if(demo){leaveDemo();return}if(!confirm('Effacer définitivement vos données locales ? Pensez à les exporter avant de continuer.'))return;try{localStorage.removeItem(KEY)}catch{storageOK=false}data=blank();demo=false;unit='kg';go('Accueil')}
 document.addEventListener('submit',e=>{if(e.target.id!=='setup-form')return;e.preventDefault();const f=new FormData(e.target);if(!f.has('consent')||!f.has('terms'))return;data=blank();data.name=String(f.get('name')||'').trim().slice(0,60);data.consent=true;data.consentAt=new Date().toISOString();data.consentVersion='1';demo=false;unit='kg';page='Aujourd’hui';save()});
 document.addEventListener('click',e=>{
@@ -149,8 +153,8 @@ if(e.target.id!=='import-file')return;if(demo)return;
 const file=e.target.files?.[0];if(!file)return;
 try{
 if(file.size>2_000_000)throw Error('Le fichier est trop volumineux (2 Mo maximum).');
-const parsed=validatePayload(JSON.parse(await file.text()));
-modal('<h2>Importer votre sauvegarde ?</h2><p>Ce fichier contient '+parsed.weights.length+' mesures, '+parsed.meals.length+' repas et '+parsed.moods.length+' humeurs.</p><p class="notice-error">Attention : votre suivi actuel sera remplacé. Pensez à l’exporter avant.</p><div class="row">'+btn('Remplacer mon suivi','confirm-import')+btn('Annuler','close','secondary')+'</div>');
+let current=null;try{current=localStorage.getItem(KEY)}catch{storageOK=false}try{localStorage.setItem(KEY+'-backup',current||'{}')}catch{}const parsed=validatePayload(JSON.parse(await file.text()));
+modal('<h2>Importer votre sauvegarde ?</h2><p>Ce fichier contient '+parsed.weights.length+' mesures, '+parsed.meals.length+' repas et '+parsed.moods.length+' humeurs.</p><p class="notice-error">Attention : votre suivi actuel sera remplacé. Une copie de secours de ce suivi est conservée dans le stockage local de ce navigateur jusqu’au prochain import.</p><div class="row">'+btn('Remplacer mon suivi','confirm-import')+btn('Annuler','close','secondary')+'</div>');
 dlg.querySelector('[data-action="confirm-import"]').onclick=()=>{parsed.consent=true;parsed.consentAt=new Date().toISOString();data=parsed;demo=false;unit=data.unit;dlg.close();go('Profil');save()};
 }catch(error){alert('Import impossible : '+error.message)}finally{e.target.value=''}
 });
