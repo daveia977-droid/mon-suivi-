@@ -91,7 +91,7 @@ const {chromium}=require('playwright');
   assert.equal(await page.locator('#dialog .mg-alt-detail .mg-img').count(),2);
   assert.match(await page.locator('#dialog .mg-alt-detail').first().textContent(),/Ingrédients/);
   await page.screenshot({path:'screenshots/alternatives-gallery-'+size.width+'.png',fullPage:true});
-  await page.locator('#dialog button[data-guide-action="close"]').click();
+  await page.locator('#dialog .mg-close').click();
 
   await add.click();
   await page.locator('#dialog .mode-tabs').waitFor();
