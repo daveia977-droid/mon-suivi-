@@ -15,6 +15,13 @@ Application de bien-être en français pour noter son poids, ses repas, ses pas 
 - **Confidentialité** : tout reste dans le navigateur (localStorage) ; rien ne sort sans consentement explicite. Consentement photo distinct, non précoché, révocable.
 
 
+## Alternatives alimentaires après photo (préparation V2.1)
+
+- Après une analyse photo réussie, Mon Suivi suggère automatiquement deux idées de repas ou collations pour certaines familles de produits reconnaissables dans le nom retourné par l'IA (chips, sodas, biscuits, pizza, frites, etc.). Un nom incertain déclenche uniquement des idées générales.
+- Si le nom est corrigé par l'utilisateur, les idées se mettent à jour immédiatement. Elles sont des propositions à adapter, **pas** un diagnostic nutritionnel, une preuve qu'un produit est ultra-transformé ou une comparaison certifiée.
+- Le bouton **Comparer des produits** effectue, seulement sur action explicite, une recherche Open Food Facts avec un nom de famille alimentaire ; les Nutri-Scores affichés dépendent des données disponibles dans cette base collaborative.
+- Cette aide ne transmet aucune photo supplémentaire à Open Food Facts et ne modifie pas les repas enregistrés sans action explicite de l'utilisateur. Le service d'analyse photo IA demeure désactivé tant que les clés Mistral/Upstash et les essais réels ne sont pas validés.
+
 ## Apple Santé via Raccourcis (préparation V2.1)
 
 - Dans **Activité → Configurer**, suivre les instructions pour créer un raccourci iOS personnel.
