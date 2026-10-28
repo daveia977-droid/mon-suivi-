@@ -79,18 +79,18 @@ try{const alts=await offCategory(offPicked.cats);if(alts.length){offAlts=alts;co
 /* Idées facultatives après une photo, indépendantes des estimations IA.
    Aucune qualité nutritionnelle n'est déduite automatiquement de l'image. */
 const PHOTO_IDEAS=[
- {re:/\\b(chips|crisps|crackers|biscuit aperitif|snack sale|tortilla chips)\\b/,q:'chips',items:[['Pop-corn nature maison','À assaisonner selon vos goûts.'],['Bâtonnets de légumes et houmous','Une autre option à partager ou grignoter.']]},
- {re:/\\b(soda|cola|limonade|boisson sucree|boisson gazeuse|the glace|energy drink)\\b/,q:'soda',items:[['Eau pétillante et agrumes','Une boisson à personnaliser sans obligation.'],['Infusion froide maison','Une option à préparer et doser selon vos goûts.']]},
- {re:/\\b(biscuit|cookie|gateau|brownie|donut|muffin|barre chocolatee|viennoiserie|madeleine)\\b/,q:'biscuits',items:[['Yaourt nature et fruit de saison','Un goûter à composer soi-même.'],['Tartine avec purée de fruits','Ajustez les quantités à votre faim.']]},
- {re:/\\b(cereale|corn flakes|granola sucre|muesli sucre|chocapic)\\b/,q:'céréales',items:[['Flocons d’avoine et fruits','Une alternative pour le petit-déjeuner.'],['Muesli nature sans sucres ajoutés','Comparez les étiquettes selon vos préférences.']]},
- {re:/\\b(pizza|calzone)\\b/,q:'pizza',items:[['Pizza maison aux légumes','Choisissez la garniture et la quantité de fromage.'],['Tartine au four, tomates et légumes','Une version simple à personnaliser.']]},
- {re:/\\b(burger|hamburger|cheeseburger|sandwich industriel|hot dog)\\b/,q:'burger',items:[['Sandwich maison avec légumes','Ajoutez les ingrédients que vous aimez.'],['Pain complet garni, légumes et houmous','Une autre combinaison possible.']]},
- {re:/\\b(frites|french fries|potatoes|pomme de terre frite)\\b/,q:'frites',items:[['Pommes de terre rôties au four','Assaisonnez selon votre goût.'],['Légumes rôtis au four','Une autre façon de varier l’accompagnement.']]},
- {re:/\\b(nugget|cordon bleu|poulet pane|poisson pane)\\b/,q:'nuggets',items:[['Poulet ou poisson cuisiné maison','À accompagner de légumes si vous aimez.'],['Tofu doré et légumes','Une autre idée de préparation.']]},
- {re:/\\b(charcuterie|saucisson|salami|chorizo|lardon)\\b/,q:'charcuterie',items:[['Houmous et légumes','À essayer en tartine ou dans un sandwich.'],['Œuf dur et crudités','Une garniture alternative possible.']]},
- {re:/\\b(plat prepare|nouille instantanee|lasagne|pizza surgelee|soupe instantanee)\\b/,q:'plat préparé',items:[['Version maison du même plat','Vous pouvez choisir les ingrédients et l’assaisonnement.'],['Plat simple avec légumes et féculent','Une alternative facile à adapter.']]},
- {re:/\\b(yaourt sucre|dessert lacte|creme dessert|flan industriel)\\b/,q:'dessert lacté',items:[['Yaourt nature avec fruits','Dosez vous-même les ajouts.'],['Compote sans sucres ajoutés','À choisir selon vos envies.']]},
- {re:/\\b(bonbon|confiserie|gomme sucree)\\b/,q:'confiserie',items:[['Fruits frais de saison','Une autre option si vous en avez envie.'],['Compote sans sucres ajoutés','Une possibilité pour varier les collations.']]}
+ {re:/\b(chips|crisps|crackers|biscuit aperitif|snack sale|tortilla chips)\b/,q:'chips',items:[['Pop-corn nature maison','À assaisonner selon vos goûts.'],['Bâtonnets de légumes et houmous','Une autre option à partager ou grignoter.']]},
+ {re:/\b(soda|cola|limonade|boisson sucree|boisson gazeuse|the glace|energy drink)\b/,q:'soda',items:[['Eau pétillante et agrumes','Une boisson à personnaliser sans obligation.'],['Infusion froide maison','Une option à préparer et doser selon vos goûts.']]},
+ {re:/\b(biscuit|cookie|gateau|brownie|donut|muffin|barre chocolatee|viennoiserie|madeleine)\b/,q:'biscuits',items:[['Yaourt nature et fruit de saison','Un goûter à composer soi-même.'],['Tartine avec purée de fruits','Ajustez les quantités à votre faim.']]},
+ {re:/\b(cereale|corn flakes|granola sucre|muesli sucre|chocapic)\b/,q:'céréales',items:[['Flocons d’avoine et fruits','Une alternative pour le petit-déjeuner.'],['Muesli nature sans sucres ajoutés','Comparez les étiquettes selon vos préférences.']]},
+ {re:/\b(pizza|calzone)\b/,q:'pizza',items:[['Pizza maison aux légumes','Choisissez la garniture et la quantité de fromage.'],['Tartine au four, tomates et légumes','Une version simple à personnaliser.']]},
+ {re:/\b(burger|hamburger|cheeseburger|sandwich industriel|hot dog)\b/,q:'burger',items:[['Sandwich maison avec légumes','Ajoutez les ingrédients que vous aimez.'],['Pain complet garni, légumes et houmous','Une autre combinaison possible.']]},
+ {re:/\b(frites|french fries|potatoes|pomme de terre frite)\b/,q:'frites',items:[['Pommes de terre rôties au four','Assaisonnez selon votre goût.'],['Légumes rôtis au four','Une autre façon de varier l’accompagnement.']]},
+ {re:/\b(nugget|cordon bleu|poulet pane|poisson pane)\b/,q:'nuggets',items:[['Poulet ou poisson cuisiné maison','À accompagner de légumes si vous aimez.'],['Tofu doré et légumes','Une autre idée de préparation.']]},
+ {re:/\b(charcuterie|saucisson|salami|chorizo|lardon)\b/,q:'charcuterie',items:[['Houmous et légumes','À essayer en tartine ou dans un sandwich.'],['Œuf dur et crudités','Une garniture alternative possible.']]},
+ {re:/\b(plat prepare|nouille instantanee|lasagne|pizza surgelee|soupe instantanee)\b/,q:'plat préparé',items:[['Version maison du même plat','Vous pouvez choisir les ingrédients et l’assaisonnement.'],['Plat simple avec légumes et féculent','Une alternative facile à adapter.']]},
+ {re:/\b(yaourt sucre|dessert lacte|creme dessert|flan industriel)\b/,q:'dessert lacté',items:[['Yaourt nature avec fruits','Dosez vous-même les ajouts.'],['Compote sans sucres ajoutés','À choisir selon vos envies.']]},
+ {re:/\b(bonbon|confiserie|gomme sucree)\b/,q:'confiserie',items:[['Fruits frais de saison','Une autre option si vous en avez envie.'],['Compote sans sucres ajoutés','Une possibilité pour varier les collations.']]}
 ];
 function photoAlternatives(name){
  const normalized=ciqualClean(name);
