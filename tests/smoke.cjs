@@ -63,3 +63,29 @@ assert.equal(ideasOf('Céréales sucrées').specific,true,'Reconnaît les accent
 assert.ok(app.includes('photoAlternativesHtml(offPicked.name)'),'Suggestions affichées après analyse photo');
 assert.ok(app.includes("if(action==='photo-compare')"),'Recherche Open Food Facts seulement sur un clic');
 console.log('Tests Mon Suivi : Ciqual, nutrition, sauvegardes, Apple Santé et alternatives photo OK.');
+
+
+/* Guide V3.1 : contrôle du catalogue complet, pas de données nutritionnelles inventées. */
+const guideData=fs.readFileSync('meal-guide-data.js','utf8');
+const guideCode=fs.readFileSync('meal-guide.js','utf8');
+const guideStyles=fs.readFileSync('meal-guide.css','utf8');
+const guideContext={window:{}};
+vm.runInNewContext(guideData,guideContext);
+const guideRecipes=guideContext.window.MON_SUIVI_RECIPES;
+const guideAlternatives=guideContext.window.MON_SUIVI_ALTERNATIVES;
+assert.equal(guideRecipes.length,42,'42 recettes intégrées');
+assert.equal(guideRecipes.filter(x=>x.category==='ivo').length,24,'24 plats ivoiriens');
+assert.equal(guideAlternatives.length,15,'15 catégories alternatives');
+assert.equal(new Set(guideRecipes.map(x=>x.id)).size,42,'Identifiants de recettes uniques');
+for(const r of guideRecipes){
+ assert.ok(r.name&&r.ingredients.length>=5&&r.steps&&r.note,'Chaque repas a des ingrédients et une préparation : '+r.id);
+ assert.ok(['both','lunch','dinner'].includes(r.meal),'Filtre déjeuner/dîner : '+r.id);
+ assert.equal(r.kcal,undefined,'Pas de calories fabriquées : '+r.id);
+}
+assert.ok(guideAlternatives.every(a=>a.choices.length===2),'Deux alternatives par famille');
+assert.ok(guideCode.includes('data:image/svg+xml'),'Illustrations vectorielles intégrées localement');
+assert.ok(!guideCode.includes('images.unsplash.com'),'Pas d’images tierces non autorisées');
+assert.ok(guideCode.includes('function showRecipe('),'Fiches ingrédients accessibles');
+assert.ok(guideCode.includes('function showAlternative('),'Alternatives illustrées accessibles');
+assert.ok(guideStyles.includes('@media(max-width:355px)'),'Mise en page petits iPhone');
+console.log('Guide repas : 42 recettes, 24 ivoiriennes et 15 catégories alternatives validées.');
