@@ -75,6 +75,44 @@ async function loadAlts(){
 if(!offPicked||!offPicked.cats.length)return;
 try{const alts=await offCategory(offPicked.cats);if(alts.length){offAlts=alts;const slot=document.querySelector('#off-alts-slot');if(slot&&mealMode==='confirm')slot.innerHTML='<p class="off-sub">Alternatives, même famille :</p>'+offListHtml(offAlts,'offpick-alt')}}catch{}
 }
+
+/* Idées facultatives après une photo, indépendantes des estimations IA.
+   Aucune qualité nutritionnelle n'est déduite automatiquement de l'image. */
+const PHOTO_IDEAS=[
+ {re:/\\b(chips|crisps|crackers|biscuit aperitif|snack sale|tortilla chips)\\b/,q:'chips',items:[['Pop-corn nature maison','À assaisonner selon vos goûts.'],['Bâtonnets de légumes et houmous','Une autre option à partager ou grignoter.']]},
+ {re:/\\b(soda|cola|limonade|boisson sucree|boisson gazeuse|the glace|energy drink)\\b/,q:'soda',items:[['Eau pétillante et agrumes','Une boisson à personnaliser sans obligation.'],['Infusion froide maison','Une option à préparer et doser selon vos goûts.']]},
+ {re:/\\b(biscuit|cookie|gateau|brownie|donut|muffin|barre chocolatee|viennoiserie|madeleine)\\b/,q:'biscuits',items:[['Yaourt nature et fruit de saison','Un goûter à composer soi-même.'],['Tartine avec purée de fruits','Ajustez les quantités à votre faim.']]},
+ {re:/\\b(cereale|corn flakes|granola sucre|muesli sucre|chocapic)\\b/,q:'céréales',items:[['Flocons d’avoine et fruits','Une alternative pour le petit-déjeuner.'],['Muesli nature sans sucres ajoutés','Comparez les étiquettes selon vos préférences.']]},
+ {re:/\\b(pizza|calzone)\\b/,q:'pizza',items:[['Pizza maison aux légumes','Choisissez la garniture et la quantité de fromage.'],['Tartine au four, tomates et légumes','Une version simple à personnaliser.']]},
+ {re:/\\b(burger|hamburger|cheeseburger|sandwich industriel|hot dog)\\b/,q:'burger',items:[['Sandwich maison avec légumes','Ajoutez les ingrédients que vous aimez.'],['Pain complet garni, légumes et houmous','Une autre combinaison possible.']]},
+ {re:/\\b(frites|french fries|potatoes|pomme de terre frite)\\b/,q:'frites',items:[['Pommes de terre rôties au four','Assaisonnez selon votre goût.'],['Légumes rôtis au four','Une autre façon de varier l’accompagnement.']]},
+ {re:/\\b(nugget|cordon bleu|poulet pane|poisson pane)\\b/,q:'nuggets',items:[['Poulet ou poisson cuisiné maison','À accompagner de légumes si vous aimez.'],['Tofu doré et légumes','Une autre idée de préparation.']]},
+ {re:/\\b(charcuterie|saucisson|salami|chorizo|lardon)\\b/,q:'charcuterie',items:[['Houmous et légumes','À essayer en tartine ou dans un sandwich.'],['Œuf dur et crudités','Une garniture alternative possible.']]},
+ {re:/\\b(plat prepare|nouille instantanee|lasagne|pizza surgelee|soupe instantanee)\\b/,q:'plat préparé',items:[['Version maison du même plat','Vous pouvez choisir les ingrédients et l’assaisonnement.'],['Plat simple avec légumes et féculent','Une alternative facile à adapter.']]},
+ {re:/\\b(yaourt sucre|dessert lacte|creme dessert|flan industriel)\\b/,q:'dessert lacté',items:[['Yaourt nature avec fruits','Dosez vous-même les ajouts.'],['Compote sans sucres ajoutés','À choisir selon vos envies.']]},
+ {re:/\\b(bonbon|confiserie|gomme sucree)\\b/,q:'confiserie',items:[['Fruits frais de saison','Une autre option si vous en avez envie.'],['Compote sans sucres ajoutés','Une possibilité pour varier les collations.']]}
+];
+function photoAlternatives(name){
+ const normalized=ciqualClean(name);
+ const match=PHOTO_IDEAS.find(row=>row.re.test(normalized));
+ return {specific:!!match,query:match?.q||String(name||'').trim().slice(0,80),
+ items:match?.items||[['Version maison de ce plat','Vous pouvez adapter les ingrédients à vos goûts.'],['Accompagner de fruits ou de légumes','Une idée pour varier le repas, si elle vous convient.']]};
+}
+function photoAlternativesHtml(name){
+ const suggestions=photoAlternatives(name);
+ return '<div class="photo-alt-head"><span class="photo-alt-symbol">'+icon('heart')+'</span><div><h3>Des idées pour varier</h3><p>'+(suggestions.specific?'Alternatives possibles à ce type de produit.':'Le type de produit n’est pas clairement reconnu : voici deux pistes générales.')+'</p></div></div>'+
+ '<ul class="photo-alt-list">'+suggestions.items.map(([title,info])=>'<li><strong>'+esc(title)+'</strong><small>'+esc(info)+'</small></li>').join('')+'</ul>'+
+ '<p class="photo-alt-note">Une photo ne permet pas de savoir si un produit est « sain ». Être transformé ne signifie pas forcément être moins intéressant sur le plan nutritionnel. Vérifiez les ingrédients, allergènes et portions selon vos besoins.</p>'+
+ btn('Comparer des produits','photo-compare','photo-alt-compare');
+}
+function photoCompareProducts(){
+ if(!photoAI||!offPicked)return;
+ const entered=document.querySelector('#entry-form input[name="name"]')?.value.trim();
+ const q=photoAlternatives(entered||offPicked.name).query;
+ mealMode='search';renderMealDialog();
+ const input=document.querySelector('#off-q');if(input){input.value=q;if(q.length>=2)doOffSearch()}
+}
+
 let photoSessionApproved=false;
 const photoConsent=()=>photoSessionApproved;
 const photoNote=() =>'<p class="off-credit">Analyse via Mistral AI, strictement après votre consentement. Aucune photo n’est stockée par l’application ; Mistral conserve les données d’API jusqu’à 30 jours glissants (surveillance anti-abus) avant suppression. La désactivation de l’entraînement n’entraîne pas de suppression immédiate.</p>';
@@ -130,7 +168,7 @@ else if(mealMode==='search')body='<label>Aliment ou marque<input id="off-q" maxl
 else if(mealMode==='ciqual')body='<label>Aliment courant (Ciqual 2025)<input id="ciqual-q" maxlength="80" autocomplete="off" placeholder="Ex. riz cuit, œuf, poulet…"></label>'+btn('Chercher dans Ciqual','ciqualsearch','wide')+'<div id="off-results"></div>'+ciqualNote();
 else if(mealMode==='barcode')body='<label>Code-barres (chiffres du produit)<input id="off-code" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="Ex. 3017620422003"></label>'+btn('Chercher le produit','offbarcode','wide')+'<div id="off-results"></div>'+offNote();
 else if(mealMode==='photo')body='<p class="modal-explain">Photographiez votre repas : l’estimation IA est un ordre de grandeur, toujours modifiable.</p><label class="photo-pick" for="photo-file"><span class="photo-pick-icon">'+icon('meal')+'</span>'+(photoData?'Photo prête ✓ — en choisir une autre':'Choisir ou prendre une photo')+'</label><input type="file" id="photo-file" accept="image/*" capture="environment" hidden>'+btn('Analyser la photo','photoanalyze','wide')+'<div id="photo-results"></div>'+photoNote();
-else if(mealMode==='confirm')body='<label>Repas ou aliment<input name="name" maxlength="150" required value="'+esc(offPicked.name)+'"></label><div class="off-grid"><label>Poids (g)<input id="off-grams" name="grams" type="number" inputmode="numeric" min="1" max="3000" step="1" value="'+(photoAI&&photoAI.grams?photoAI.grams:100)+'"></label><label>Calories estimées<input id="off-kcal" name="value" type="number" inputmode="numeric" min="0" max="50000" step="1" required value="'+esc(String(offKcalFor(photoAI&&photoAI.grams?photoAI.grams:100)))+'"></label></div>'+macroInputs({},photoAI&&photoAI.grams?photoAI.grams:100)+'<p class="modal-explain">'+(photoAI?(offPicked.kcal!==null?'Estimation IA ('+photoAI.confidence+' confiance) : '+fmt(offPicked.kcal)+' kcal pour 100 g — ordre de grandeur, souvent ±30–50 % : ajustez librement. Aucune photo n’est stockée par l’application.':'L’estimation IA n’a pas pu évaluer les calories : renseignez-les vous-même. Aucune photo n’est stockée par l’application.'):(offPicked.kcal!==null?'Environ '+fmt(offPicked.kcal)+' kcal pour 100 g d’après '+(offPicked.source==='ciqual'?'Ciqual 2025 (Anses)':'Open Food Facts')+' — ajustez librement.':'Calories inconnues dans la base : estimez-les vous-même.'))+'</p>'+(photoAI?'':(offPicked.cats.length?'<div id="off-alts-slot"></div>':''))+(photoAI?'':(offPicked.source==='ciqual'?ciqualNote():offNote()));
+else if(mealMode==='confirm')body='<label>Repas ou aliment<input name="name" maxlength="150" required value="'+esc(offPicked.name)+'"></label><div class="off-grid"><label>Poids (g)<input id="off-grams" name="grams" type="number" inputmode="numeric" min="1" max="3000" step="1" value="'+(photoAI&&photoAI.grams?photoAI.grams:100)+'"></label><label>Calories estimées<input id="off-kcal" name="value" type="number" inputmode="numeric" min="0" max="50000" step="1" required value="'+esc(String(offKcalFor(photoAI&&photoAI.grams?photoAI.grams:100)))+'"></label></div>'+macroInputs({},photoAI&&photoAI.grams?photoAI.grams:100)+'<p class="modal-explain">'+(photoAI?(offPicked.kcal!==null?'Estimation IA ('+photoAI.confidence+' confiance) : '+fmt(offPicked.kcal)+' kcal pour 100 g — ordre de grandeur, souvent ±30–50 % : ajustez librement. Aucune photo n’est stockée par l’application.':'L’estimation IA n’a pas pu évaluer les calories : renseignez-les vous-même. Aucune photo n’est stockée par l’application.'):(offPicked.kcal!==null?'Environ '+fmt(offPicked.kcal)+' kcal pour 100 g d’après '+(offPicked.source==='ciqual'?'Ciqual 2025 (Anses)':'Open Food Facts')+' — ajustez librement.':'Calories inconnues dans la base : estimez-les vous-même.'))+'</p>'+(photoAI?'<section class="photo-alt-panel" aria-label="Idées d’alternatives après la photo"><div id="photo-alt-content">'+photoAlternativesHtml(offPicked.name)+'</div></section>':(offPicked.cats.length?'<div id="off-alts-slot"></div>':''))+(photoAI?'':(offPicked.source==='ciqual'?ciqualNote():offNote()));
 modal('<'+(isForm?'form id="entry-form"':'div class="off-panel"')+'><h2>'+(entry.id?'Modifier le repas':'Ajouter un repas')+'</h2><div class="mode-tabs">'+[['search','Produits'],['ciqual','Aliments'],['barcode','Code-barres'],['photo','Photo'],['manual','Manuelle']].map(([m,l])=>'<button type="button" class="mode-tab'+((mealMode===m)||(mealMode==='confirm'&&((m==='photo'&&photoAI)||(m==='search'&&!photoAI)))?' active':'')+'" data-action="mealmode:'+m+'">'+l+'</button>').join('')+'</div>'+body+(isForm?'<label>Date<input type="date" name="date" required max="'+today()+'" value="'+esc(entry.date||today())+'"></label><p id="entry-error" class="notice-error" role="alert" hidden></p><div class="row"><button type="submit">Enregistrer</button>'+btn('Annuler','close','secondary')+'</div>':btn('Fermer','close','secondary wide'))+'</'+(isForm?'form':'div')+'>');
 if(isForm)document.querySelector('#entry-form').addEventListener('submit',event=>{
 event.preventDefault();const v=Object.fromEntries(new FormData(event.target));v.id=entry.id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7);
@@ -363,6 +401,7 @@ if(e.target.id==='goal-form'){e.preventDefault();const g=Number(new FormData(e.t
 if(e.target.id==='wgoal-form'){e.preventDefault();let g=Number(new FormData(e.target).get('goal'));if(unit==='lb')g=g/unitFactor;if(!Number.isFinite(g)||g<=0||g>700){const err=document.querySelector('#wgoal-error');err.textContent='Objectif invalide.';err.hidden=false;return}data.weightGoal=Math.round(g*100)/100;dlg.close();save();return}
 });
 document.addEventListener('input',e=>{
+if(e.target.name==='name'&&mealMode==='confirm'&&photoAI){const slot=document.querySelector('#photo-alt-content');if(slot)slot.innerHTML=photoAlternativesHtml(e.target.value);return}
 if(e.target.id!=='off-grams')return;const g=Number(e.target.value),grams=Number.isFinite(g)&&g>0?g:100;const k=document.querySelector('#off-kcal');if(k&&offPicked)k.value=offKcalFor(grams);for(const [key] of macroFields){const input=document.querySelector('#off-'+key);if(input)input.value=macroFor(key,grams)}
 });
 document.addEventListener('click',e=>{
@@ -384,6 +423,7 @@ if(action==='ciqualpick'){ciqualPick(Number(type));return}
 if(action==='offpick'){offPick(Number(type));return}
 if(action==='offpick-alt'){offPickAlt(Number(type));return}
 if(action==='photoanalyze'){analyzePhoto();return}
+if(action==='photo-compare'){photoCompareProducts();return}
 if(action==='photo-consent-off'){photoSessionApproved=false;try{localStorage.removeItem(KEY+'-photo-consent')}catch{}render();return}
 if(action==='delete'){if(confirm('Supprimer cette entrée ?')){data[type]=data[type].filter(x=>String(x.id)!==id);save()}return}
 if(action==='quickmood'){quickMood(type);return}
