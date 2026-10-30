@@ -1,0 +1,26 @@
+'use strict';
+window.MON_SUIVI_ALT_PREP={
+ 'Pop-corn nature maison':'Faire éclater le maïs dans une casserole couverte selon les indications du paquet. Assaisonner à son goût.',
+ 'Bâtonnets de légumes et houmous':'Laver et tailler les légumes. Mixer les pois chiches cuits avec le citron, un peu d’eau et le tahini facultatif ; servir ensemble.',
+ 'Eau pétillante et agrumes':'Laver les agrumes, les couper en rondelles et les ajouter à l’eau pétillante. Ajouter de la menthe si souhaité.',
+ 'Infusion froide maison':'Préparer une infusion selon les indications du fabricant. Laisser refroidir, puis placer au frais.',
+ 'Yaourt nature et fruit':'Laver et découper le fruit, puis le servir avec le yaourt nature.',
+ 'Tartine et purée de fruits':'Tartiner le pain de purée de fruits ; servir immédiatement.',
+ 'Pizza maison aux légumes':'Étaler la pâte sur une plaque, garnir de tomate et de légumes émincés. Ajouter le fromage si souhaité et cuire selon les indications de la pâte.',
+ 'Tartine tomate et légumes au four':'Garnir le pain de tomates et de légumes préparés. Faire dorer au four en surveillant la cuisson.',
+ 'Pommes de terre rôties au four':'Laver et couper les pommes de terre. Mélanger avec un peu d’huile et les épices, puis rôtir jusqu’à ce qu’elles soient tendres.',
+ 'Légumes rôtis et épices':'Laver et découper les légumes en morceaux réguliers. Assaisonner et rôtir jusqu’à la texture souhaitée.',
+ 'Banane plantain rôtie':'Éplucher la banane plantain, la couper en morceaux et la rôtir sur une plaque jusqu’à ce qu’elle soit tendre et dorée.',
+ 'Sandwich maison aux crudités':'Laver et couper les crudités. Garnir le pain de crudités et de poulet déjà cuit, d’œuf cuit ou de houmous.',
+ 'Wrap poulet et légumes':'Garnir la tortilla de poulet cuit et de légumes lavés et découpés. Ajouter le yaourt et rouler.',
+ 'Flocons d’avoine et fruits':'Mélanger les flocons avec le lait ou le yaourt. Ajouter les fruits lavés et découpés ; laisser reposer ou cuire selon les flocons choisis.',
+ 'Muesli nature':'Verser le muesli dans un bol, ajouter le lait ou le yaourt puis les fruits choisis.',
+ 'Pain complet et fruit':'Laver et préparer le fruit, puis servir avec le pain complet et le fromage blanc facultatif.',
+ 'Yaourt et flocons d’avoine':'Mélanger les flocons au yaourt et laisser ramollir selon sa préférence. Ajouter un fruit si souhaité.',
+ 'Riz gras maison avec légumes':'Faire revenir l’oignon et les légumes préparés, puis ajouter le riz et l’eau suivant le paquet. Ajouter du poulet déjà cuit et laisser mijoter.',
+ 'Sandwich œuf et crudités':'Cuire l’œuf selon sa préférence. Laver et couper les crudités puis garnir le pain avec l’œuf préparé.',
+ 'Houmous et crudités':'Mixer les pois chiches cuits avec le citron, un peu d’eau et le tahini facultatif. Servir avec les légumes lavés et coupés.',
+ 'Yaourt nature et fruits':'Laver et découper les fruits puis les ajouter au yaourt.',
+ 'Compote sans sucres ajoutés':'Éplucher et couper les fruits, les cuire doucement avec un peu d’eau puis les écraser. Ajouter de la cannelle si souhaité.',
+ 'Fruits frais de saison':'Laver les fruits, retirer les parties non comestibles et les découper selon sa préférence.'
+};

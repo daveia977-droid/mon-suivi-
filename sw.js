@@ -1,9 +1,9 @@
 'use strict';
-const CACHE = 'mon-suivi-shell-v4-1';
+const CACHE = 'mon-suivi-shell-v4-2b';
 const SHELL = [
   './', './index.html', './styles.css', './premium.css', './meal-guide.css',
   './v4.css', './app.js', './ciqual-2025.js', './meal-guide-data.js',
-  './meal-guide.js', './pwa.js', './artwork.svg', './manifest.webmanifest',
+  './meal-guide.js', './recipe-preparations.js', './food-photos.js', './alternative-prep.js', './alternative-portions.js', './food-placeholder.svg', './pwa.js', './artwork.svg', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png',
   './icons/apple-touch-icon.png', './icons/favicon-32.png'
 ];
@@ -22,6 +22,18 @@ self.addEventListener('fetch', event => {
       url.pathname.startsWith('/api/')) return;
   if (request.mode === 'navigate') {
     event.respondWith(fetch(request).catch(() => caches.match('./index.html')));
+  } else if (!url.search && url.pathname.startsWith('/photos/')) {
+    event.respondWith(caches.open(CACHE+'-photos').then(async cache => {
+      const cached=await cache.match(request);if(cached)return cached;
+      try {
+        const response=await fetch(request);
+        if(response.ok){
+          await cache.put(request,response.clone());
+          const keys=await cache.keys();if(keys.length>100)await cache.delete(keys[0]);
+        }
+        return response;
+      } catch { return Response.error(); }
+    }));
   } else if (!url.search && STATIC_URLS.has(url.href)) {
     event.respondWith(caches.match(request).then(cached => cached || fetch(request)));
   }
