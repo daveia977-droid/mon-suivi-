@@ -1,3 +1,4 @@
+/* Photos locales ; sources et licences affichées dans les fiches. */
 window.MON_SUIVI_PHOTOS={
   "attieke-poisson": {
     "src": "./photos/attieke-poisson.jpg",
@@ -277,5 +278,239 @@ window.MON_SUIVI_PHOTOS={
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "caption": "Lentil and vegetable soup with avocado (6964882187)",
     "original": "https://upload.wikimedia.org/wikipedia/commons/4/43/Lentil_and_vegetable_soup_with_avocado_%286964882187%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "garba": {
+    "src": "./photos/garba.jpg",
+    "author": "KONE SEYDOU KS",
+    "page": "https://commons.wikimedia.org/wiki/File:Garba_plat_ivoirien.JPG",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Garba plat ivoirien",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Garba_plat_ivoirien.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "sauce-aubergine": {
+    "src": "./photos/sauce-aubergine.jpg",
+    "author": "Blay.Achi",
+    "page": "https://commons.wikimedia.org/wiki/File:Foufou_la_sauce_Aubergine_avec_du_poisson_fum%C3%A9.jpeg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Foufou la sauce Aubergine avec du poisson fumé",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Foufou_la_sauce_Aubergine_avec_du_poisson_fum%C3%A9.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "riz-sauce-claire": {
+    "src": "./photos/riz-sauce-claire.jpg",
+    "author": "African Hope",
+    "page": "https://commons.wikimedia.org/wiki/File:Riz_sauce_claire.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Riz sauce claire",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Riz_sauce_claire.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "alloco-oeuf": {
+    "src": "./photos/alloco-oeuf.jpg",
+    "author": "Likikouet Raïssa",
+    "page": "https://commons.wikimedia.org/wiki/File:Alloco_et_oeuf_bouilli.JPG",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Alloco et oeuf bouilli",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/1/13/Alloco_et_oeuf_bouilli.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "poulet-yassa": {
+    "src": "./photos/poulet-yassa.jpg",
+    "author": "Arnaud 25",
+    "page": "https://commons.wikimedia.org/wiki/File:Poulet_yassa_01.jpg",
+    "license": "CC0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "caption": "Poulet yassa 01",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/4/41/Poulet_yassa_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "bowl-lentilles": {
+    "src": "./photos/bowl-lentilles.jpg",
+    "author": "HaJunkiyada",
+    "page": "https://commons.wikimedia.org/wiki/File:Liat_Portal_for_Foodie_Disorder_-_Mujaddara_with_Israeli_Salad_and_Beet_Salad.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Liat Portal for Foodie Disorder - Mujaddara with Israeli Salad and Beet Salad",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/36/Liat_Portal_for_Foodie_Disorder_-_Mujaddara_with_Israeli_Salad_and_Beet_Salad.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "poulet-patate": {
+    "src": "./photos/poulet-patate.jpg",
+    "author": "HaJunkiyada",
+    "page": "https://commons.wikimedia.org/wiki/File:Liat_Portal_for_Foodie_Disorder_-_Healthy_low-fat_chicken,_rice,_broccoli,_and_sweet_potato_plate.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Liat Portal for Foodie Disorder - Healthy low-fat chicken, rice, broccoli, and sweet potato plate",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Liat_Portal_for_Foodie_Disorder_-_Healthy_low-fat_chicken%2C_rice%2C_broccoli%2C_and_sweet_potato_plate.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "curry-pois": {
+    "src": "./photos/curry-pois.jpg",
+    "author": "Parzeus",
+    "page": "https://commons.wikimedia.org/wiki/File:Chana_Masala_in_Paul%C3%ADnia,_2023-10-16.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Chana Masala in Paulínia, 2023-10-16",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Chana_Masala_in_Paul%C3%ADnia%2C_2023-10-16.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "bowl-haricots": {
+    "src": "./photos/bowl-haricots.jpg",
+    "author": "Arnold Gatilao from Fremont, CA, USA",
+    "page": "https://commons.wikimedia.org/wiki/File:Red_Beans_and_Rice.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "caption": "Red Beans and Rice",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Red_Beans_and_Rice.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "nouilles-oeuf": {
+    "src": "./photos/nouilles-oeuf.jpg",
+    "author": "daSupremo",
+    "page": "https://commons.wikimedia.org/wiki/File:Fried_noodles_with_eggs_and_vegetables.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Fried noodles with eggs and vegetables",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/b5/Fried_noodles_with_eggs_and_vegetables.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "riz-poulet-legumes": {
+    "src": "./photos/riz-poulet-legumes.jpg",
+    "author": "HaJunkiyada",
+    "page": "https://commons.wikimedia.org/wiki/File:Liat_Portal_for_Foodie_Disorder_-_Roasted_chicken_with_vegetables_and_white_rice.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Liat Portal for Foodie Disorder - Roasted chicken with vegetables and white rice",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/62/Liat_Portal_for_Foodie_Disorder_-_Roasted_chicken_with_vegetables_and_white_rice.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "chips": {
+    "src": "./photos/chips.jpg",
+    "author": "Gaurav Dhwaj Khadka",
+    "page": "https://commons.wikimedia.org/wiki/File:Potato_chips_2.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Potato chips 2",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/06/Potato_chips_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "soda": {
+    "src": "./photos/soda.jpg",
+    "author": "AlfredMango",
+    "page": "https://commons.wikimedia.org/wiki/File:Picture_of_a_local_Lavender_and_Peach_flavored_soda_produced_in_Turkey.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Picture of a local Lavender and Peach flavored soda produced in Turkey",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Picture_of_a_local_Lavender_and_Peach_flavored_soda_produced_in_Turkey.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "biscuits": {
+    "src": "./photos/biscuits.jpg",
+    "author": "Kritzolina",
+    "page": "https://commons.wikimedia.org/wiki/File:Chocolate_covered_gingerbread_cookies_02.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Chocolate covered gingerbread cookies 02",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/88/Chocolate_covered_gingerbread_cookies_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "pizza": {
+    "src": "./photos/pizza.jpg",
+    "author": "Petar Milošević",
+    "page": "https://commons.wikimedia.org/wiki/File:Vegetarian_Pizza.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Vegetarian Pizza",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Vegetarian_Pizza.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "frites": {
+    "src": "./photos/frites.jpg",
+    "author": "Chris Woodrich",
+    "page": "https://commons.wikimedia.org/wiki/File:Cajun_fries_from_Popeyes_Louisiana_Kitchen,_Stratford,_Ontario,_2025-08-04.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Cajun fries from Popeyes Louisiana Kitchen, Stratford, Ontario, 2025-08-04",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/1/19/Cajun_fries_from_Popeyes_Louisiana_Kitchen%2C_Stratford%2C_Ontario%2C_2025-08-04.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "alloco": {
+    "src": "./photos/alloco.jpg",
+    "author": "Krista",
+    "page": "https://commons.wikimedia.org/wiki/File:Aloko.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "caption": "Aloko",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Aloko.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "burger": {
+    "src": "./photos/burger.jpg",
+    "author": "Evan-Amos",
+    "page": "https://commons.wikimedia.org/wiki/File:Big_Mac_hamburger.jpg",
+    "license": "CC0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "caption": "Big Mac hamburger",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Big_Mac_hamburger.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "Muesli nature": {
+    "src": "./photos/muesli-nature.jpg",
+    "author": "Original description was: I, VirtualSteve took this photograph on February 19, 2006.",
+    "page": "https://commons.wikimedia.org/wiki/File:Muesli.jpg",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+    "caption": "Muesli",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/c/c0/Muesli.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "Pommes de terre rôties au four": {
+    "src": "./photos/pommes-de-terre-r-ties-au-four.jpg",
+    "author": "Punker1999",
+    "page": "https://commons.wikimedia.org/wiki/File:Roasted_potatoes_in_bowl.jpg",
+    "license": "CC0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "caption": "Roasted potatoes in bowl",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Roasted_potatoes_in_bowl.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "Légumes rôtis et épices": {
+    "src": "./photos/l-gumes-r-tis-et--pices.jpg",
+    "author": "HaJunkiyada",
+    "page": "https://commons.wikimedia.org/wiki/File:Liat_Portal_for_Foodie_Disorder_-_Roasted_Antipasti_Vegetables.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Liat Portal for Foodie Disorder - Roasted Antipasti Vegetables",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Liat_Portal_for_Foodie_Disorder_-_Roasted_Antipasti_Vegetables.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "Banane plantain rôtie": {
+    "src": "./photos/banane-plantain-r-tie.jpg",
+    "author": "Edithobayaa1",
+    "page": "https://commons.wikimedia.org/wiki/File:Roasted_ripped_plantain_on_display_in_Ghana.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Roasted ripped plantain on display in Ghana",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Roasted_ripped_plantain_on_display_in_Ghana.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "Sandwich maison aux crudités": {
+    "src": "./photos/sandwich-maison-aux-crudit-s.jpg",
+    "author": "Ganesh Mohan T",
+    "page": "https://commons.wikimedia.org/wiki/File:Vegetable_Sandwich_2.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Vegetable Sandwich 2",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Vegetable_Sandwich_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "Flocons d’avoine et fruits": {
+    "src": "./photos/flocons-d-avoine-et-fruits.jpg",
+    "author": "Bajinra",
+    "page": "https://commons.wikimedia.org/wiki/File:Fruit_and_Honey_French_Oatmeal_2.jpg",
+    "license": "CC0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "caption": "Fruit and Honey French Oatmeal 2",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/b6/Fruit_and_Honey_French_Oatmeal_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "Compote sans sucres ajoutés": {
+    "src": "./photos/compote-sans-sucres-ajout-s.jpg",
+    "author": "David Benbennick",
+    "page": "https://commons.wikimedia.org/wiki/File:Applesauce.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "caption": "Applesauce",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Applesauce.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "Fruits frais de saison": {
+    "src": "./photos/fruits-frais-de-saison.jpg",
+    "author": "Gaurav Dhwaj Khadka",
+    "page": "https://commons.wikimedia.org/wiki/File:Fruit_Salad_4.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Fruit Salad 4",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/74/Fruit_Salad_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
   }
 };

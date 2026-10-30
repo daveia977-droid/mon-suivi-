@@ -70,9 +70,20 @@ const guideData=fs.readFileSync('meal-guide-data.js','utf8');
 const guideCode=fs.readFileSync('meal-guide.js','utf8');
 const guideStyles=fs.readFileSync('meal-guide.css','utf8');
 const guideContext={window:{}};
+vm.runInNewContext(fs.readFileSync('recipe-preparations.js','utf8'),guideContext);
 vm.runInNewContext(guideData,guideContext);
 const guideRecipes=guideContext.window.MON_SUIVI_RECIPES;
 const guideAlternatives=guideContext.window.MON_SUIVI_ALTERNATIVES;
+vm.runInNewContext(fs.readFileSync('alternative-prep.js','utf8'),guideContext);
+vm.runInNewContext(fs.readFileSync('alternative-portions.js','utf8'),guideContext);
+const altLinks=vm.runInNewContext(guideCode.match(/const recipeByAlt=\{[^;]+;/)[0]+';recipeByAlt');
+for(const alternative of guideAlternatives){
+ for(const name of alternative.choices){
+  const recipe=guideRecipes.find(r=>r.id===altLinks[name]);
+  assert.ok(recipe||guideContext.window.MON_SUIVI_ALT_PREP[name],'Préparation de chaque alternative : '+name);
+  assert.ok(recipe||guideContext.window.MON_SUIVI_ALT_PORTIONS[name]?.length>=1,'Portions de chaque alternative : '+name);
+ }
+}
 assert.equal(guideRecipes.length,42,'42 recettes intégrées');
 assert.equal(guideRecipes.filter(x=>x.category==='ivo').length,24,'24 plats ivoiriens');
 assert.equal(guideAlternatives.length,15,'15 catégories alternatives');
@@ -81,6 +92,7 @@ for(const r of guideRecipes){
  assert.ok(r.name&&r.ingredients.length>=5&&r.steps&&r.note,'Chaque repas a des ingrédients et une préparation : '+r.id);
  assert.ok(['both','lunch','dinner'].includes(r.meal),'Filtre déjeuner/dîner : '+r.id);
  assert.equal(r.kcal,undefined,'Pas de calories fabriquées : '+r.id);
+ assert.equal(r.preparationSteps.length,4,'Quatre étapes adaptées : '+r.id);
 }
 assert.ok(guideAlternatives.every(a=>a.choices.length===2),'Deux alternatives par famille');
 const photosContext={window:{}};

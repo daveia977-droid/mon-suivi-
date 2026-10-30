@@ -1,8 +1,10 @@
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
 const {chromium}=require('playwright');
 (async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});
  try{
+  fs.mkdirSync('screenshots',{recursive:true});
   for(const width of [320,393,430]){
    const page=await browser.newPage({viewport:{width,height:852},isMobile:true,hasTouch:true});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -20,6 +22,9 @@ const {chromium}=require('playwright');
    await page.locator('[data-guide-action="recipe:attieke-poisson"]').click();
    await page.locator('#mg-servings').selectOption('2');
    assert.match(await page.locator('.mg-ingredient-list').textContent(),/300 g/);
+   await page.locator('#mg-servings').selectOption('3');
+   assert.match(await page.locator('.mg-ingredient-list').textContent(),/Oignon · 0,75/);
+   assert.ok(await page.locator('.mg-prep li').count()>=4,'Préparation détaillée');
    await page.locator('[data-guide-action="favorite:attieke-poisson"]').click();
    assert.equal(await page.locator('.mg-favorite').getAttribute('aria-pressed'),'true');
    await page.locator('#dialog .mg-close').click();
@@ -35,6 +40,8 @@ const {chromium}=require('playwright');
    await page.locator('#mg-max-minutes').selectOption('20');
    await page.locator('#mg-exclude').fill('œuf');
    assert.equal(await page.locator('[data-guide-action="recipe:omelette-legumes"]').count(),0);
+   await page.locator('#mg-exclude').fill('oeuf, arachide');
+   assert.equal(await page.locator('[data-guide-action="recipe:omelette-legumes"]').count(),0,'Recherche sans ligature œ');
    await page.locator('#mg-max-minutes').selectOption('0');
    await page.locator('#mg-exclude').fill('');
    await page.locator('#mg-recipe-search').fill('kedjenou poulet');

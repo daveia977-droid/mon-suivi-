@@ -16,6 +16,8 @@ jobs:
         run: |
           node --check app.js
           node --check meal-guide-data.js
+          node --check recipe-preparations.js
+          node --check alternative-portions.js
           node --check meal-guide.js
           node --check ciqual-2025.js
           node --check api/photo.js

@@ -8,14 +8,14 @@ const alternatives=window.MON_SUIVI_ALTERNATIVES||[];
 if(!recipes.length||!alternatives.length)return;
 const state={section:'recipes',category:'ivo',meal:'lunch',query:'',altQuery:'',visible:10,selected:null,favorites:false,maxMinutes:0,exclude:''};
 const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/œ/g,'oe').replace(/æ/g,'ae').trim();
 const escAttr=escapeHtml;
 const photos=window.MON_SUIVI_PHOTOS||{};
 const fallback='./food-placeholder.svg';
 const photoFor=item=>photos[item.id]||photos[item.name]||photos[recipeByAlt[item.name]];
 const img=item=>{
  const photo=photoFor(item);
- return '<span class="mg-image-wrap"><img class="mg-img" src="'+escAttr(photo?photo.src:fallback)+'" alt="'+escAttr(photo?photo.caption:'Photo non disponible : '+item.name)+'" loading="lazy" decoding="async" width="640" height="440">'+(!photo?'<span class="mg-photo-pending">Photo à venir</span>':'')+'</span>';
+ return '<span class="mg-image-wrap"><img class="mg-img" src="'+escAttr(photo?photo.src:fallback)+'" alt="'+escAttr(photo?'Exemple de présentation : '+item.name:'Photo non disponible : '+item.name)+'" loading="lazy" decoding="async" width="640" height="440">'+(!photo?'<span class="mg-photo-pending">Photo à venir</span>':'')+'</span>';
 };
 function credit(item){
  const p=photoFor(item);if(!p)return '<p class="mg-photo-credit">Photo non disponible : repère visuel provisoire.</p>';
@@ -40,7 +40,7 @@ function filteredRecipes(){
  const q=norm(state.query);
  return recipes.filter(r=>(state.category==='all'||r.category===state.category)&&mealOk(r)&&
  (!state.favorites||favorites().includes(r.id))&&(!state.maxMinutes||r.minutes<=state.maxMinutes)&&
- (!state.exclude||!norm(r.ingredients.join(' ')).includes(norm(state.exclude)))&&
+ (!state.exclude||state.exclude.split(/[;,]+/).map(norm).filter(Boolean).every(word=>!norm(r.ingredients.join(' ')).includes(word)))&&
  (!q||q.split(/\s+/).every(word=>norm(r.name+' '+r.ingredients.join(' ')).includes(word))));
 }
 function filteredAlt(){const q=norm(state.altQuery);return alternatives.filter(a=>!q||norm(a.name+' '+a.choices.join(' ')).includes(q))}
@@ -128,7 +128,7 @@ const altIngredients={
 'Compote sans sucres ajoutés':['Fruits cuits ou compote sans sucres ajoutés','Cannelle facultative'],
 'Fruits frais de saison':['Fruits de saison selon goût']
 };
-const recipeByAlt={'Banane plantain bouillie et poisson':'banane-poisson','Attiéké et poisson braisé':'attieke-poisson','Attiéké et poulet grillé':'attieke-poulet','Wrap poulet et légumes':'wrap-poulet','Soupe de légumes et lentilles':'soupe-lentilles','Riz, poulet et légumes sautés':'riz-poulet-legumes'};
+const recipeByAlt={'Banane plantain bouillie et poisson':'banane-poisson','Attiéké et poisson braisé':'attieke-poisson','Attiéké et poulet grillé':'attieke-poulet','Wrap poulet et légumes':'wrap-poulet','Soupe de légumes et lentilles':'soupe-lentilles','Riz, poulet et légumes sautés':'riz-poulet-legumes','Nouilles aux légumes et œuf':'nouilles-oeuf'};
 function altIllustration(name,idx){
  const n=norm(name);
  let visual=/eau|infusion/.test(n)?'drink':/pizza/.test(n)?'pizza':/omelette|oeuf/.test(n)?'eggs':/poisson|sardines|thon/.test(n)?'fish':/poulet/.test(n)?'chicken':/plantain|banane/.test(n)?'plantain':/pommes de terre|legumes rotis/.test(n)?'plantain':/nouilles|pates/.test(n)?'pasta':/pain|sandwich|wrap/.test(n)?'wrap':/yaourt|compote|muesli|fruits|avoine/.test(n)?'bowl':/riz|attieke/.test(n)?'rice':/soupe/.test(n)?'soup':'bowl';
@@ -153,7 +153,7 @@ function showRecipe(id){
  '<div class="mg-info-row"><span>'+icon('clock')+' Environ '+r.minutes+' min</span><span>'+icon('book')+' 1 personne</span></div>'+
  '<label class="mg-servings">Nombre de personnes<select id="mg-servings" data-recipe="'+r.id+'">'+[1,2,3,4,5,6].map(n=>'<option value="'+n+'">'+n+'</option>').join('')+'</select></label><h3>Les ingrédients</h3><p class="mg-dialog-sub">Quantités indicatives, à ajuster selon les portions et les habitudes.</p>'+
  '<ul class="mg-ingredient-list">'+r.ingredients.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul>'+
- '<h3>Préparation</h3><ol class="mg-prep"><li>Rassembler les ingrédients et mesurer les quantités pour le nombre de personnes choisi.</li>'+r.steps.split(/\.\s+/).filter(Boolean).map(step=>'<li>'+escapeHtml(step)+'</li>').join('')+'</ol>'+
+ '<h3>Préparation</h3><ol class="mg-prep">'+r.preparationSteps.map(step=>'<li>'+escapeHtml(step)+'</li>').join('')+'</ol>'+
  '<div class="mg-cooking-note">'+icon('leaf')+' <p>'+escapeHtml(r.note)+'</p></div>'+
  '<p class="mg-dialog-disclaimer">Les calories ne sont pas estimées automatiquement pour un plat composé. Pour le noter, ajoutez votre propre estimation.</p>'+
  btn('Ajouter ce plat au journal '+icon('arrow'),'log:'+r.id,'mg-primary')+btn('Retour aux recettes','close','mg-plain');
@@ -163,16 +163,16 @@ function showAlternative(id){
  const a=alternatives.find(x=>x.id===id);if(!a)return;
  state.selected=id;
  const choices=a.choices.map((name,i)=>{
-  const photo=altIllustration(name,i),recipeId=recipeByAlt[name],ingred=recipes.find(r=>r.id===recipeId)?.ingredients||altIngredients[name]||a.ingredients;
+  const photo=altIllustration(name,i),recipeId=recipeByAlt[name],ingred=recipes.find(r=>r.id===recipeId)?.ingredients||window.MON_SUIVI_ALT_PORTIONS?.[name]||altIngredients[name]||a.ingredients;
   return '<article class="mg-alt-detail">'+
    '<div class="mg-alt-img">'+img(photo)+'</div><div class="mg-alt-info"><span class="mg-alt-num">IDÉE '+(i+1)+'</span><h3>'+escapeHtml(name)+'</h3>'+credit(photo)+
    '<p><strong>Ingrédients :</strong> '+escapeHtml(ingred.join(' · '))+'</p>'+
-   '<p><strong>Préparation :</strong> '+escapeHtml(window.MON_SUIVI_ALT_PREP?.[name]||recipes.find(r=>r.id===recipeId)?.steps||'Préparer les ingrédients puis les assembler selon vos préférences.')+'</p>'+
+   '<p><strong>Préparation :</strong> '+escapeHtml(window.MON_SUIVI_ALT_PREP?.[name]||recipes.find(r=>r.id===recipeId)?.preparationSteps.join(' ')||'Préparer les ingrédients puis les assembler selon vos préférences.')+'</p>'+
    (recipeId?btn('Voir la recette '+icon('chevron'),'recipe:'+recipeId,'mg-small-link'):'')+'</div></article>';
  }).join('');
  openDetail(detailsHeader('ALTERNATIVES ALIMENTAIRES',a.name)+
  '<div class="mg-source"><div class="mg-source-img">'+img(a)+'</div><div><span>ALIMENT CHOISI</span><strong>'+escapeHtml(a.name)+'</strong><small>Ce plat reste possible : voici simplement d’autres idées.</small></div></div>'+
- credit(a)+'<div class="mg-alt-section-title"><h3>À essayer aussi</h3><p>Ingrédients et préparation des alternatives proposées.</p></div>'+
+ credit(a)+'<div class="mg-alt-section-title"><h3>À essayer aussi</h3><p>Ingrédients et préparation pour une personne. Portions indicatives, à ajuster librement.</p></div>'+
  choices+'<p class="mg-dialog-disclaimer">Ces suggestions ne prouvent pas qu’un aliment soit plus sain. Ajustez portions et ingrédients selon vos goûts, allergies et besoins.</p>'+
  btn('Retour aux alternatives','close','mg-plain'));
 }
@@ -197,7 +197,7 @@ document.addEventListener('click',e=>{
  if(action==='favorite'){
   if(typeof data==='undefined'||!data.consent||demo)return;
   const old=[...favorites()];data.recipeFavorites=old.includes(v)?old.filter(id=>id!==v):old.concat(v);
-  save();showRecipe(v);return;
+  save();showRecipe(v);document.querySelector('.mg-favorite')?.focus();return;
  }
  if(action==='repeat'){
   const meal=data.meals.find(m=>String(m.id)===v);if(!meal)return;openMealForm();
@@ -259,7 +259,7 @@ document.addEventListener('change',e=>{
   const r=recipes.find(r=>r.id===e.target.dataset.recipe),factor=Number(e.target.value);if(!r)return;
   const scale=text=>text.replace(/(\d+(?:[.,]\d+)?|½|¼)(?:[–-](\d+))?/g,(whole,a,b)=>{
    const value=a==='½'?.5:a==='¼'?.25:Number(a.replace(',','.'));
-   const format=n=>Number((n*factor).toFixed(1)).toLocaleString('fr-FR');
+   const format=n=>Number((n*factor).toFixed(2)).toLocaleString('fr-FR',{maximumFractionDigits:2});
    return format(value)+(b?'–'+format(Number(b)):'');
   });
   document.querySelector('.mg-ingredient-list').innerHTML=r.ingredients.map(i=>'<li>'+escapeHtml(scale(i))+'</li>').join('');

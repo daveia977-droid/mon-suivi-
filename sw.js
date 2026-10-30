@@ -1,9 +1,9 @@
 'use strict';
-const CACHE = 'mon-suivi-shell-v4-2';
+const CACHE = 'mon-suivi-shell-v4-2b';
 const SHELL = [
   './', './index.html', './styles.css', './premium.css', './meal-guide.css',
   './v4.css', './app.js', './ciqual-2025.js', './meal-guide-data.js',
-  './meal-guide.js', './food-photos.js', './alternative-prep.js', './food-placeholder.svg', './pwa.js', './artwork.svg', './manifest.webmanifest',
+  './meal-guide.js', './recipe-preparations.js', './food-photos.js', './alternative-prep.js', './alternative-portions.js', './food-placeholder.svg', './pwa.js', './artwork.svg', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png',
   './icons/apple-touch-icon.png', './icons/favicon-32.png'
 ];

@@ -64,6 +64,9 @@ const A=[
 ['dessert','Dessert lacté très sucré','bowl','pink',['Yaourt nature et fruits','Compote sans sucres ajoutés'],['Yaourt nature','Fruits','Compote','Cannelle']],
 ['bonbons','Bonbons et confiseries','cookie','pink',['Fruits frais de saison','Compote sans sucres ajoutés'],['Fruits frais','Compote','Épices douces']]
 ];
-window.MON_SUIVI_RECIPES=R.map(([id,name,category,meal,visual,tone,minutes,ingredients,steps,note])=>({id,name,category,meal,visual,tone,minutes,ingredients,steps,note}));
+window.MON_SUIVI_RECIPES=R.map(([id,name,category,meal,visual,tone,minutes,ingredients,steps,note])=>({
+ id,name,category,meal,visual,tone,minutes,ingredients:ingredients.map(i=>i.replace('Sauce graine (pulpe de palmiste)','Pulpe de palme préparée pour sauce graine')),
+ steps,note,preparationSteps:window.MON_SUIVI_RECIPE_STEPS?.[id]||steps.split(/\.\s+/).filter(Boolean)
+}));
 window.MON_SUIVI_ALTERNATIVES=A.map(([id,name,visual,tone,choices,ingredients])=>({id,name,visual,tone,choices,ingredients}));
 })();
