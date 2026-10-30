@@ -42,6 +42,7 @@ jobs:
           sleep 2
           node tests/e2e.cjs
           node tests/pwa.cjs
+          node tests/phase2.cjs
       - name: Captures de tests
         if: always()
         uses: actions/upload-artifact@v4

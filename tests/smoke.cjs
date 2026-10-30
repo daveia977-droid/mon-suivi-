@@ -83,9 +83,19 @@ for(const r of guideRecipes){
  assert.equal(r.kcal,undefined,'Pas de calories fabriquées : '+r.id);
 }
 assert.ok(guideAlternatives.every(a=>a.choices.length===2),'Deux alternatives par famille');
-assert.ok(guideCode.includes('data:image/svg+xml'),'Illustrations vectorielles intégrées localement');
+const photosContext={window:{}};
+vm.runInNewContext(fs.readFileSync('food-photos.js','utf8'),photosContext);
+const photoRows=Object.values(photosContext.window.MON_SUIVI_PHOTOS);
+assert.ok(photoRows.length>0,'Photos locales référencées');
+for(const photo of photoRows){
+ assert.ok(photo.src.startsWith('./photos/')&&fs.existsSync(photo.src),'Photo locale disponible');
+ assert.ok(photo.page.startsWith('https://commons.wikimedia.org/'),'Source Wikimedia');
+ assert.ok(photo.author&&photo.license&&photo.licenseUrl.startsWith('https://'),'Attribution complète');
+}
+assert.ok(fs.existsSync('food-placeholder.svg'),'Repère local de secours disponible');
 assert.ok(!guideCode.includes('images.unsplash.com'),'Pas d’images tierces non autorisées');
 assert.ok(guideCode.includes('function showRecipe('),'Fiches ingrédients accessibles');
 assert.ok(guideCode.includes('function showAlternative('),'Alternatives illustrées accessibles');
 assert.ok(guideStyles.includes('@media(max-width:355px)'),'Mise en page petits iPhone');
 console.log('Guide repas : 42 recettes, 24 ivoiriennes et 15 catégories alternatives validées.');
+

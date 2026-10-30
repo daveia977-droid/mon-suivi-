@@ -1,4 +1,4 @@
-/* Mon Suivi V3.1 — guide de repas illustré, hors ligne et sans API.
+/* Mon Suivi V3.1 — guide de recettes, photos locales sourcées et favoris.
  * Ajout progressif à l'onglet Repas : ne modifie ni les données ni l'application V3.
  */
 (function(){
@@ -6,79 +6,42 @@
 const recipes=window.MON_SUIVI_RECIPES||[];
 const alternatives=window.MON_SUIVI_ALTERNATIVES||[];
 if(!recipes.length||!alternatives.length)return;
-const state={section:'recipes',category:'ivo',meal:'lunch',query:'',altQuery:'',visible:10,selected:null};
-const tones={
-gold:['#fff1d7','#ffc88e','#c76d42','#8bba74'],amber:['#ffebd2','#f6b878','#a55a3d','#7ea65e'],
-coral:['#ffe6de','#f7ac94','#dc755e','#93ba73'],sage:['#e6f2df','#bbd7b1','#a56a43','#6da46e'],
-green:['#e0f3dc','#a0d4a5','#b67d52','#5e9c60'],teal:['#ddf0ed','#9bd9ce','#ce8966','#5c9e94'],
-pink:['#ffe4ef','#f8bcd3','#ca8066','#88b47b']
-};
+const state={section:'recipes',category:'ivo',meal:'lunch',query:'',altQuery:'',visible:10,selected:null,favorites:false,maxMinutes:0,exclude:''};
 const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 const escAttr=escapeHtml;
-const ILLUS={};
-function art(visual='bowl',tone='gold',id=''){
- const key=visual+'|'+tone+'|'+id;
- if(ILLUS[key])return ILLUS[key];
- const [bg,accent,food,leaf]=tones[tone]||tones.gold;
- let hash=0;for(const ch of key)hash=(hash*31+ch.charCodeAt(0))>>>0;
- const rnd=n=>((hash+(n*7919))%101)/101;
- const ellipse=(x,y,rx,ry,fill,extra='')=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+fill+'" '+extra+'/>';
- const circle=(x,y,r,fill)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+fill+'"/>';
- const leaves=(cx,cy,n)=>Array.from({length:n},(_,i)=>{
-   const ang=i*6.283/n+hash%10/7, x=cx+Math.cos(ang)*16,y=cy+Math.sin(ang)*15;
-   return '<ellipse cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" rx="12" ry="6" fill="'+(i%2?'#4c9763':leaf)+'" transform="rotate('+(ang*180/Math.PI).toFixed(0)+' '+x.toFixed(1)+' '+y.toFixed(1)+')"/>';
- }).join('');
- const rice=(cx,cy)=>{
-   let s=ellipse(cx,cy,41,29,'#fff2c8');
-   for(let i=0;i<36;i++){const a=i*2.39,r=5+Math.sqrt(i/36)*32;const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r*.7;
-    s+=ellipse(x.toFixed(1),y.toFixed(1),3.9,1.65,i%4?'#fffaf1':'#ead8aa','transform="rotate('+(i*41%175)+' '+x.toFixed(1)+' '+y.toFixed(1)+')"');
-   }return s;
- };
- const tomatoes=(cx,cy)=>[[-17,-9],[12,3],[5,-16]].map(([dx,dy],i)=>circle(cx+dx,cy+dy,9,i%2?'#e96354':'#d95646')+circle(cx+dx-2,cy+dy-3,2,'#ffdfaa')).join('');
- const veg=leaves(176,114,5)+tomatoes(178,115)+Array.from({length:5},(_,i)=>ellipse(159+(i*11)%39,133+(i*7)%20,8,3,'#82bd72','transform="rotate(-25 '+(159+(i*11)%39)+' '+(133+(i*7)%20)+')"')).join('');
- const base=rice(87,91)+veg;
- const fish=()=>'<g transform="rotate(-15 125 104)">'+ellipse(125,103,42,24,'#d78d4a')+'<path d="M86 102 60 81 Q63 103 58 121Z" fill="#b66a3f"/>'+ellipse(128,100,35,15,'#e9ae65')+'<path d="M110 91q10 8 0 18m12-18q10 8 0 18m12-19q10 8 0 18" fill="none" stroke="#a65635" stroke-width="2.5"/>'+circle(152,98,2.5,'#443323')+'</g>';
- const chicken=()=>ellipse(119,112,46,30,'#bb6d40','transform="rotate(-24 119 112)')+ellipse(121,109,34,22,'#d99153','transform="rotate(-24 121 109)')+'<path d="M97 93 Q119 83 143 110" fill="none" stroke="#f6c384" stroke-width="5" stroke-linecap="round"/>'+ellipse(152,121,18,5,'#9d5c39','transform="rotate(-25 152 121)"');
- const stew=()=>ellipse(117,110,62,40,'#c88f61')+ellipse(117,106,60,36,visual==='greens'?'#407d4d':'#b85b38')+Array.from({length:13},(_,i)=>circle(75+(i*23)%92,86+(i*19)%50,3+(i%3)*2,i%2?'#e5bc67':'#91ba61')).join('');
- const soup=()=>ellipse(119,109,66,44,'#e0cfb4')+ellipse(119,105,60,36,'#db8f50')+Array.from({length:14},(_,i)=>ellipse(79+(i*23)%88,86+(i*17)%41,5,3,i%3?'#f1bf71':'#77a56e')).join('');
- const plantain=()=>Array.from({length:6},(_,i)=>{const x=86+(i%3)*25,y=94+Math.floor(i/3)*24;return ellipse(x,y,22,11,'#d79839','transform="rotate(-25 '+x+' '+y+')"')+ellipse(x-1,y-1,17,8,'#f9bf57','transform="rotate(-25 '+x+' '+y+')"')+circle(x+4,y-1,2,'#a96b2e')}).join('');
- const eggs=()=>ellipse(108,101,34,28,'#fffcf0')+circle(108,101,13,'#f8ba3c')+ellipse(150,132,30,24,'#fffcf0')+circle(151,133,12,'#f8ba3c');
- const bowl=()=>rice(98,103)+ellipse(147,110,27,23,'#ab6745')+Array.from({length:17},(_,i)=>circle(126+i%5*11,92+Math.floor(i/5)*11,4.5,i%2?'#c17e4f':'#8b543d')).join('')+leaves(153,126,5);
- const pasta=()=>ellipse(116,112,57,35,'#e9aa5c')+Array.from({length:13},(_,i)=>'<path d="M'+(75+(i*14)%80)+' '+(99+(i*9)%28)+' q18 -13 23 7 q6 10 -8 10" fill="none" stroke="'+(i%2?'#f8cb76':'#c78546')+'" stroke-width="5" stroke-linecap="round"/>').join('')+tomatoes(112,100);
- const wrap=()=>'<path d="M72 72 Q134 48 180 117 L139 160 Q90 158 72 72Z" fill="#e9c289"/><path d="M83 79 Q131 66 171 118 Q142 141 103 133Z" fill="#fff0bc"/>'+leaves(130,114,7)+tomatoes(143,117);
- const pizza=()=>'<path d="M69 70 Q151 54 192 133 L117 152Z" fill="#d4944e"/><path d="M80 77 Q147 69 181 128 L118 141Z" fill="#f0ca71"/>'+Array.from({length:8},(_,i)=>circle(103+(i*17)%64,88+(i*13)%39,5.5,i%2?'#e76b55':'#72994e')).join('');
- const snack=()=>Array.from({length:8},(_,i)=>'<path d="M'+(76+(i*19)%88)+' '+(91+(i*13)%41)+' l23 -7 -8 23Z" fill="'+(i%2?'#edb94e':'#e8a950')+'" stroke="#d5953d" stroke-width="1"/>').join('');
- const drink=()=>'<path d="M91 73H150L144 149H98Z" fill="#ffd7be" stroke="#c99398" stroke-width="4"/><path d="M98 88H144L140 145H102Z" fill="#d86a6c" opacity=".78"/><path d="M129 81 153 39" stroke="#f8efdd" stroke-width="6" stroke-linecap="round"/>'+circle(119,114,12,'#ffac86')+circle(119,114,7,'#ffd0a4');
- const cookie=()=>Array.from({length:4},(_,i)=>{const x=95+(i%2)*35,y=92+Math.floor(i/2)*29;return circle(x,y,23,'#d69a52')+circle(x,y,19,'#f0be75')+Array.from({length:5},(_,j)=>circle(x-11+j%3*9,y-9+Math.floor(j/3)*17,3,'#9d694c')).join('')}).join('');
- const burger=()=>'<path d="M75 100Q78 58 124 63Q169 62 172 101Z" fill="#eeb875"/><path d="M76 101H172" stroke="#ffffff" stroke-width="7"/><rect x="75" y="106" width="100" height="14" rx="7" fill="#865338"/><path d="M76 107Q102 119 127 106T174 107" fill="none" stroke="#65a16a" stroke-width="8"/><rect x="77" y="124" width="96" height="19" rx="9" fill="#eab36c"/>'+Array.from({length:7},(_,i)=>ellipse(93+(i*12)%69,85+(i*9)%12,3,1.7,'#fff3cf')).join('');
- const fries=()=>Array.from({length:10},(_,i)=>'<path d="M'+(85+i*8)+' 68v58" stroke="'+(i%2?'#efb448':'#f7d075')+'" stroke-width="8" stroke-linecap="round"/>').join('')+'<path d="M76 100 91 151H155L169 100Z" fill="#e78568"/><path d="M94 118h56" stroke="#ffd4aa" stroke-width="3"/>';
- let foodArt={
-fish:fish(),chicken:chicken(),stew:stew(),soup:soup(),plantain:plantain(),greens:stew()+leaves(108,112,8),rice:rice(115,107)+tomatoes(155,100),bowl:bowl(),eggs:eggs(),pasta:pasta(),wrap:wrap(),pizza:pizza(),chips:snack(),drink:drink(),cookie:cookie(),burger:burger(),fries:fries()
- }[visual]||bowl();
- const isPlate=!['drink'].includes(visual);
- const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 190" role="img" aria-hidden="true"><defs>'+
- '<linearGradient id="back" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+bg+'"/><stop offset="1" stop-color="'+accent+'"/></linearGradient>'+
- '<radialGradient id="plate"><stop stop-color="#fffefa"/><stop offset=".72" stop-color="#fffaf4"/><stop offset="1" stop-color="#e9e1dc"/></radialGradient>'+
- '<filter id="shadow" x="-40%" y="-40%" width="180%" height="200%"><feGaussianBlur stdDeviation="8"/></filter></defs>'+
- '<rect width="260" height="190" fill="url(#back)"/>'+
- '<circle cx="17" cy="20" r="52" fill="#fff" opacity=".23"/><circle cx="255" cy="170" r="74" fill="#fff" opacity=".15"/>'+
- ellipse(130,158,93,20,'#886044','opacity=".17" filter="url(#shadow)"')+
- (isPlate?ellipse(130,104,111,79,'#fffbf9')+ellipse(130,103,96,66,'url(#plate)')+ellipse(130,103,88,59,'#f5efe8'):'')+
- '<g transform="translate(10 -1)">'+foodArt+'</g>'+
- (isPlate?leaves(195,145,3):'')+
- circle(222,34,4,'#fff8e9')+circle(235,45,2,'#fff8e9')+
- '</svg>';
- return ILLUS[key]='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+const photos=window.MON_SUIVI_PHOTOS||{};
+const fallback='./food-placeholder.svg';
+const photoFor=item=>photos[item.id]||photos[item.name]||photos[recipeByAlt[item.name]];
+const img=item=>{
+ const photo=photoFor(item);
+ return '<span class="mg-image-wrap"><img class="mg-img" src="'+escAttr(photo?photo.src:fallback)+'" alt="'+escAttr(photo?photo.caption:'Photo non disponible : '+item.name)+'" loading="lazy" decoding="async" width="640" height="440">'+(!photo?'<span class="mg-photo-pending">Photo à venir</span>':'')+'</span>';
+};
+function credit(item){
+ const p=photoFor(item);if(!p)return '<p class="mg-photo-credit">Photo non disponible : repère visuel provisoire.</p>';
+ return '<p class="mg-photo-credit">Exemple de présentation. Photo : '+escapeHtml(p.author)+' · <a href="'+escAttr(p.page)+'" target="_blank" rel="noopener noreferrer">Source</a> · <a href="'+escAttr(p.licenseUrl)+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(p.license)+'</a> · Redimensionnée.</p>';
 }
-const img=(item)=>'<img class="mg-img" src="'+art(item.visual,item.tone,item.id)+'" alt="Illustration du plat : '+escAttr(item.name)+'" loading="lazy" decoding="async" width="260" height="190">';
+document.addEventListener('error',event=>{
+ const image=event.target;
+ if(image instanceof HTMLImageElement&&image.classList.contains('mg-img')&&!image.src.endsWith('/food-placeholder.svg')){
+  image.src=fallback;image.alt='Photo indisponible';const label=document.createElement('span');label.className='mg-photo-pending';label.textContent='Photo indisponible';image.parentNode.append(label);
+ }
+},true);
+const favorites=()=>typeof data!=='undefined'?(data.recipeFavorites||[]):[];
+function recentMeals(){
+ if(typeof data==='undefined'||!data.meals.length)return '';
+ const seen=new Set(),rows=[...data.meals].reverse().sort((a,b)=>b.date.localeCompare(a.date)).filter(m=>{if(seen.has(m.name))return false;seen.add(m.name);return true}).slice(0,5);
+ return '<section class="mg-recents"><h3>Mes repas récents</h3><p>Reprenez un repas, puis ajustez-le avant de l’enregistrer.</p>'+rows.map(m=>btn(escapeHtml(m.name)+' · Reprendre','repeat:'+m.id,'mg-repeat')).join('')+'</section>';
+}
 const btn=(label,action,cls='')=>'<button type="button" class="'+cls+'" data-guide-action="'+escAttr(action)+'">'+label+'</button>';
 const countLabel=(n)=>n+' plat'+(n>1?'s':'');
 const mealOk=r=>state.meal==='all'||r.meal==='both'||r.meal===state.meal;
 function filteredRecipes(){
  const q=norm(state.query);
  return recipes.filter(r=>(state.category==='all'||r.category===state.category)&&mealOk(r)&&
- (!q||norm(r.name+' '+r.ingredients.join(' ')).includes(q)));
+ (!state.favorites||favorites().includes(r.id))&&(!state.maxMinutes||r.minutes<=state.maxMinutes)&&
+ (!state.exclude||!norm(r.ingredients.join(' ')).includes(norm(state.exclude)))&&
+ (!q||q.split(/\s+/).every(word=>norm(r.name+' '+r.ingredients.join(' ')).includes(word))));
 }
 function filteredAlt(){const q=norm(state.altQuery);return alternatives.filter(a=>!q||norm(a.name+' '+a.choices.join(' ')).includes(q))}
 function icon(name){
@@ -100,7 +63,7 @@ function altCard(a){
 function renderGuide(){
  const root=document.querySelector('.mealguide-root');if(!root)return;
  let html='<div class="mg-top"><span class="mg-eyebrow">'+icon('spark')+' VOTRE GUIDE GOURMAND</span><h2>On mange quoi aujourd’hui ?</h2>'+
- '<p>Des plats ivoiriens, des idées pour déjeuner ou dîner, et des alternatives illustrées.</p></div>'+
+ '<p>Des plats ivoiriens, des idées pour déjeuner ou dîner, et des alternatives à découvrir.</p></div>'+recentMeals()+
  '<div class="mg-tabset" aria-label="Rubriques du guide">'+
  btn(icon('book')+' Choisir un plat','section:recipes',state.section==='recipes'?'mg-tab mg-active':'mg-tab')+
  btn(icon('leaf')+' Alternatives','section:alternatives',state.section==='alternatives'?'mg-tab mg-active':'mg-tab')+'</div>';
@@ -116,18 +79,21 @@ function renderGuide(){
     btn('Les deux','meal:all',state.meal==='all'?'mg-chip mg-selected-alt':'mg-chip')+'</div></div>'+
     '<label class="mg-search">'+icon('search')+'<span class="sr-only">Rechercher une recette ou un ingrédient</span>'+
     '<input id="mg-recipe-search" type="search" autocomplete="off" placeholder="Plat ou ingrédient… " value="'+escAttr(state.query)+'" maxlength="80"></label>'+
-    '<div class="mg-results-head"><strong>'+countLabel(rows.length)+'</strong><span>Ingrédients détaillés dans chaque fiche</span></div>'+
+    '<div class="mg-advanced">'+btn(state.favorites?'Tous mes plats':'Mes favoris','favorites','mg-chip'+(state.favorites?' mg-selected':''))+
+ '<label>Temps maximal<select id="mg-max-minutes"><option value="0">Peu importe</option>'+[20,30,45,60].map(n=>'<option value="'+n+'" '+(state.maxMinutes===n?'selected':'')+'>'+n+' min</option>').join('')+'</select></label>'+
+ '<label>Ingrédient à écarter<input id="mg-exclude" type="search" maxlength="60" value="'+escAttr(state.exclude)+'" placeholder="Ex. arachide"></label></div><p class="mg-hint">Ce filtre textuel ne garantit pas l’absence d’allergènes : vérifiez toujours les ingrédients.</p>'+
+ '<div class="mg-results-head"><strong>'+countLabel(rows.length)+'</strong><span>Ingrédients détaillés dans chaque fiche</span></div>'+
     '<div class="mg-grid" id="mg-card-list">'+(shown.length?shown.map(recipeCard).join(''):'<p class="mg-empty">Aucun plat trouvé. Essayez un autre ingrédient ou choisissez « Tous ».</p>')+'</div>'+
-    (rows.length>state.visible?'<div class="mg-more-wrap">'+btn('Afficher plus de plats ('+(rows.length-state.visible)+')','more','mg-more')+'</div>':'')+
+    '<div class="mg-more-wrap" '+(rows.length>state.visible?'':'hidden')+'>'+btn('Afficher plus de plats','more','mg-more')+'</div>'+
     '<p class="mg-hint">Les ingrédients et quantités sont indicatifs pour 1 personne. Les recettes varient selon les familles et les régions. Aucune calorie n’est calculée sans données fiables.</p>';
  }else{
    const rows=filteredAlt();
-   html+='<div class="mg-alternatives-intro">'+icon('leaf')+'<div><strong>Des idées, pas des interdictions</strong><span>Choisissez un aliment ci-dessous pour voir deux alternatives avec leurs illustrations. Aucune analyse de photo nécessaire.</span></div></div>'+
+   html+='<div class="mg-alternatives-intro">'+icon('leaf')+'<div><strong>Des idées, pas des interdictions</strong><span>Choisissez un aliment ci-dessous pour voir deux alternatives avec leurs ingrédients et préparations. Aucune analyse de photo nécessaire.</span></div></div>'+
     '<label class="mg-search">'+icon('search')+'<span class="sr-only">Rechercher un aliment à remplacer</span>'+
     '<input id="mg-alt-search" type="search" autocomplete="off" placeholder="Ex. chips, alloco, pizza…" maxlength="80" value="'+escAttr(state.altQuery)+'"></label>'+
-    '<div class="mg-results-head"><strong>'+rows.length+' catégories</strong><span>Illustrations originales hors ligne</span></div>'+
+    '<div class="mg-results-head"><strong>'+rows.length+' catégories</strong><span>Photos sourcées, repères locaux si indisponibles</span></div>'+
     '<div class="mg-grid" id="mg-card-list">'+(rows.length?rows.map(altCard).join(''):'<p class="mg-empty">Aucune catégorie trouvée. Essayez un autre nom.</p>')+'</div>'+
-    '<p class="mg-hint">Les illustrations représentent des idées de plats, pas des photographies. Les propositions ne remplacent pas un avis médical ou nutritionnel et ne classent aucun aliment comme « mauvais ».</p>';
+    '<p class="mg-hint">Les photographies sont des exemples de présentation ; les repères « Photo à venir » ne représentent pas le plat. Les propositions ne remplacent pas un avis médical ou nutritionnel et ne classent aucun aliment comme « mauvais ».</p>';
  }
  root.innerHTML=html;
 }
@@ -182,11 +148,12 @@ function openDetail(html){
 function showRecipe(id){
  const r=recipes.find(x=>x.id===id);if(!r)return;
  const html=detailsHeader(r.category==='ivo'?'CUISINE IVOIRIENNE':'IDÉE À DÉCOUVRIR',r.name)+
- '<div class="mg-dialog-photo">'+img(r)+'</div>'+
+ '<div class="mg-dialog-photo">'+img(r)+'</div>'+credit(r)+
+ '<button type="button" class="mg-favorite" aria-pressed="'+favorites().includes(r.id)+'" data-guide-action="favorite:'+r.id+'">'+(favorites().includes(r.id)?'Retirer des favoris':'Ajouter aux favoris')+'</button>'+
  '<div class="mg-info-row"><span>'+icon('clock')+' Environ '+r.minutes+' min</span><span>'+icon('book')+' 1 personne</span></div>'+
- '<h3>Les ingrédients</h3><p class="mg-dialog-sub">Quantités indicatives, à ajuster selon les portions et les habitudes.</p>'+
+ '<label class="mg-servings">Nombre de personnes<select id="mg-servings" data-recipe="'+r.id+'">'+[1,2,3,4,5,6].map(n=>'<option value="'+n+'">'+n+'</option>').join('')+'</select></label><h3>Les ingrédients</h3><p class="mg-dialog-sub">Quantités indicatives, à ajuster selon les portions et les habitudes.</p>'+
  '<ul class="mg-ingredient-list">'+r.ingredients.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul>'+
- '<h3>Préparation</h3><p class="mg-prep">'+escapeHtml(r.steps)+'</p>'+
+ '<h3>Préparation</h3><ol class="mg-prep"><li>Rassembler les ingrédients et mesurer les quantités pour le nombre de personnes choisi.</li>'+r.steps.split(/\.\s+/).filter(Boolean).map(step=>'<li>'+escapeHtml(step)+'</li>').join('')+'</ol>'+
  '<div class="mg-cooking-note">'+icon('leaf')+' <p>'+escapeHtml(r.note)+'</p></div>'+
  '<p class="mg-dialog-disclaimer">Les calories ne sont pas estimées automatiquement pour un plat composé. Pour le noter, ajoutez votre propre estimation.</p>'+
  btn('Ajouter ce plat au journal '+icon('arrow'),'log:'+r.id,'mg-primary')+btn('Retour aux recettes','close','mg-plain');
@@ -198,13 +165,14 @@ function showAlternative(id){
  const choices=a.choices.map((name,i)=>{
   const photo=altIllustration(name,i),recipeId=recipeByAlt[name],ingred=recipes.find(r=>r.id===recipeId)?.ingredients||altIngredients[name]||a.ingredients;
   return '<article class="mg-alt-detail">'+
-   '<div class="mg-alt-img">'+img(photo)+'</div><div class="mg-alt-info"><span class="mg-alt-num">IDÉE '+(i+1)+'</span><h3>'+escapeHtml(name)+'</h3>'+
+   '<div class="mg-alt-img">'+img(photo)+'</div><div class="mg-alt-info"><span class="mg-alt-num">IDÉE '+(i+1)+'</span><h3>'+escapeHtml(name)+'</h3>'+credit(photo)+
    '<p><strong>Ingrédients :</strong> '+escapeHtml(ingred.join(' · '))+'</p>'+
+   '<p><strong>Préparation :</strong> '+escapeHtml(window.MON_SUIVI_ALT_PREP?.[name]||recipes.find(r=>r.id===recipeId)?.steps||'Préparer les ingrédients puis les assembler selon vos préférences.')+'</p>'+
    (recipeId?btn('Voir la recette '+icon('chevron'),'recipe:'+recipeId,'mg-small-link'):'')+'</div></article>';
  }).join('');
  openDetail(detailsHeader('ALTERNATIVES ALIMENTAIRES',a.name)+
  '<div class="mg-source"><div class="mg-source-img">'+img(a)+'</div><div><span>ALIMENT CHOISI</span><strong>'+escapeHtml(a.name)+'</strong><small>Ce plat reste possible : voici simplement d’autres idées.</small></div></div>'+
- '<div class="mg-alt-section-title"><h3>À essayer aussi</h3><p>Illustrations et ingrédients des alternatives proposées.</p></div>'+
+ credit(a)+'<div class="mg-alt-section-title"><h3>À essayer aussi</h3><p>Ingrédients et préparation des alternatives proposées.</p></div>'+
  choices+'<p class="mg-dialog-disclaimer">Ces suggestions ne prouvent pas qu’un aliment soit plus sain. Ajustez portions et ingrédients selon vos goûts, allergies et besoins.</p>'+
  btn('Retour aux alternatives','close','mg-plain'));
 }
@@ -225,6 +193,18 @@ document.addEventListener('click',e=>{
  e.preventDefault();e.stopPropagation();
  const full=target.getAttribute('data-guide-action')||'';
  const colon=full.indexOf(':'),action=colon<0?full:full.slice(0,colon),v=colon<0?'':full.slice(colon+1);
+ if(action==='favorites'){state.favorites=!state.favorites;state.category='all';state.meal='all';state.visible=10;renderGuide();return}
+ if(action==='favorite'){
+  if(typeof data==='undefined'||!data.consent||demo)return;
+  const old=[...favorites()];data.recipeFavorites=old.includes(v)?old.filter(id=>id!==v):old.concat(v);
+  save();showRecipe(v);return;
+ }
+ if(action==='repeat'){
+  const meal=data.meals.find(m=>String(m.id)===v);if(!meal)return;openMealForm();
+  const form=document.querySelector('#entry-form');
+  for(const key of ['name','quantity','value','protein','carbs','fat']){const field=form?.querySelector('[name="'+key+'"]');if(field)field.value=meal[key]??'';}
+  return;
+ }
  if(action==='section'){state.section=v;state.visible=10;renderGuide();return}
  if(action==='category'){state.category=v;state.visible=10;renderGuide();return}
  if(action==='meal'){state.meal=v;state.visible=10;renderGuide();return}
@@ -258,6 +238,7 @@ document.addEventListener('click',e=>{
  document.querySelector('.mealguide-root')?.scrollIntoView({behavior:'smooth',block:'start'});
 },true);
 document.addEventListener('input',e=>{
+ if(e.target.id==='mg-exclude'){state.exclude=e.target.value;state.visible=10;renderCardsOnly()}
  if(e.target.id==='mg-recipe-search'){state.query=e.target.value;state.visible=10;renderCardsOnly()}
  if(e.target.id==='mg-alt-search'){state.altQuery=e.target.value;renderCardsOnly()}
 });
@@ -266,11 +247,24 @@ function renderCardsOnly(){
  if(state.section==='recipes'){
   const rows=filteredRecipes();list.innerHTML=rows.length?rows.slice(0,state.visible).map(recipeCard).join(''):'<p class="mg-empty">Aucun plat trouvé. Essayez un autre mot ou filtre.</p>';
   if(result)result.textContent=countLabel(rows.length);
-  if(more)more.style.display=rows.length>state.visible?'':'none';
+  if(more)more.hidden=rows.length<=state.visible;
  }else{
   const rows=filteredAlt();list.innerHTML=rows.length?rows.map(altCard).join(''):'<p class="mg-empty">Aucune alternative trouvée.</p>';
   if(result)result.textContent=rows.length+' catégories';
  }
 }
+document.addEventListener('change',e=>{
+ if(e.target.id==='mg-max-minutes'){state.maxMinutes=Number(e.target.value);state.visible=10;renderCardsOnly()}
+ if(e.target.id==='mg-servings'){
+  const r=recipes.find(r=>r.id===e.target.dataset.recipe),factor=Number(e.target.value);if(!r)return;
+  const scale=text=>text.replace(/(\d+(?:[.,]\d+)?|½|¼)(?:[–-](\d+))?/g,(whole,a,b)=>{
+   const value=a==='½'?.5:a==='¼'?.25:Number(a.replace(',','.'));
+   const format=n=>Number((n*factor).toFixed(1)).toLocaleString('fr-FR');
+   return format(value)+(b?'–'+format(Number(b)):'');
+  });
+  document.querySelector('.mg-ingredient-list').innerHTML=r.ingredients.map(i=>'<li>'+escapeHtml(scale(i))+'</li>').join('');
+  document.querySelector('.mg-info-row span:last-child').textContent=factor+' personne'+(factor>1?'s':'');
+ }
+});
 window.MON_SUIVI_GUIDE_INFO=Object.freeze({recipes:recipes.length,ivo:recipes.filter(x=>x.category==='ivo').length,alternatives:alternatives.length,offlineImages:true});
 })();

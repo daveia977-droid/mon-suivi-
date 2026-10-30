@@ -1,6 +1,6 @@
 'use strict';
 const KEY='mon-suivi-v1',app=document.querySelector('#app'),nav=document.querySelector('#nav'),dlg=document.querySelector('#dialog');
-const blank=()=>({name:'',weights:[],meals:[],moods:[],steps:[],stepsGoal:6000,weightGoal:null,consent:false,unit:'kg'});
+const blank=()=>({name:'',weights:[],meals:[],moods:[],steps:[],stepsGoal:6000,weightGoal:null,consent:false,unit:'kg',recipeFavorites:[]});
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iso=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 const today=()=>iso(new Date());
@@ -201,6 +201,7 @@ for(const type of ['weights','meals','moods']){
   return {id,date:entry.date,name:entry.name,note:typeof entry.note==='string'?entry.note.slice(0,300):''};
  });
 }
+out.recipeFavorites=Array.isArray(raw.recipeFavorites)?[...new Set(raw.recipeFavorites.filter(id=>typeof id==='string'&&/^[a-z0-9-]{1,80}$/.test(id)))].slice(0,100):[];
 out.steps=Array.isArray(raw.steps)?raw.steps.slice(0,3000):[];
 out.steps=out.steps.map((entry,i)=>{
  if(!entry||typeof entry!=='object'||!isDate(entry.date)||entry.date>today())throw Error('Date invalide dans les pas.');
