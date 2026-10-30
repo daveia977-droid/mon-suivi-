@@ -1,0 +1,11 @@
+{
+  "status": "awaiting-iphone-creation-and-validation",
+  "name": "Mon Suivi — Mes pas",
+  "permissions": ["read-steps-only"],
+  "period": "local-calendar-day-start-until-now",
+  "deduplication": "must-match-Health-prioritized-daily-total-or-explicitly-report-source-limitation",
+  "returnUrl": "https://mon-suivi-six.vercel.app/#sante-pas={integer}&date={local-yyyy-MM-dd}",
+  "shareUrl": null,
+  "maximumSteps": 200000,
+  "requiresPhysicalDeviceTest": true
+}

@@ -1,5 +1,7 @@
 # Mon Suivi
 
+> **V4 en cours :** consulter [ROADMAP_V4.md](ROADMAP_V4.md) pour l’état réel, [AGENTS.md](AGENTS.md) pour la continuité et [ZERO_EURO.md](ZERO_EURO.md) pour les limites. L’IA distante est bloquée. Le raccourci Santé et les essais iPhone restent à valider ; ne pas suivre les anciennes consignes d’activation d’API.
+
 Application de bien-être en français pour noter son poids, ses repas, ses pas et son humeur, à son rythme. Conçue pour une utilisation mobile personnelle (iPhone), sans compte en ligne ni abonnement.
 
 > **Version 3 « Fusion Premium »** — destinée aux essais sur iPhone. Ce projet ne fournit aucun diagnostic médical ni promesse de perte de poids. Les calories restent des estimations modifiables.

@@ -15,7 +15,7 @@
 
 const MAX_BASE64 = 1_100_000; // ~0,8 Mo d'image une fois décodée, payload total < 1 Mo
 const DEFAULT_LIMIT = 20;
-const PHOTO_PROMPT = 'Tu es un estimateur nutritionnel prudent. Cette photo montre un repas ou un aliment. Réponds uniquement en JSON valide : {"name":"nom court du plat en français","kcal100g": calories pour 100 g si estimable sinon null,"grams": poids estimé de la portion photographiée en grammes,"confidence":"haute|moyenne|faible"}. En cas de doute, préfère une estimation prudente (valeur basse plausible) et une confiance "faible".';
+const PHOTO_PROMPT = 'Tu es un estimateur nutritionnel prudent. Cette photo montre un repas ou un aliment. Réponds uniquement en JSON valide : {"name":"nom court du plat en français","kcal100g": calories pour 100 g si estimable sinon null,"grams": poids estimé de la portion photographiée en grammes,"confidence":"haute|moyenne|faible"}. En cas de doute, ne donne pas de calories ou de poids inventés, renvoie null et une confiance "faible".';
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -105,6 +105,11 @@ async function mistralAnalyze(apiKey, model, dataUrl) {
 }
 
 export default async function handler(req, res) {
+  // Budget V4 strict de 0 € : aucune API distante ne peut être activée par une variable d’environnement.
+  // Toute réactivation exige une nouvelle revue du code, des coûts et de la confidentialité.
+  const ZERO_COST_MODE = true;
+  if (ZERO_COST_MODE) { json(res, 503, { ok: false, error: 'disabled' }); return; }
+
   if (req.method === 'OPTIONS') { res.statusCode = 204; res.end(); return; }
   if (req.method !== 'POST') { json(res, 405, { ok: false, error: 'method' }); return; }
 
