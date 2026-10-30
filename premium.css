@@ -712,3 +712,14 @@ nav button[aria-current=page] svg{stroke-width:2.2}
 .photo-fallback-card .off-msg{margin:10px 0 0}
 @media(max-height:700px){.premium-welcome{padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(24px + env(safe-area-inset-bottom))}.premium-welcome .welcome-visual{transform:none}}
 @media(max-width:355px){.premium-welcome{padding-left:17px;padding-right:17px}.photo-fallback-card{padding:13px 11px}}
+
+/* Accueil public : titre et signature, sans modifier les autres écrans. */
+.premium-welcome .welcome-eyebrow{
+ font-family:-apple-system,BlinkMacSystemFont,"Avenir Next",Avenir,"Segoe UI",sans-serif;
+ font-size:14px;font-weight:500;line-height:1.5;letter-spacing:.025em;
+ text-transform:none;display:block;
+}
+.premium-welcome h1{
+ font-size:clamp(30px,8.2vw,40px);line-height:1.14;letter-spacing:-.035em;
+ text-wrap:balance;overflow-wrap:normal;
+}
