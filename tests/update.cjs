@@ -8,7 +8,7 @@ const server=http.createServer((req,res)=>{
  if(url.pathname==='/pwa.js'&&url.searchParams.has('v'))versionedPwaRequests++;
  if(legacy&&url.pathname==='/pwa.js'){res.writeHead(200,{'Content-Type':'text/javascript'});res.end("window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));");return}
  if(legacy&&['/','/index.html'].includes(url.pathname)){
-  let html=fs.readFileSync('index.html','utf8').replace(/\?v=4-final-1/g,'');
+  let html=fs.readFileSync('index.html','utf8').replace(/\?v=4-final-\d+/g,'');
   html=html.split('\n').filter(line=>!['v4-features.js','v4-config.js','v4-final.css'].some(name=>line.includes(name))).join('\n');
   res.writeHead(200,{'Content-Type':'text/html'});res.end(html);return;
  }
@@ -17,7 +17,7 @@ const server=http.createServer((req,res)=>{
   if(legacy){
    res.end("const C='mon-suivi-shell-legacy-test';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html','./app.js','./pwa.js']))));self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET')return;if(e.request.mode==='navigate')e.respondWith(fetch(e.request).catch(()=>caches.match('./index.html')));else if(!u.search)e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)));});");return;
   }
-  res.end(source.replace("mon-suivi-shell-v4-final-1","mon-suivi-shell-update-test-"+revision));return;
+  res.end(source.replace(/mon-suivi-shell-v4-final-\d+/,"mon-suivi-shell-update-test-"+revision));return;
  }
  const file=path.resolve(root,'.'+(url.pathname==='/'?'/index.html':url.pathname));
  if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return}

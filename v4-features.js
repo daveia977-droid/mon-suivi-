@@ -38,6 +38,7 @@
  }
  function mount(){
   if(typeof data==='undefined')return;
+  if(!data.consent||!reminder().enabled||data.moods.some(m=>m.date===today()))document.querySelector('#v4-mood-prompt')?.remove();
   const profile=document.querySelector('.profile-screen'),activity=document.querySelector('.activity-screen'),progress=document.querySelector('.progress-screen');
   if(profile&&!profile.querySelector('#v4-reminder-settings'))profile.querySelector('.profile-help')?.insertAdjacentHTML('beforebegin',reminderSettings());
   if(activity&&!activity.querySelector('#v4-health'))activity.querySelector('.health-sync-card')?.insertAdjacentHTML('afterend',healthSettings());
@@ -80,7 +81,7 @@
   if(action==='health-help')openSanteHelp();
   if(action==='stats-7'||action==='stats-30'){period=action.slice(6);render()}
   if(action==='mood-later'){dismissedDay=today();document.querySelector('#v4-mood-prompt')?.remove()}
-  if(/^mood-[0-3]$/.test(action)){quickMood(moods[Number(action.slice(-1))]);document.querySelector('#v4-mood-prompt')?.remove()}
+  if(/^mood-[0-3]$/.test(action)){if(data.consent&&!demo)quickMood(moods[Number(action.slice(-1))]);document.querySelector('#v4-mood-prompt')?.remove()}
  });
  document.addEventListener('change',e=>{
   if(e.target.id==='v4-reminder-enabled'||e.target.id==='v4-reminder-time'){

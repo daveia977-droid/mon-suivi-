@@ -1,6 +1,6 @@
 'use strict';
-const CACHE = 'mon-suivi-shell-v4-final-1';
-const ASSET_VERSION='4-final-1';
+const CACHE = 'mon-suivi-shell-v4-final-2';
+const ASSET_VERSION='4-final-2';
 const SHELL = [
   './', './index.html', './styles.css', './premium.css', './meal-guide.css',
   './v4.css', './v4-final.css', './v4-features.js', './v4-config.js', './app.js', './ciqual-2025.js', './meal-guide-data.js',
