@@ -4,8 +4,8 @@ const fs=require('node:fs');
 const {chromium}=require('playwright');
 
 (async()=>{
- const browser=await chromium.launch({headless:true});
- const base='http://127.0.0.1:8765/';
+ const browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});
+ const base=process.env.TEST_BASE_URL||'http://127.0.0.1:8765/';
  fs.mkdirSync('screenshots',{recursive:true});
  const sizes=[{width:393,height:852},{width:320,height:700},{width:430,height:932}];
  for(const size of sizes){
@@ -141,3 +141,4 @@ const {chromium}=require('playwright');
  await synced.close();
  await browser.close();
 })().catch(err=>{console.error(err);process.exit(1)});
+

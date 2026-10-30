@@ -19,6 +19,8 @@ jobs:
           node --check meal-guide.js
           node --check ciqual-2025.js
           node --check api/photo.js
+          node --check pwa.js
+          node --check sw.js
       - name: Tests de non-régression
         run: node tests/smoke.cjs
 
@@ -39,6 +41,7 @@ jobs:
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/mon-suivi-server.log 2>&1 &
           sleep 2
           node tests/e2e.cjs
+          node tests/pwa.cjs
       - name: Captures de tests
         if: always()
         uses: actions/upload-artifact@v4
@@ -46,3 +49,4 @@ jobs:
           name: maquettes-fusion-premium
           path: screenshots/
           if-no-files-found: ignore
+
