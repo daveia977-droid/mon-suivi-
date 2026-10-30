@@ -37,7 +37,7 @@ const { chromium } = require('playwright');
     await page.locator('[data-action="start"]').click();
     await page.locator('.hero-summary').waitFor();
     assert.equal(await page.evaluate(() => localStorage.getItem('mon-suivi-v1')), before);
-    const cached = await page.evaluate(async () => (await caches.open('mon-suivi-shell-v4-2b')).keys().then(keys => keys.map(k => k.url)));
+    const cached = await page.evaluate(async () => (await caches.open('mon-suivi-shell-v4-final-1')).keys().then(keys => keys.map(k => k.url)));
     assert.ok(cached.length >= 15);
     assert.ok(cached.every(url => !url.includes('/api/')));
     await page.emulateMedia({reducedMotion:'reduce'});

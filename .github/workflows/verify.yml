@@ -23,6 +23,8 @@ jobs:
           node --check api/photo.js
           node --check pwa.js
           node --check sw.js
+          node --check v4-features.js
+          node --check v4-config.js
       - name: Tests de non-régression
         run: node tests/smoke.cjs
 
@@ -45,6 +47,8 @@ jobs:
           node tests/e2e.cjs
           node tests/pwa.cjs
           node tests/phase2.cjs
+          node tests/final.cjs
+          node tests/update.cjs
       - name: Captures de tests
         if: always()
         uses: actions/upload-artifact@v4

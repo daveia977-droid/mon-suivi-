@@ -1,4 +1,6 @@
 # Mon Suivi — base GitHub Pages
+
+> Document historique. La source actuelle est GitHub avec production Vercel. Lire AGENTS.md et ROADMAP_V4.md ; l’activation d’une API IA n’est pas autorisée dans le budget V4 de 0 €.
 Lis index.html et app.js avant de modifier. Base autonome sans compilation ni dépendance externe, en français. Hébergement cible : GitHub Pages, chemins relatifs. Pas de Lovable.
 
 ## Fonctionnel dans cette base

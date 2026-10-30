@@ -97,7 +97,7 @@ const {chromium}=require('playwright');
   await page.locator('#dialog .mode-tabs').waitFor();
   await page.locator('#dialog button[data-action="mealmode:photo"]').click();
   await page.locator('#dialog .photo-fallback-card').waitFor();
-  assert.equal(await page.locator('#dialog input[type="file"]').count(),0,'Pas de photo envoyée tant que le service IA est désactivé');
+  assert.equal(await page.locator('#dialog input[type="file"]').count(),2,'Caméra et import local disponibles sans service IA');
   await page.locator('#photo-product-name').fill('Chips de pommes de terre');
   await page.locator('#dialog button[data-action="photo-alt-manual"]').click();
   assert.match(await page.locator('#photo-fallback-results').textContent(),/Pop-corn nature maison/,'Alternatives manuelles accessibles');
