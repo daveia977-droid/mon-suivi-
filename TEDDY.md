@@ -4,7 +4,7 @@
 
 Dans Progrès, le bouton Mon Teddy ouvre un espace dédié. Le démarrage est explicite et facultatif. Le mode démonstration ne crée pas de progression. L’icône du chat et la barre à cinq destinations restent identiques ; Teddy reste rattaché à Progrès.
 
-Quatre étapes : jours 1–7, 8–14, 15–21, 22–30. Le personnage et tous ses calques sont des SVG originaux. La croissance est calculée en jours civils locaux (dates converties en indices UTC), sans additionner des durées de 24 heures sensibles aux changements d’heure. Une aventure commence à sa date enregistrée, pas au premier jour d’un mois.
+Quatre étapes : jours 1–7, 8–14, 15–21, 22–30. Le personnage et tous ses calques sont des SVG originaux. teddy-art.js apporte les dégradés, la texture légère du pelage, les coutures, reflets, vêtements et décors détaillés. Aucun modèle 3D ni téléchargement externe. Les animations sont désactivées avec la préférence de mouvement réduit. La croissance est calculée en jours civils locaux (dates converties en indices UTC), sans additionner des durées de 24 heures sensibles aux changements d’heure. Une aventure commence à sa date enregistrée, pas au premier jour d’un mois.
 
 Le trophée est disponible au jour 30. Le jour 31 ouvre le cycle suivant avec un petit Teddy et le thème suivant. Les trois thèmes alternent ; les tenues Jardin et Étoiles se débloquent aux jours 31 et 61. Il ne s’agit pas d’une génération infinie de nouvelles illustrations.
 

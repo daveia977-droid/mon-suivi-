@@ -15,9 +15,9 @@
 - Phase 3 côté application : aide en trois écrans avec retour à la saisie manuelle, nombre entier borné et date obligatoire, erreurs lisibles, confirmation avant remplacement d’un total manuel différent, horodatage et déduplication quotidienne. Objectif conservé. Installation et lancement conditionnés à un lien iCloud réellement validé.
 - Aucun abonnement ni fournisseur IA ajouté ; endpoint photo distant désactivé dans le code même si une ancienne variable d’environnement l’autorisait.
 
-- Teddy : accès depuis Progrès, SVG original, quatre étapes, cycles civils de 30 jours, vêtements/décors acquis, trois thèmes alternés, accessoires du journal, trophées et historique paginé. Journal explicite et modifiable sans jugement alimentaire. Export/import compatible.
-- Bilan : sélecteur 7/30 jours, dernière mesure datée, évolution séparée, courbe, jours réellement renseignés et humeurs. Mesures détaillées conservées dans un panneau dépliant.
-- Confidentialité, conditions et stockage réécrits en rubriques lisibles ; informations légales regroupées dans À propos. Identité/contact de l’éditeur toujours à fournir.
+- Teddy : illustration SVG enrichie (dégradés, texture de pelage, coutures, reflets, décors détaillés, animations légères désactivables), accès depuis Progrès, SVG original, quatre étapes, cycles civils de 30 jours, vêtements/décors acquis, trois thèmes alternés, accessoires du journal, trophées et historique paginé. Journal explicite et modifiable sans jugement alimentaire. Export/import compatible.
+- Bilan : humeurs avec emojis adaptés et compte des jours, sans pourcentages ; sélecteur 7/30 jours, dernière mesure datée, évolution séparée, courbe, jours réellement renseignés et humeurs. Mesures détaillées conservées dans un panneau dépliant.
+- Confidentialité, conditions et stockage réécrits en rubriques lisibles ; informations légales regroupées dans À propos. Les textes de coordonnées manquantes ont été retirés de l’interface à la demande de l’utilisateur ; aucune identité fictive n’est publiée.
 
 ## Partiel / actions extérieures indispensables
 

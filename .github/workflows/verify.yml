@@ -29,6 +29,7 @@ jobs:
           node --check health-guide.js
           node --check teddy-model.js
           node --check teddy.js
+          node --check teddy-art.js
           node --check bilan.js
           node --check legal-pages.js
       - name: Tests de non-régression
