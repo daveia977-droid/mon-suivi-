@@ -53,6 +53,7 @@ jobs:
           node tests/phase2.cjs
           node tests/final.cjs
           node tests/phase3.cjs
+          node tests/repas.cjs
           node tests/update.cjs
       - name: Captures de tests
         if: always()

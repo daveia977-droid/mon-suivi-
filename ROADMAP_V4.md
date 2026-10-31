@@ -4,7 +4,7 @@
 
 - Identité rose/jaune/ivoire et chat fourni ; accueil et navigation flottante.
 - 42 recettes (24 classées ivoiriennes), quatre étapes chacune, portions, 15 familles d’alternatives, favoris, recherche et repas récents.
-- 52 photos distinctes locales avec crédits et secours. 29 recettes ont une photo validée ; 13 restent à compléter.
+- 58 photos distinctes locales avec crédits et secours. 35 recettes ont une photo ; les variantes et accompagnements seuls sont explicités. 7 recettes restent à compléter.
 - Poids, repas, humeur et pas ; objectifs et encouragements ; bilan sur 7 et 30 jours. Les jours absents ne sont pas assimilés à zéro.
 - Rappel d’humeur dans une app ouverte, désactivé par défaut, heure locale modifiable (20 h par défaut), quatre choix explicites, correction et protection contre les doublons.
 - Événement Calendrier quotidien à télécharger pour un rappel hors application : import et alerte à confirmer sur iPhone. Le calendrier se modifie séparément ; aucune permission de notification n’est supposée accordée.
@@ -19,8 +19,8 @@
 
 1. **Raccourci Apple Santé prêt à installer** : un auteur ayant un iPhone doit le créer/valider puis fournir son vrai lien de partage iCloud. Le contrat est dans APPLE_SANTE.md et health-shortcut-spec.json. Renseigner ensuite v4-config.js. Les boutons d’installation/synchronisation restent désactivés sans lien validé.
 2. **Web Push** : non développé/activé, donc aucune promesse d’alerte de la PWA fermée. Le calendrier est l’alternative gratuite, à importer et tester par l’utilisatrice.
-3. **IA alimentaire et conseiller IA** : aucun moteur local suffisamment validé sur les plats et l’iPhone cible. Le traitement local a été étudié ; la classification d’un plat ne mesure ni portions ni nutriments. Voir ZERO_EURO.md. Aucun résultat n’est simulé.
-4. **Photographies** : les 13 recettes de PHOTOS_A_COMPLETER.md et certaines alternatives demandent encore une photo authentique, pertinente et réutilisable. Le repère esthétique est un secours, pas une photographie du plat.
+3. **IA alimentaire et conseiller IA** : étude externe gratuite autorisée après correction du choix utilisateur. Groq Free est la piste à vérifier ; compte, ZDR, quotas, clé serveur et essais restent indispensables avant activation. Voir IA_ETUDE_GRATUITE.md et ZERO_EURO.md. Aucun résultat n’est simulé.
+4. **Photographies** : les 7 recettes de PHOTOS_A_COMPLETER.md et certaines alternatives demandent encore une photo authentique, pertinente et réutilisable. Le repère esthétique est un secours, pas une photographie du plat.
 5. **iPhone physique** : vérifier installation, raccourci, total Santé et sources multiples, calendrier/alertes, permissions, verrouillage, mode hors ligne et mise à jour sans perte de saisie.
 6. **Mentions légales** : identité et coordonnées de l’éditeur, contact pour les droits et politique finale nécessitent des données réelles ; ne pas les inventer et ne pas déclarer une conformité juridique complète.
 

@@ -1,0 +1,22 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
+(async()=>{fs.mkdirSync('screenshots',{recursive:true});const browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});
+try{for(const width of [320,393,430]){
+ const page=await browser.newPage({viewport:{width,height:852},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(process.env.TEST_BASE_URL||'http://127.0.0.1:8765/');await page.evaluate(()=>{data={...blank(),consent:true};save();go('Repas')});
+ await page.locator('[data-guide-action="section:alternatives"]').click();
+ await page.locator('#mg-alt-search').fill('Je mange du riz gras');
+ await page.locator('[data-guide-action="alternative:rizgras"]').waitFor();
+ await page.locator('[data-guide-action="describe-photo"]').click();await page.locator('#v4-photo-file').waitFor();
+ assert.match(await page.locator('#v4-photo-status').textContent(),/aucune photo n’est envoyée|n’est pas enregistrée/i);
+ await page.locator('#v4-local-photo summary').click();assert.match(await page.locator('#v4-local-photo details').textContent(),/Nutri-Score exige/);
+ await page.locator('#dialog [data-action="close"]').click();
+ await page.locator('[data-guide-action="section:recipes"]').click();
+ await page.locator('[data-guide-action="category:all"]').click();
+ await page.locator('#mg-recipe-search').fill('foutou d’igname');
+ await page.locator('[data-guide-action="recipe:sauce-claire"]').click();
+ await page.waitForFunction(()=>{const img=document.querySelector('.mg-dialog-photo img');return img?.complete&&img.naturalWidth>0});
+ assert.match(await page.locator('.mg-photo-credit').textContent(),/accompagnement seul/);
+ assert.equal(await page.locator('#dialog').evaluate(e=>e.scrollWidth<=e.clientWidth),true);
+ await page.screenshot({path:'screenshots/repas-photos-'+width+'.png',fullPage:true});
+ assert.deepEqual(errors,[]);await page.close();console.log('Repas '+width+'px : phrase libre, entrée photo, variante explicitée et image chargée OK');
+}}finally{await browser.close()}})().catch(e=>{console.error(e);process.exit(1)});
