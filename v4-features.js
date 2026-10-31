@@ -12,7 +12,7 @@
  }
  function healthSettings(){
   const share=window.MON_SUIVI_CONFIG?.healthShortcutShareUrl;
-  const ready=typeof share==='string'&&/^https:\/\/www\.icloud\.com\/shortcuts\/[a-z0-9-]+$/i.test(share);
+  const ready=window.MON_SUIVI_CONFIG?.healthShortcutValidated===true&&typeof share==='string'&&/^https:\/\/www\.icloud\.com\/shortcuts\/[a-z0-9-]+$/i.test(share);
   const install=ready?'<a href="'+esc(share)+'" rel="noopener noreferrer">Installer le raccourci</a>':'<button type="button" disabled>Installer le raccourci — lien en préparation</button>';
   const sync=ready?'<a href="'+shortcutUrl+'">Synchroniser mes pas</a>':'<button type="button" disabled>Synchroniser mes pas</button>';
 

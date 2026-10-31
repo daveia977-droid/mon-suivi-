@@ -25,8 +25,12 @@ jobs:
           node --check sw.js
           node --check v4-features.js
           node --check v4-config.js
+          node --check health-import.js
+          node --check health-guide.js
       - name: Tests de non-régression
-        run: node tests/smoke.cjs
+        run: |
+          node tests/smoke.cjs
+          node tests/health-import.cjs
 
   visual:
     if: github.event_name == 'pull_request'
@@ -48,6 +52,7 @@ jobs:
           node tests/pwa.cjs
           node tests/phase2.cjs
           node tests/final.cjs
+          node tests/phase3.cjs
           node tests/update.cjs
       - name: Captures de tests
         if: always()

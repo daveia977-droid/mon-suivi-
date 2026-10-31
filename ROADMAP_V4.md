@@ -12,7 +12,7 @@
 - Mise à jour PWA : détection à l’ouverture/retour au premier plan, message, Mettre à jour / Plus tard, protection des saisies, pas de rechargement automatique des autres onglets.
 - Les scripts/styles ont des URL de version et restent disponibles hors ligne ; la migration depuis le comportement de cache précédent est testée.
 - Import/export JSON conservé avec favoris, rappel et provenance/horodatage Santé ; clé historique inchangée.
-- Import Santé : nombre et date du jour contrôlés, messages d’erreur, horodatage réel de réception, pas de doublon pour une même journée.
+- Phase 3 côté application : aide en trois écrans avec retour à la saisie manuelle, nombre entier borné et date obligatoire, erreurs lisibles, confirmation avant remplacement d’un total manuel différent, horodatage et déduplication quotidienne. Objectif conservé. Installation et lancement conditionnés à un lien iCloud réellement validé.
 - Aucun abonnement ni fournisseur IA ajouté ; endpoint photo distant désactivé dans le code même si une ancienne variable d’environnement l’autorisait.
 
 ## Partiel / actions extérieures indispensables
