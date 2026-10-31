@@ -512,5 +512,65 @@ window.MON_SUIVI_PHOTOS={
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "caption": "Fruit Salad 4",
     "original": "https://upload.wikimedia.org/wikipedia/commons/7/74/Fruit_Salad_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+  },
+  "riz-gras": {
+    "src": "./photos/riz-gras.jpg",
+    "author": "Jacquitoz",
+    "page": "https://commons.wikimedia.org/wiki/File:Riz_gras_au_legumes.JPG",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Riz gras au legumes",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Riz_gras_au_legumes.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "presentationNote": "Riz gras aux légumes : exemple de variante, la recette proposée ajoute du poulet."
+  },
+  "sauce-claire": {
+    "src": "./photos/sauce-claire.jpg",
+    "author": "KAREN KOUADIO",
+    "page": "https://commons.wikimedia.org/wiki/File:Foutou_d%E2%80%99ignames_traditionnel.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Foutou d’ignames traditionnel",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Foutou_d%E2%80%99ignames_traditionnel.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "presentationNote": "Foutou d’igname : l’accompagnement seul est photographié ; la sauce claire est à préparer séparément."
+  },
+  "foutou-manioc": {
+    "src": "./photos/foutou-manioc.jpg",
+    "author": "Edem228",
+    "page": "https://commons.wikimedia.org/wiki/File:Fufu_accompagn%C3%A9_d%27une_sauce_arachide_au_poulet.JPG",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Fufu accompagné d'une sauce arachide au poulet",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Fufu_accompagn%C3%A9_d%27une_sauce_arachide_au_poulet.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "presentationNote": "Fufu et sauce arachide au poulet : exemple de présentation."
+  },
+  "banane-poisson": {
+    "src": "./photos/banane-poisson.jpg",
+    "author": "Kondah",
+    "page": "https://commons.wikimedia.org/wiki/File:Plantain_demi-m%C3%BBr_bouilli.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Plantain demi-mûr bouilli",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/f/f2/Plantain_demi-m%C3%BBr_bouilli.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "presentationNote": "Plantain bouilli : l’accompagnement seul est photographié ; ajouter le poisson de la recette."
+  },
+  "poisson-igname": {
+    "src": "./photos/poisson-igname.jpg",
+    "author": "Aboukam",
+    "page": "https://commons.wikimedia.org/wiki/File:Poisson_et_igname_grill%C3%A9_plus_attiek%C3%A9.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "caption": "Poisson et igname grillé plus attieké",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Poisson_et_igname_grill%C3%A9_plus_attiek%C3%A9.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "presentationNote": "Poisson, igname grillée et attiéké : variante de présentation ; la recette propose une igname vapeur."
+  },
+  "salade-thon": {
+    "src": "./photos/salade-thon.jpg",
+    "author": "Geoff Peters from Vancouver, BC, Canada",
+    "page": "https://commons.wikimedia.org/wiki/File:La_Petite_Salad_Ni%C3%A7oise_(3384266478).jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "caption": "La Petite Salad Niçoise (3384266478)",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/e/eb/La_Petite_Salad_Ni%C3%A7oise_%283384266478%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "presentationNote": "Salade niçoise au thon et pommes de terre : variante avec œufs et haricots verts."
   }
 };

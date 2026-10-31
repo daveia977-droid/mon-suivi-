@@ -124,3 +124,4 @@
 .mg-repeat{display:block;max-width:100%;width:100%;text-align:left;min-height:44px;background:white;color:#842849;border:1px solid #ead4da;box-shadow:none;font-size:13px;margin:7px 0;overflow-wrap:anywhere}
 ol.mg-prep{padding-left:22px}ol.mg-prep li{margin:9px 0}
 .mg-alt-detail{min-width:0}.mg-alt-img .mg-photo-credit{padding:0 5px}
+.mg-card-photo .mg-img{object-fit:cover}.mg-dialog-photo .mg-img{object-fit:contain}

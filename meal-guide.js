@@ -15,11 +15,11 @@ const fallback='./food-placeholder.svg';
 const photoFor=item=>photos[item.id]||photos[item.name]||photos[recipeByAlt[item.name]];
 const img=item=>{
  const photo=photoFor(item);
- return '<span class="mg-image-wrap"><img class="mg-img" src="'+escAttr(photo?photo.src:fallback)+'" alt="'+escAttr(photo?'Exemple de présentation : '+item.name:'Photo non disponible : '+item.name)+'" loading="lazy" decoding="async" width="640" height="440">'+(!photo?'<span class="mg-photo-pending">Photo à venir</span>':'')+'</span>';
+ return '<span class="mg-image-wrap"><img class="mg-img" src="'+escAttr(photo?photo.src:fallback)+'" alt="'+escAttr(photo?(photo.presentationNote||'Exemple de présentation : '+item.name):'Photo non disponible : '+item.name)+'" loading="lazy" decoding="async" width="640" height="440">'+(!photo?'<span class="mg-photo-pending">Photo à venir</span>':photo.presentationNote?'<span class="mg-photo-pending">Variante · détails dans la fiche</span>':'')+'</span>';
 };
 function credit(item){
  const p=photoFor(item);if(!p)return '<p class="mg-photo-credit">Photo non disponible : repère visuel provisoire.</p>';
- return '<p class="mg-photo-credit">Exemple de présentation. Photo : '+escapeHtml(p.author)+' · <a href="'+escAttr(p.page)+'" target="_blank" rel="noopener noreferrer">Source</a> · <a href="'+escAttr(p.licenseUrl)+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(p.license)+'</a> · Redimensionnée.</p>';
+ return '<p class="mg-photo-credit">'+escapeHtml(p.presentationNote||'Exemple de présentation.')+' Photo : '+escapeHtml(p.author)+' · <a href="'+escAttr(p.page)+'" target="_blank" rel="noopener noreferrer">Source</a> · <a href="'+escAttr(p.licenseUrl)+'" target="_blank" rel="noopener noreferrer">'+escapeHtml(p.license)+'</a> · Redimensionnée.</p>';
 }
 document.addEventListener('error',event=>{
  const image=event.target;
@@ -43,7 +43,7 @@ function filteredRecipes(){
  (!state.exclude||state.exclude.split(/[;,]+/).map(norm).filter(Boolean).every(word=>!norm(r.ingredients.join(' ')).includes(word)))&&
  (!q||q.split(/\s+/).every(word=>norm(r.name+' '+r.ingredients.join(' ')).includes(word))));
 }
-function filteredAlt(){const q=norm(state.altQuery);return alternatives.filter(a=>!q||norm(a.name+' '+a.choices.join(' ')).includes(q))}
+function filteredAlt(){const q=norm(state.altQuery),skip=new Set(['avec','dans','pour','plat','mange','manger','veux','voudrais','alternative','alternatives','mon','une','des','les']);const words=q.split(/[^a-z0-9]+/).filter(w=>w.length>=3&&!skip.has(w));return alternatives.filter(a=>!q||norm(a.name+' '+a.choices.join(' ')).includes(q)||words.some(w=>norm(a.name+' '+a.choices.join(' ')).includes(w)))}
 function icon(name){
  const paths={book:'<path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v15c-3-1-6-1-8 1-2-2-5-2-8-1Z"/><path d="M12 6v15"/>',leaf:'<path d="M20 4c-12 0-17 4-17 12a5 5 0 0 0 5 5C16 21 20 12 20 4Z"/><path d="M5 19c3-5 7-8 13-11"/>',chevron:'<path d="m9 18 6-6-6-6"/>',close:'<path d="M18 6 6 18M6 6l12 12"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/>',search:'<circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/>',arrow:'<path d="M5 12h14m-6-6 6 6-6 6"/>',spark:'<path d="m12 2 1.7 6.3L20 10l-6.3 1.7L12 18l-1.7-6.3L4 10l6.3-1.7Z"/>'};
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(paths[name]||paths.leaf)+'</svg>';
@@ -88,9 +88,9 @@ function renderGuide(){
     '<p class="mg-hint">Les ingrédients et quantités sont indicatifs pour 1 personne. Les recettes varient selon les familles et les régions. Aucune calorie n’est calculée sans données fiables.</p>';
  }else{
    const rows=filteredAlt();
-   html+='<div class="mg-alternatives-intro">'+icon('leaf')+'<div><strong>Des idées, pas des interdictions</strong><span>Choisissez un aliment ci-dessous pour voir deux alternatives avec leurs ingrédients et préparations. Aucune analyse de photo nécessaire.</span></div></div>'+
+   html+='<div class="mg-alternatives-intro">'+icon('leaf')+'<div><strong>Qu’aimerais-tu remplacer ?</strong><span>Décris ton plat ou choisis une catégorie pour découvrir des idées, leurs ingrédients et leur préparation. La recherche utilise les mots que tu écris.</span></div></div>'+btn('Prendre ou importer une photo','describe-photo','mg-plain')+'<p class="mg-hint">Tu peux regarder ta photo et décrire les aliments. L’analyse IA n’est pas encore activée ; aucune photo n’est envoyée.</p>'+
     '<label class="mg-search">'+icon('search')+'<span class="sr-only">Rechercher un aliment à remplacer</span>'+
-    '<input id="mg-alt-search" type="search" autocomplete="off" placeholder="Ex. chips, alloco, pizza…" maxlength="80" value="'+escAttr(state.altQuery)+'"></label>'+
+    '<input id="mg-alt-search" type="search" autocomplete="off" placeholder="Ex. je mange du riz gras…" maxlength="160" value="'+escAttr(state.altQuery)+'"></label>'+
     '<div class="mg-results-head"><strong>'+rows.length+' catégories</strong><span>Photos sourcées, repères locaux si indisponibles</span></div>'+
     '<div class="mg-grid" id="mg-card-list">'+(rows.length?rows.map(altCard).join(''):'<p class="mg-empty">Aucune catégorie trouvée. Essayez un autre nom.</p>')+'</div>'+
     '<p class="mg-hint">Les photographies sont des exemples de présentation ; les repères « Photo à venir » ne représentent pas le plat. Les propositions ne remplacent pas un avis médical ou nutritionnel et ne classent aucun aliment comme « mauvais ».</p>';
@@ -206,6 +206,7 @@ document.addEventListener('click',e=>{
   return;
  }
  if(action==='section'){state.section=v;state.visible=10;renderGuide();return}
+ if(action==='describe-photo'){openMealForm();mealMode='photo';renderMealDialog();return}
  if(action==='category'){state.category=v;state.visible=10;renderGuide();return}
  if(action==='meal'){state.meal=v;state.visible=10;renderGuide();return}
  if(action==='more'){state.visible+=10;renderGuide();return}

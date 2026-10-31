@@ -34,6 +34,7 @@
   if(!slot||slot.querySelector('#v4-local-photo'))return;
   const panel=document.createElement('div');panel.id='v4-local-photo';panel.className='v4-settings';
   panel.innerHTML='<h3>Voir mon repas sur cet appareil</h3><label>Prendre une photo<input id="v4-photo-camera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label><label>Importer une photo<input id="v4-photo-file" type="file" accept="image/jpeg,image/png,image/webp"></label><img id="v4-photo-preview" alt="Photo de votre repas, sur cet appareil uniquement" hidden style="max-width:100%;max-height:220px;object-fit:contain"><p id="v4-photo-status" role="status">La photo reste sur cet appareil et n’est pas enregistrée. La reconnaissance automatique est indisponible : décris le plat ci-dessous pour chercher des alternatives, puis corrige les quantités manuellement.</p>';
+  panel.insertAdjacentHTML('beforeend','<details><summary>Pourquoi les calories et les notes ne s’affichent-elles pas ?</summary><p>La reconnaissance du repas n’est pas encore disponible. Une photo seule ne mesure ni les portions ni l’huile : les aliments et quantités doivent être confirmés avant une estimation des calories.</p><p>Le score sur 10 n’est pas encore défini. Le Nutri-Score exige des données nutritionnelles complètes pour 100 g ; il ne peut pas être deviné à partir de la photo.</p></details>');
   slot.prepend(panel);
  }
  function mount(){

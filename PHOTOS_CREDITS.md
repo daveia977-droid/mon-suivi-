@@ -1,6 +1,6 @@
 # Crédits des photographies
 
-Chaque image est conservée localement avec sa licence d’origine. Adaptation : redimensionnement et compression JPEG.
+Chaque image conserve sa licence d’origine. Adaptation : orientation, redimensionnement et compression JPEG. Les variantes et accompagnements seuls sont signalés dans les fiches.
 
 ## attieke-poisson
 
@@ -210,6 +210,46 @@ Chaque image est conservée localement avec sa licence d’origine. Adaptation :
 - Original : https://upload.wikimedia.org/wikipedia/commons/6/6a/Iced_tea_with_ice_cubes.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
 - Licence : CC BY-SA 2.5 — https://creativecommons.org/licenses/by-sa/2.5
 
+## Yaourt nature et fruit
+
+- Fichier : ./photos/yaourt-nature-et-fruits.jpg
+- Auteur : Jumbocombo0811
+- Source : https://commons.wikimedia.org/wiki/File:Yogurt_fruit_bowl.jpg
+- Original : https://upload.wikimedia.org/wikipedia/commons/d/d1/Yogurt_fruit_bowl.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0
+
+## Attiéké et poisson braisé
+
+- Fichier : ./photos/attieke-poisson.jpg
+- Auteur : Fimalisa
+- Source : https://commons.wikimedia.org/wiki/File:Attieke_au_poisson_capitaine.jpg
+- Original : https://upload.wikimedia.org/wikipedia/commons/b/b8/Attieke_au_poisson_capitaine.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0
+
+## Attiéké et poulet grillé
+
+- Fichier : ./photos/attieke-poulet.jpg
+- Auteur : Jacquitoz
+- Source : https://commons.wikimedia.org/wiki/File:Poulet_brais%C3%A9_attiek%C3%A9.JPG
+- Original : https://upload.wikimedia.org/wikipedia/commons/5/53/Poulet_brais%C3%A9_attiek%C3%A9.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0
+
+## Wrap poulet et légumes
+
+- Fichier : ./photos/wrap-poulet.jpg
+- Auteur : Takeaway
+- Source : https://commons.wikimedia.org/wiki/File:Smoked_chicken_and_avocado_wrap.jpg
+- Original : https://upload.wikimedia.org/wikipedia/commons/f/f8/Smoked_chicken_and_avocado_wrap.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0
+
+## Soupe de légumes et lentilles
+
+- Fichier : ./photos/soupe-lentilles.jpg
+- Auteur : Jennifer from Vancouver, Canada
+- Source : https://commons.wikimedia.org/wiki/File:Lentil_and_vegetable_soup_with_avocado_(6964882187).jpg
+- Original : https://upload.wikimedia.org/wikipedia/commons/4/43/Lentil_and_vegetable_soup_with_avocado_%286964882187%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY 2.0 — https://creativecommons.org/licenses/by/2.0
+
 ## garba
 
 - Fichier : ./photos/garba.jpg
@@ -417,3 +457,57 @@ Chaque image est conservée localement avec sa licence d’origine. Adaptation :
 - Source : https://commons.wikimedia.org/wiki/File:Fruit_Salad_4.jpg
 - Original : https://upload.wikimedia.org/wikipedia/commons/7/74/Fruit_Salad_4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
 - Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0
+
+## riz-gras
+
+- Fichier : ./photos/riz-gras.jpg
+- Auteur : Jacquitoz
+- Source : https://commons.wikimedia.org/wiki/File:Riz_gras_au_legumes.JPG
+- Original : https://upload.wikimedia.org/wikipedia/commons/a/a3/Riz_gras_au_legumes.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0
+- Présentation : Riz gras aux légumes : exemple de variante, la recette proposée ajoute du poulet.
+
+## sauce-claire
+
+- Fichier : ./photos/sauce-claire.jpg
+- Auteur : KAREN KOUADIO
+- Source : https://commons.wikimedia.org/wiki/File:Foutou_d%E2%80%99ignames_traditionnel.jpg
+- Original : https://upload.wikimedia.org/wikipedia/commons/b/b7/Foutou_d%E2%80%99ignames_traditionnel.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0
+- Présentation : Foutou d’igname : l’accompagnement seul est photographié ; la sauce claire est à préparer séparément.
+
+## foutou-manioc
+
+- Fichier : ./photos/foutou-manioc.jpg
+- Auteur : Edem228
+- Source : https://commons.wikimedia.org/wiki/File:Fufu_accompagn%C3%A9_d%27une_sauce_arachide_au_poulet.JPG
+- Original : https://upload.wikimedia.org/wikipedia/commons/7/7e/Fufu_accompagn%C3%A9_d%27une_sauce_arachide_au_poulet.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0
+- Présentation : Fufu et sauce arachide au poulet : exemple de présentation.
+
+## banane-poisson
+
+- Fichier : ./photos/banane-poisson.jpg
+- Auteur : Kondah
+- Source : https://commons.wikimedia.org/wiki/File:Plantain_demi-m%C3%BBr_bouilli.jpg
+- Original : https://upload.wikimedia.org/wikipedia/commons/f/f2/Plantain_demi-m%C3%BBr_bouilli.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0
+- Présentation : Plantain bouilli : l’accompagnement seul est photographié ; ajouter le poisson de la recette.
+
+## poisson-igname
+
+- Fichier : ./photos/poisson-igname.jpg
+- Auteur : Aboukam
+- Source : https://commons.wikimedia.org/wiki/File:Poisson_et_igname_grill%C3%A9_plus_attiek%C3%A9.jpg
+- Original : https://upload.wikimedia.org/wikipedia/commons/3/3d/Poisson_et_igname_grill%C3%A9_plus_attiek%C3%A9.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0
+- Présentation : Poisson, igname grillée et attiéké : variante de présentation ; la recette propose une igname vapeur.
+
+## salade-thon
+
+- Fichier : ./photos/salade-thon.jpg
+- Auteur : Geoff Peters from Vancouver, BC, Canada
+- Source : https://commons.wikimedia.org/wiki/File:La_Petite_Salad_Ni%C3%A7oise_(3384266478).jpg
+- Original : https://upload.wikimedia.org/wikipedia/commons/e/eb/La_Petite_Salad_Ni%C3%A7oise_%283384266478%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY 2.0 — https://creativecommons.org/licenses/by/2.0
+- Présentation : Salade niçoise au thon et pommes de terre : variante avec œufs et haricots verts.
