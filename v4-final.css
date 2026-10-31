@@ -8,3 +8,4 @@
 .v4-statistics strong{display:block;font-size:18px;color:#842849}.v4-statistics span{font-size:12px}
 .v4-mood-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}.v4-mood-choices button{background:#f8dce5;color:#632640;box-shadow:none}
 .v4-settings input[type=file]{max-width:100%;font-size:13px}
+.health-guide .row{flex-wrap:wrap;gap:8px}.health-guide button{white-space:normal;min-height:44px;max-width:100%}.health-guide summary{padding:12px 0;min-height:44px;cursor:pointer}

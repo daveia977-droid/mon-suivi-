@@ -221,21 +221,49 @@ function reload(){try{const raw=localStorage.getItem(KEY);if(raw){const item=val
 reload();
 // Import local depuis Raccourcis iOS via fragment URL (non transmis au serveur).
 // Ce mécanisme ne lit jamais Santé directement et reste limité au navigateur utilisé.
+let pendingHealthImport=null;
 function importSanteSteps(){
  const hash=window.location.hash;
- if(!hash.startsWith('#sante-pas='))return;
- // Retirer immédiatement le fragment de l'adresse visible et de l'historique actif.
+ if(!new URLSearchParams(hash.slice(1)).has('sante-pas'))return;
  window.history.replaceState(null,'',window.location.pathname+window.location.search);
- const params=new URLSearchParams(hash.slice(1)),raw=params.get('sante-pas');
- if(!raw||!/^(0|[1-9][0-9]{0,5})$/.test(raw)){alert('Le nombre de pas reçu est invalide. Relance le raccourci ou utilise la saisie manuelle.');return}
- const value=Number(raw),date=params.get('date')||today();
- if(!Number.isSafeInteger(value)||value>200000||!isDate(date)||date!==today()){alert('Import refusé : vérifie le total et la date du jour dans le raccourci. Ton historique est conservé.');return}
- if(demo||!data.consent){window.alert('Pour importer les pas de Santé, créez d’abord votre espace Mon Suivi dans ce navigateur.');return}
- const old=data.steps.find(e=>e.date===date);
- if(old?.value===value&&old.source==='sante-raccourcis'){old.syncedAt=new Date().toISOString();page='Activité';save();return}
- data.steps=data.steps.filter(e=>e.date!==date).concat([{id:old?.id||'sante-'+date,date,value,source:'sante-raccourcis',syncedAt:new Date().toISOString()}]);
- page='Activité';save();
+ pendingHealthImport=null;
+ let incoming;
+ try{incoming=MonSuiviHealth.parseHealthImport(hash,today())}
+ catch(error){showHealthMessage(error.message,true);return}
+ if(demo||!data.consent){showHealthMessage('Crée d’abord ton espace local sur cet appareil, puis relance le raccourci.',true);return}
+ const old=data.steps.find(e=>e.date===incoming.date);
+ if(old&&old.source!=='sante-raccourcis'&&old.value!==incoming.value){
+  pendingHealthImport=incoming;
+  showHealthMessage('Tu as déjà noté '+fmt(old.value)+' pas à la main. Le raccourci propose '+fmt(incoming.value)+' pas. Que souhaites-tu conserver ?',false,true);return;
+ }
+ applyHealthImport(incoming);
 }
+function applyHealthImport(incoming){
+ if(demo||!data.consent){pendingHealthImport=null;showHealthMessage('Crée ton espace local avant de recevoir des pas.',true);return}
+ if(!incoming||incoming.date!==today()){pendingHealthImport=null;showHealthMessage('La journée a changé. Relance le raccourci avant de synchroniser.',true);return}
+ const old=data.steps.find(e=>e.date===incoming.date);
+ data.steps=data.steps.filter(e=>e.date!==incoming.date).concat([{id:old?.id||'sante-'+incoming.date,date:incoming.date,value:incoming.value,source:'sante-raccourcis',syncedAt:new Date().toISOString()}]);
+ pendingHealthImport=null;page='Activité';save();
+ showHealthMessage('Import reçu : '+fmt(incoming.value)+' pas pour aujourd’hui. Ton objectif reste inchangé.',false);
+}
+function showHealthMessage(message,error=false,choice=false){
+ if(data.consent){page='Activité';render()}
+ const panel=document.createElement('section');panel.id='health-import-message';panel.className='v4-settings';panel.setAttribute('role',error?'alert':'status');
+ const text=document.createElement('p');text.textContent=message;panel.append(text);
+ if(choice){
+  for(const [label,action] of [['Remplacer par le total reçu','health-accept'],['Conserver ma saisie','health-cancel']]){
+   const control=document.createElement('button');control.type='button';control.className='secondary';control.dataset.healthAction=action;control.textContent=label;panel.append(control);
+  }
+ }
+ document.querySelector('#health-import-message')?.remove();
+ const host=document.querySelector('.activity-screen .page-heading');
+ if(host)host.insertAdjacentElement('afterend',panel);else app.prepend(panel);
+}
+document.addEventListener('click',event=>{
+ const action=event.target.closest('[data-health-action]')?.dataset.healthAction;
+ if(action==='health-accept')applyHealthImport(pendingHealthImport);
+ if(action==='health-cancel'){pendingHealthImport=null;showHealthMessage('Ta saisie manuelle est conservée.',false)}
+});
 window.addEventListener('hashchange',importSanteSteps);
 function save(){if(!demo&&data.consent){try{localStorage.setItem(KEY,JSON.stringify(data));storageOK=true}catch{storageOK=false}}render()}
 function go(where){page=where;render();window.scrollTo({top:0,behavior:'instant'})}
@@ -367,7 +395,7 @@ else if(page==='Profil')content=screenProfile();
 if(!storageOK)content='<p class="notice-error" role="alert">Sauvegarde locale indisponible. Exportez vos données avant de quitter cette page.</p>'+content;
 app.innerHTML=content+(showNav?footer():'');
 }
-function modal(html){restoreFocus=document.activeElement;dlg.innerHTML=html;dlg.showModal()}
+function modal(html){restoreFocus=document.activeElement;dlg.removeAttribute('aria-labelledby');dlg.innerHTML=html;dlg.showModal()}
 dlg.addEventListener('close',()=>{if(restoreFocus?.isConnected)restoreFocus.focus();restoreFocus=null});
 function openForm(type,id){
 const items=data[type],entry=items.find(x=>String(x.id)===String(id))||{},heading={weights:'Noter mon poids',meals:'Ajouter un repas',moods:'Mon humeur',steps:'Mes pas'}[type];
@@ -388,6 +416,7 @@ const e=rows[i],prev=rows[i-1],diff=prev?Number(e.value)-Number(prev.value):null
 modal('<h2>Mesure du '+fr+'</h2><div class="weight-value" style="margin:4px 0 10px">'+shownWeight(e.value)+' <small>'+unit+'</small></div><p class="modal-explain">'+(diff===null?'Votre première mesure.':(diff>0?'+':'')+(diff<0?'-':'')+fmt(Math.abs(unit==='lb'?diff*unitFactor:diff))+' '+unit+' par rapport à la mesure précédente.')+'</p><div class="row">'+btn('Modifier','pointedit:weights:'+e.id)+btn('Supprimer','pointdel:weights:'+e.id,'secondary')+btn('Fermer','close','ghost')+'</div>');
 }
 function openSanteHelp(){
+ if(typeof window.MonSuiviHealthGuide==='function'){window.MonSuiviHealthGuide(0);return}
  modal('<div class="sante-help"><h2>Connecter Apple Santé</h2><p>Le site ne peut pas lire Santé directement. Un raccourci iPhone validé est nécessaire ; son lien d’installation n’est pas encore disponible.</p><ol><li>Après installation du raccourci, autoriser uniquement la lecture des pas dans Santé.</li><li>Lancer « Synchroniser mes pas » et comparer le total obtenu à celui de Santé. Plusieurs sources (iPhone et montre) ne doivent pas être additionnées deux fois.</li><li>Le raccourci revient vers Mon Suivi avec le total et la date du jour. Le navigateur utilisé doit contenir ton espace local.</li></ol><p>Une automatisation quotidienne peut ensuite être créée dans Raccourcis. La lecture des données de Santé peut demander de déverrouiller l’iPhone ; l’exécution silencieuse n’est pas garantie.</p><p>Le développeur doit encore créer, valider puis partager le raccourci depuis un iPhone. En attendant, utilise la saisie manuelle.</p><details><summary>Contrat du lien de retour</summary><p class="shortcut-url"><code>https://mon-suivi-six.vercel.app/#sante-pas=NOMBRE&amp;date=AAAA-MM-JJ</code></p><p>Ce modèle technique n’est pas un lien d’installation. Les valeurs sont transmises dans le fragment, retiré ensuite de l’adresse.</p></details>'+btn('Compris','close','secondary')+'</div>');
 }
 function openStepsGoal(){
@@ -462,6 +491,6 @@ modal('<h2>Importer votre sauvegarde ?</h2><p>Ce fichier contient '+parsed.weigh
 dlg.querySelector('[data-action="confirm-import"]').onclick=()=>{parsed.consent=true;parsed.consentAt=new Date().toISOString();data=parsed;demo=false;unit=data.unit;dlg.close();go('Profil');save()};
 }catch(error){alert('Import impossible : '+error.message)}finally{e.target.value=''}
 });
-importSanteSteps();
 render();
+importSanteSteps();
 

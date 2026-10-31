@@ -15,7 +15,9 @@ Le raccourci doit :
 5. Ouvrir https://mon-suivi-six.vercel.app/#sante-pas=NOMBRE&date=AAAA-MM-JJ avec les valeurs calculées, pas ces mots littéraux.
 6. Vérifier que l’espace utilisé par le lien est bien celui contenant le suivi. Safari et une PWA installée peuvent avoir un stockage distinct.
 
-Le site retire le fragment de l’historique, refuse une date différente du jour courant, remplace le total du jour sans l’additionner et conserve l’heure de réception.
+Le site retire le fragment de l’historique, exige une date explicite correspondant au jour courant, refuse les paramètres en double, remplace le total du jour sans l’additionner et conserve l’heure de réception. Un total manuel différent nécessite un choix explicite : le conserver ou le remplacer. Une nouvelle réception du même jour ne crée pas de doublon. Un changement de journée pendant la confirmation impose de relancer le raccourci.
+
+L’aide « Connecter Apple Santé » présente trois écrans et donne accès à la saisie manuelle. L’import exige un espace local avec consentement, et ne change pas l’objectif personnalisé.
 
 ## Validation avant partage
 
@@ -24,7 +26,7 @@ Le site retire le fragment de l’historique, refuse une date différente du jou
 - Tester le premier consentement et le refus d’autorisation.
 - Tester le retour dans Safari puis dans la PWA installée, sans perdre l’historique.
 - Tester l’automatisation quotidienne dans Raccourcis ; documenter si le déverrouillage est requis.
-- Partager ensuite le raccourci et renseigner son vrai lien dans v4-config.js. Les liens de lancement utilisent le nom exact ci-dessus.
+- Partager ensuite le raccourci et renseigner son vrai lien dans v4-config.js ; passer healthShortcutValidated à true seulement après ces vérifications. Les liens de lancement utilisent le nom exact ci-dessus.
 
 Sources Apple :
 - https://support.apple.com/en-euro/guide/shortcuts/apd624386f42/ios
