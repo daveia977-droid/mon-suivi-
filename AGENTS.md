@@ -16,3 +16,5 @@
 - Tests : node tests/smoke.cjs ; serveur local puis tests/e2e.cjs, tests/pwa.cjs, tests/phase2.cjs et tests/final.cjs avec Playwright. tests/update.cjs démarre son propre serveur pour vérifier une vraie transition de service worker.
 - BROWSER_CHANNEL=msedge et TEST_BASE_URL permettent la validation locale. CI utilise Chromium. Aucun essai navigateur ne doit être présenté comme un essai sur iPhone physique.
 - Ne pas déclarer la V4 intégralement terminée tant que les limites de ROADMAP_V4.md subsistent.
+- Teddy : lire TEDDY.md. Champ facultatif teddy dans mon-suivi-v1 ; conserver son schéma, ses récompenses et ses sauvegardes. Ne pas remplacer l’icône du chat par Teddy. Accès depuis Progrès, sans sixième onglet.
+- Vérifier aussi node tests/teddy-model.cjs puis les parcours tests/teddy.cjs et tests/bilan.cjs. Les transitions de dates contrôlées en navigateur ne constituent pas un essai sur iPhone physique.

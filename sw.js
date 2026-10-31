@@ -1,9 +1,9 @@
 'use strict';
-const CACHE = 'mon-suivi-shell-repas-1';
-const ASSET_VERSION='repas-1';
+const CACHE = 'mon-suivi-shell-teddy-1';
+const ASSET_VERSION='teddy-1';
 const SHELL = [
   './', './index.html', './styles.css', './premium.css', './meal-guide.css',
-  './v4.css', './v4-final.css', './v4-features.js', './v4-config.js', './health-guide.js', './health-import.js', './app.js', './ciqual-2025.js', './meal-guide-data.js',
+  './teddy-model.js', './teddy.js', './bilan.js', './legal-pages.js', './teddy.css', './v4.css', './v4-final.css', './v4-features.js', './v4-config.js', './health-guide.js', './health-import.js', './app.js', './ciqual-2025.js', './meal-guide-data.js',
   './meal-guide.js', './recipe-preparations.js', './food-photos.js', './alternative-prep.js', './alternative-portions.js', './food-placeholder.svg', './pwa.js', './artwork.svg', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png',
   './icons/apple-touch-icon.png', './icons/favicon-32.png'
