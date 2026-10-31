@@ -275,7 +275,7 @@ const legal={
 'Confidentialité':'Le suivi est conservé localement après ton accord. Les photos personnelles ne sont pas envoyées à une IA. Tu peux exporter et supprimer tes données dans Profil.',
 'Conditions':'Application gratuite de bien-être, sans diagnostic ni garantie de résultat. Les valeurs alimentaires sont des repères modifiables.',
 'Cookies':'Stockage local du suivi et cache technique, sans traceur publicitaire intégré au code.',
-'Mentions légales':'Éditeur et contact non renseignés. Hébergement sur Vercel.',
+'Mentions légales':'Informations sur Mon Suivi. Hébergement sur Vercel.',
 'Remboursements':'Aucun achat ni abonnement.'};
 function chartSVG(items,width=340,height=154,small=false,goal=null){
 if(items.length<2)return '<div class="spark-empty">Ajoutez plusieurs mesures pour afficher la courbe.</div>';
