@@ -27,10 +27,15 @@ jobs:
           node --check v4-config.js
           node --check health-import.js
           node --check health-guide.js
+          node --check teddy-model.js
+          node --check teddy.js
+          node --check bilan.js
+          node --check legal-pages.js
       - name: Tests de non-régression
         run: |
           node tests/smoke.cjs
           node tests/health-import.cjs
+          node tests/teddy-model.cjs
 
   visual:
     if: github.event_name == 'pull_request'
@@ -54,6 +59,8 @@ jobs:
           node tests/final.cjs
           node tests/phase3.cjs
           node tests/repas.cjs
+          node tests/teddy.cjs
+          node tests/bilan.cjs
           node tests/update.cjs
       - name: Captures de tests
         if: always()

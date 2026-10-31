@@ -8,7 +8,7 @@
  const reminder=()=>data.moodReminder||{enabled:false,time:'20:00'};
  function reminderSettings(){
   const r=reminder();
-  return '<section class="v4-settings" id="v4-reminder-settings"><h2>Mon rappel d’humeur</h2><label><input id="v4-reminder-enabled" type="checkbox" '+(r.enabled?'checked':'')+'> Rappel lorsque l’application est ouverte</label><label>Heure locale <input id="v4-reminder-time" type="time" value="'+esc(r.time)+'"></label><p>Comment te sens-tu aujourd’hui ? Aucun choix n’est enregistré automatiquement.</p>'+button('Ajouter au calendrier iPhone','calendar')+'<p>Pour un rappel même lorsque l’application est fermée, importe cet événement dans Calendrier et vérifie son alerte. Pour le modifier ou le supprimer ensuite, utilise Calendrier. Le réglage ci-dessus concerne seulement le rappel dans Mon Suivi.</p><p>Les notifications Web Push ne sont pas activées dans cette version.</p></section>';
+  return '<section class="v4-settings" id="v4-reminder-settings"><h2>Mon rappel d’humeur</h2><label><input id="v4-reminder-enabled" type="checkbox" '+(r.enabled?'checked':'')+'> Rappel lorsque l’application est ouverte</label><label>Heure locale <input id="v4-reminder-time" type="time" value="'+esc(r.time)+'"></label><p>Comment te sens-tu aujourd’hui ? Aucun choix n’est enregistré automatiquement.</p>'+button('Ajouter au calendrier iPhone','calendar')+'<p>Le journal Teddy est aussi proposé si ton aventure est commencée. Pour un rappel même lorsque l’application est fermée, importe cet événement dans Calendrier et vérifie son alerte. Pour le modifier ou le supprimer ensuite, utilise Calendrier. Le réglage ci-dessus concerne seulement le rappel dans Mon Suivi.</p><p>Les notifications Web Push ne sont pas activées dans cette version.</p></section>';
  }
  function healthSettings(){
   const share=window.MON_SUIVI_CONFIG?.healthShortcutShareUrl;
@@ -21,13 +21,8 @@
   return '<section class="v4-settings" id="v4-health"><h2>Connecter Apple Santé</h2><p>Dernière synchronisation : '+esc(label)+'</p><p>Le raccourci iPhone « '+shortcutName+' » doit d’abord être installé. Mon Suivi ne lit jamais directement Santé.</p>'+install+'<p>Le lien d’installation doit être créé et vérifié sur un iPhone avant de pouvoir être proposé ici.</p>'+sync+button('Aide et autorisations','health-help')+'<p>Après installation du raccourci seulement. La saisie manuelle reste disponible avec le bouton Noter.</p></section>';
  }
  function statistics(host){
-  const days=period==='7'?7:30,start=past(days-1);
-  const steps=[...new Map(data.steps.filter(s=>s.date>=start&&s.date<=today()).map(s=>[s.date,s])).values()],meals=data.meals.filter(m=>m.date>=start&&m.date<=today()),moodRows=[...new Map(data.moods.filter(m=>m.date>=start&&m.date<=today()).map(m=>m.date? [m.date,m]:['',m])).values()];
-  const total=steps.reduce((n,s)=>n+s.value,0),weights=sorted(data.weights.filter(w=>w.date>=start&&w.date<=today()));
-  const change=weights.length>1?shownWeight(weights[weights.length-1].value-weights[0].value)+' '+unit:'—';
-  const section=document.createElement('section');section.id='v4-statistics';section.className='v4-settings';
-  section.innerHTML='<h2>Mon bilan sur '+days+' jours</h2><div class="row">'+button('7 jours','stats-7')+button('30 jours','stats-30')+'</div><div class="v4-statistics"><article><strong>'+fmt(total)+'</strong><span>pas sur '+steps.length+' jour(s) renseigné(s)</span></article><article><strong>'+(steps.length?fmt(Math.round(total/steps.length)):'—')+'</strong><span>pas par jour renseigné</span></article><article><strong>'+fmt(meals.length)+'</strong><span>repas notés</span></article><article><strong>'+esc(change)+'</strong><span>variation du poids sur la période</span></article></div><h3>Mon humeur</h3><p>'+moods.map(name=>esc(name)+' : '+moodRows.filter(m=>m.name===name).length).join(' · ')+'</p><p>Les jours sans saisie restent inconnus. Ces chiffres décrivent les notes enregistrées, sans jugement.</p>';
-  host.querySelector('.page-heading')?.insertAdjacentElement('afterend',section);
+  const days=period==='7'?7:30;
+  host.querySelector('.page-heading')?.insertAdjacentHTML('afterend',MonSuiviTeddyUI.card()+MonSuiviBilan.render(days));
  }
  function photoPanel(){
   const slot=document.querySelector('.photo-fallback-card');
@@ -39,7 +34,7 @@
  }
  function mount(){
   if(typeof data==='undefined')return;
-  if(!data.consent||!reminder().enabled||data.moods.some(m=>m.date===today()))document.querySelector('#v4-mood-prompt')?.remove();
+  if(!data.consent||!reminder().enabled||(data.teddy?data.teddy.records.some(r=>r.date===today()):data.moods.some(m=>m.date===today())))document.querySelector('#v4-mood-prompt')?.remove();
   const profile=document.querySelector('.profile-screen'),activity=document.querySelector('.activity-screen'),progress=document.querySelector('.progress-screen');
   if(profile&&!profile.querySelector('#v4-reminder-settings'))profile.querySelector('.profile-help')?.insertAdjacentHTML('beforebegin',reminderSettings());
   if(activity&&!activity.querySelector('#v4-health'))activity.querySelector('.health-sync-card')?.insertAdjacentHTML('afterend',healthSettings());
@@ -63,22 +58,24 @@
   const stamp=d=>iso(d).replace(/-/g,'')+'T'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'00';
   const end=new Date(date.getTime()+300000);
   const fold=line=>{let result='',part='';for(const char of line){if(new TextEncoder().encode(part+char).length>75){result+=part+'\r\n';part=' '+char}else part+=char}return result+part};
-  const content=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Mon Suivi//Rappel humeur//FR','CALSCALE:GREGORIAN','BEGIN:VEVENT','UID:mon-suivi-humeur-local@mon-suivi-six.vercel.app','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''),'DTSTART:'+stamp(date),'DTEND:'+stamp(end),'RRULE:FREQ=DAILY',"SUMMARY:Comment te sens-tu aujourd’hui ?",'DESCRIPTION:Ouvre Mon Suivi puis choisis ton humeur. Aucun choix automatique.','URL:https://mon-suivi-six.vercel.app/#humeur','BEGIN:VALARM','ACTION:DISPLAY','TRIGGER:PT0S',"DESCRIPTION:Comment te sens-tu aujourd’hui ?",'END:VALARM','END:VEVENT','END:VCALENDAR',''].map(fold).join('\r\n');
+  const content=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Mon Suivi//Rappel humeur//FR','CALSCALE:GREGORIAN','BEGIN:VEVENT','UID:mon-suivi-humeur-local@mon-suivi-six.vercel.app','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''),'DTSTART:'+stamp(date),'DTEND:'+stamp(end),'RRULE:FREQ=DAILY',"SUMMARY:Mon moment bien-être avec Mon Suivi",'DESCRIPTION:Ouvre Mon Suivi pour ton humeur et ton journal Teddy facultatif. Aucun choix automatique.','URL:https://mon-suivi-six.vercel.app/#'+(data.teddy?'teddy':'humeur'),'BEGIN:VALARM','ACTION:DISPLAY','TRIGGER:PT0S',"DESCRIPTION:Comment te sens-tu aujourd’hui ?",'END:VALARM','END:VEVENT','END:VCALENDAR',''].map(fold).join('\r\n');
   const url=URL.createObjectURL(new Blob([content],{type:'text/calendar;charset=utf-8'})),link=document.createElement('a');
   link.href=url;link.download='mon-suivi-rappel-humeur.ics';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
  }
  function checkReminder(){
   if(typeof data==='undefined'||!data.consent||demo||document.visibilityState!=='visible')return;
+  const needsMood=!data.moods.some(m=>m.date===today())&&!(data.teddy&&data.teddy.records.some(r=>r.date===today())),needsJournal=!!data.teddy&&!data.teddy.records.some(r=>r.date===today());
   const r=reminder(),now=new Date(),time=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  if(!r.enabled||time<r.time||dismissedDay===today()||data.moods.some(m=>m.date===today())||document.querySelector('dialog[open]')||document.querySelector('#pwa-update')||document.querySelector('#v4-mood-prompt'))return;
+  if(!r.enabled||time<r.time||dismissedDay===today()||(!needsMood&&!needsJournal)||document.querySelector('dialog[open]')||document.querySelector('#pwa-update')||document.querySelector('#v4-mood-prompt'))return;
   const panel=document.createElement('section');panel.id='v4-mood-prompt';panel.className='v4-notice';panel.setAttribute('aria-label','Rappel d’humeur');
-  panel.innerHTML='<strong>Comment te sens-tu aujourd’hui ?</strong><div class="v4-mood-choices">'+moods.map((m,i)=>button(m,'mood-'+i)).join('')+'</div>'+button('Plus tard','mood-later');
+  panel.innerHTML='<strong>Un moment pour toi</strong>'+(needsMood?'<p>Comment te sens-tu aujourd’hui ?</p><div class="v4-mood-choices">'+moods.map((m,i)=>button(m,'mood-'+i)).join('')+'</div>':'')+(needsJournal?button('Remplir mon journal Teddy','teddy-journal'):'')+button('Plus tard','mood-later');
   document.body.append(panel);
  }
  document.addEventListener('click',e=>{
   const control=e.target.closest('[data-v4]');if(!control)return;
   const action=control.dataset.v4;
   if(action==='calendar')calendar();
+  if(action==='teddy-journal'){MonSuiviTeddyUI.open();MonSuiviTeddyUI.journal();document.querySelector('#v4-mood-prompt')?.remove()}
   if(action==='health-help')openSanteHelp();
   if(action==='stats-7'||action==='stats-30'){period=action.slice(6);render()}
   if(action==='mood-later'){dismissedDay=today();document.querySelector('#v4-mood-prompt')?.remove()}

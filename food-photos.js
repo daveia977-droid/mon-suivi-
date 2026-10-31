@@ -572,5 +572,15 @@ window.MON_SUIVI_PHOTOS={
     "caption": "La Petite Salad Niçoise (3384266478)",
     "original": "https://upload.wikimedia.org/wikipedia/commons/e/eb/La_Petite_Salad_Ni%C3%A7oise_%283384266478%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
     "presentationNote": "Salade niçoise au thon et pommes de terre : variante avec œufs et haricots verts."
+  },
+  "salade-lentilles": {
+    "src": "./photos/salade-lentilles.jpg",
+    "author": "DocteurCosmos",
+    "page": "https://commons.wikimedia.org/wiki/File:Salade_lentilles_brunes.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "caption": "Salade de lentilles brunes",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/36/Salade_lentilles_brunes.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "presentationNote": "Salade de lentilles : base de la recette photographiée, ajouter les œufs indiqués dans les ingrédients."
   }
 };

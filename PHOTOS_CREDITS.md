@@ -511,3 +511,12 @@ Chaque image conserve sa licence d’origine. Adaptation : orientation, redimens
 - Original : https://upload.wikimedia.org/wikipedia/commons/e/eb/La_Petite_Salad_Ni%C3%A7oise_%283384266478%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
 - Licence : CC BY 2.0 — https://creativecommons.org/licenses/by/2.0
 - Présentation : Salade niçoise au thon et pommes de terre : variante avec œufs et haricots verts.
+
+## salade-lentilles
+
+- Fichier : ./photos/salade-lentilles.jpg
+- Auteur : DocteurCosmos
+- Source : https://commons.wikimedia.org/wiki/File:Salade_lentilles_brunes.jpg
+- Original : https://upload.wikimedia.org/wikipedia/commons/3/36/Salade_lentilles_brunes.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original
+- Licence : CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0
+- Présentation : Salade de lentilles : base de la recette photographiée, ajouter les œufs indiqués dans les ingrédients.
