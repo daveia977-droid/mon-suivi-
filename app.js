@@ -1,6 +1,6 @@
 'use strict';
 const KEY='mon-suivi-v1',app=document.querySelector('#app'),nav=document.querySelector('#nav'),dlg=document.querySelector('#dialog');
-const blank=()=>({name:'',weights:[],meals:[],moods:[],steps:[],stepsGoal:6000,weightGoal:null,consent:false,unit:'kg',recipeFavorites:[],moodReminder:{enabled:false,time:'20:00'},teddy:null});
+const blank=()=>({name:'',weights:[],meals:[],moods:[],steps:[],health:[],stepsGoal:6000,weightGoal:null,consent:false,unit:'kg',recipeFavorites:[],moodReminder:{enabled:false,time:'20:00'},teddy:null});
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iso=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 const today=()=>iso(new Date());
@@ -157,11 +157,18 @@ photoBusy=true;if(box)box.innerHTML='<p class="off-msg">Analyse en cours… (que
 try{const r=await fetch('api/photo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:photoData})});
 let d={};try{d=await r.json()}catch{}
 if(!r.ok||!d.ok)throw new Error(d.error||'network');
-offPicked={code:'',name:String(d.name||'Repas photographié').slice(0,150),brand:'',kcal:d.kcal100g===null||d.kcal100g===undefined?null:(Number.isFinite(Number(d.kcal100g))?Number(d.kcal100g):null),protein:null,carbs:null,fat:null,source:'photo',nutri:null,cats:[]};
-offAlts=[];photoAI={grams:Number.isFinite(Number(d.grams))&&Number(d.grams)>0?Math.round(Number(d.grams)):null,confidence:['haute','moyenne','faible'].includes(d.confidence)?d.confidence:'faible'};
+const nn=x=>x===null||x===undefined||x===''||!Number.isFinite(Number(x))?null:Number(x);
+offPicked={code:'',name:String(d.name||'Repas photographié').slice(0,150),brand:'',kcal:nn(d.kcal100g),protein:nn(d.protein),carbs:nn(d.carbs),fat:nn(d.fat),source:'photo',nutri:null,cats:[]};
+offAlts=[];photoAI={grams:Number.isFinite(Number(d.grams))&&Number(d.grams)>0?Math.round(Number(d.grams)):null,confidence:['haute','moyenne','faible'].includes(d.confidence)?d.confidence:'faible',items:Array.isArray(d.items)?d.items.filter(i=>i&&typeof i.name==='string').slice(0,12).map(i=>({name:i.name.slice(0,60),grams:nn(i.grams)})):[],fiber:nn(d.fiber),sugar:nn(d.sugar),tip:typeof d.tip==='string'?d.tip.slice(0,220):''};
 mealMode='confirm';renderMealDialog()}
 catch(err){if(box)box.innerHTML='<p class="off-msg">'+photoErrMsg(err.message)+'</p>'}
 finally{photoBusy=false;photoSessionApproved=false}}
+function photoDetailsHtml(){
+ if(!photoAI)return '';
+ const g=photoAI.grams||100,per=v=>v===null||v===undefined?null:Math.round(v*g/10)/10;
+ const rows=[['Calories',offPicked.kcal===null?null:Math.round(offPicked.kcal*g/100),'kcal'],['Protéines',per(offPicked.protein),'g'],['Glucides',per(offPicked.carbs),'g'],['dont sucres',per(photoAI.sugar),'g'],['Lipides',per(offPicked.fat),'g'],['Fibres',per(photoAI.fiber),'g']].filter(r=>r[1]!==null);
+ return '<section class="photo-details" aria-label="Détails estimés par l’IA"><h3>Ce que l’IA voit · '+esc(String(g))+' g environ</h3>'+(rows.length?'<div class="photo-nutri">'+rows.map(([l,v,u])=>'<div><small>'+l+'</small><strong>'+fmt(v)+' '+u+'</strong></div>').join('')+'</div>':'')+((photoAI.items||[]).length?'<p class="photo-items"><strong>Ingrédients repérés :</strong> '+photoAI.items.map(i=>esc(i.name)+(i.grams?' (~'+fmt(i.grams)+' g)':'')).join(', ')+'</p>':'')+(photoAI.tip?'<p class="photo-tip">💡 '+esc(photoAI.tip)+'</p>':'')+'<p class="off-credit">Valeurs pour la portion estimée, confiance '+esc(photoAI.confidence)+'. Une photo ne voit ni l’huile ni les sauces cachées : ajuste si besoin.</p></section>';
+}
 function openMealForm(entry){
 mealMode='manual';offResults=[];offPicked=null;offAlts=[];offEditing=entry||{};photoData=null;photoBusy=false;photoAI=null;photoSessionApproved=false;
 renderMealDialog();
@@ -174,9 +181,9 @@ if(mealMode==='manual')body='<label>Repas ou aliment<input name="name" maxlength
 else if(mealMode==='search')body='<label>Aliment ou marque<input id="off-q" maxlength="80" autocomplete="off" placeholder="Ex. pain, yaourt, compote…"></label>'+btn('Rechercher','offsearch','wide')+'<div id="off-results"></div>'+offNote();
 else if(mealMode==='ciqual')body='<label>Aliment courant (Ciqual 2025)<input id="ciqual-q" maxlength="80" autocomplete="off" placeholder="Ex. riz cuit, œuf, poulet…"></label>'+btn('Chercher dans Ciqual','ciqualsearch','wide')+'<div id="off-results"></div>'+ciqualNote();
 else if(mealMode==='barcode')body='<label>Code-barres (chiffres du produit)<input id="off-code" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="Ex. 3017620422003"></label>'+btn('Chercher le produit','offbarcode','wide')+'<div id="off-results"></div>'+offNote();
-else if(mealMode==='photo')body='<p class="modal-explain">L’analyse photo n’est pas encore activée. En attendant, découvrez gratuitement des alternatives en indiquant le nom du produit, sans envoyer d’image.</p><section class="photo-fallback-card"><span class="photo-fallback-label">IDÉES D’ALTERNATIVES</span><label>Quel aliment souhaitez-vous comparer ?<input id="photo-product-name" maxlength="80" autocomplete="off" placeholder="Ex. chips, biscuits, pizza…"></label>'+btn('Voir des alternatives','photo-alt-manual','compact-outline')+'<div id="photo-fallback-results" aria-live="polite"></div></section><p class="off-credit">Les suggestions sont des idées générales : elles ne prouvent pas qu’un aliment soit plus sain. Un aperçu photo local est possible ; aucune photo n’est envoyée à un service IA.</p>';
-else if(mealMode==='confirm')body='<label>Repas ou aliment<input name="name" maxlength="150" required value="'+esc(offPicked.name)+'"></label><div class="off-grid"><label>Poids (g)<input id="off-grams" name="grams" type="number" inputmode="numeric" min="1" max="3000" step="1" value="'+(photoAI&&photoAI.grams?photoAI.grams:100)+'"></label><label>Calories estimées<input id="off-kcal" name="value" type="number" inputmode="numeric" min="0" max="50000" step="1" required value="'+esc(String(offKcalFor(photoAI&&photoAI.grams?photoAI.grams:100)))+'"></label></div>'+macroInputs({},photoAI&&photoAI.grams?photoAI.grams:100)+'<p class="modal-explain">'+(photoAI?(offPicked.kcal!==null?'Estimation IA ('+photoAI.confidence+' confiance) : '+fmt(offPicked.kcal)+' kcal pour 100 g — ordre de grandeur, souvent ±30–50 % : ajustez librement. Aucune photo n’est stockée par l’application.':'L’estimation IA n’a pas pu évaluer les calories : renseignez-les vous-même. Aucune photo n’est stockée par l’application.'):(offPicked.kcal!==null?'Environ '+fmt(offPicked.kcal)+' kcal pour 100 g d’après '+(offPicked.source==='ciqual'?'Ciqual 2025 (Anses)':'Open Food Facts')+' — ajustez librement.':'Calories inconnues dans la base : estimez-les vous-même.'))+'</p>'+(photoAI?'<section class="photo-alt-panel" aria-label="Idées d’alternatives après la photo"><div id="photo-alt-content">'+photoAlternativesHtml(offPicked.name)+'</div></section>':(offPicked.cats.length?'<div id="off-alts-slot"></div>':''))+(photoAI?'':(offPicked.source==='ciqual'?ciqualNote():offNote()));
-modal('<'+(isForm?'form id="entry-form"':'div class="off-panel"')+'><h2>'+(entry.id?'Modifier le repas':'Ajouter un repas')+'</h2><div class="mode-tabs">'+[['search','Produits'],['ciqual','Aliments'],['barcode','Code-barres'],['photo','Alternatives'],['manual','Manuelle']].map(([m,l])=>'<button type="button" class="mode-tab'+((mealMode===m)||(mealMode==='confirm'&&((m==='photo'&&photoAI)||(m==='search'&&!photoAI)))?' active':'')+'" data-action="mealmode:'+m+'">'+l+'</button>').join('')+'</div>'+body+(isForm?'<label>Date<input type="date" name="date" required max="'+today()+'" value="'+esc(entry.date||today())+'"></label><p id="entry-error" class="notice-error" role="alert" hidden></p><div class="row"><button type="submit">Enregistrer</button>'+btn('Annuler','close','secondary')+'</div>':btn('Fermer','close','secondary wide'))+'</'+(isForm?'form':'div')+'>');
+else if(mealMode==='photo')body='<section class="photo-ai-card"><span class="photo-fallback-label">PHOTO DE MON REPAS</span><p class="modal-explain">Prends ton assiette en photo : l’IA reconnaît le plat et estime calories, protéines, glucides, lipides et ingrédients. Tu pourras tout corriger.</p><label class="photo-pick" for="photo-file">'+(photoData?'Photo prête ✓ — en choisir une autre':'📷 Prendre ou choisir une photo')+'</label><input id="photo-file" class="sr-only" type="file" accept="image/jpeg,image/png,image/webp"><div id="photo-results" aria-live="polite">'+(photoData?'<img class="photo-preview" src="'+photoData+'" alt="Aperçu du repas sélectionné">':'')+'</div>'+btn('Analyser la photo','photoanalyze','wide')+photoNote()+'</section><details class="photo-alt-details"><summary>Sans photo : idées d’alternatives</summary><section class="photo-fallback-card"><span class="photo-fallback-label">IDÉES D’ALTERNATIVES</span><label>Quel aliment souhaitez-vous comparer ?<input id="photo-product-name" maxlength="80" autocomplete="off" placeholder="Ex. chips, biscuits, pizza…"></label>'+btn('Voir des alternatives','photo-alt-manual','compact-outline')+'<div id="photo-fallback-results" aria-live="polite"></div></section><p class="off-credit">Les suggestions sont des idées générales : elles ne prouvent pas qu’un aliment soit plus sain.</p></details>';
+else if(mealMode==='confirm')body='<label>Repas ou aliment<input name="name" maxlength="150" required value="'+esc(offPicked.name)+'"></label><div class="off-grid"><label>Poids (g)<input id="off-grams" name="grams" type="number" inputmode="numeric" min="1" max="3000" step="1" value="'+(photoAI&&photoAI.grams?photoAI.grams:100)+'"></label><label>Calories estimées<input id="off-kcal" name="value" type="number" inputmode="numeric" min="0" max="50000" step="1" required value="'+esc(String(offKcalFor(photoAI&&photoAI.grams?photoAI.grams:100)))+'"></label></div>'+macroInputs({},photoAI&&photoAI.grams?photoAI.grams:100)+'<p class="modal-explain">'+(photoAI?(offPicked.kcal!==null?'Estimation IA ('+photoAI.confidence+' confiance) : '+fmt(offPicked.kcal)+' kcal pour 100 g — ordre de grandeur, souvent ±30–50 % : ajustez librement. Aucune photo n’est stockée par l’application.':'L’estimation IA n’a pas pu évaluer les calories : renseignez-les vous-même. Aucune photo n’est stockée par l’application.'):(offPicked.kcal!==null?'Environ '+fmt(offPicked.kcal)+' kcal pour 100 g d’après '+(offPicked.source==='ciqual'?'Ciqual 2025 (Anses)':'Open Food Facts')+' — ajustez librement.':'Calories inconnues dans la base : estimez-les vous-même.'))+'</p>'+(photoAI?photoDetailsHtml():'')+(photoAI?'<section class="photo-alt-panel" aria-label="Idées d’alternatives après la photo"><div id="photo-alt-content">'+photoAlternativesHtml(offPicked.name)+'</div></section>':(offPicked.cats.length?'<div id="off-alts-slot"></div>':''))+(photoAI?'':(offPicked.source==='ciqual'?ciqualNote():offNote()));
+modal('<'+(isForm?'form id="entry-form"':'div class="off-panel"')+'><h2>'+(entry.id?'Modifier le repas':'Ajouter un repas')+'</h2><div class="mode-tabs">'+[['photo','Photo IA'],['search','Produits'],['ciqual','Aliments'],['barcode','Code-barres'],['manual','Manuelle']].map(([m,l])=>'<button type="button" class="mode-tab'+((mealMode===m)||(mealMode==='confirm'&&((m==='photo'&&photoAI)||(m==='search'&&!photoAI)))?' active':'')+'" data-action="mealmode:'+m+'">'+l+'</button>').join('')+'</div>'+body+(isForm?'<label>Date<input type="date" name="date" required max="'+today()+'" value="'+esc(entry.date||today())+'"></label><p id="entry-error" class="notice-error" role="alert" hidden></p><div class="row"><button type="submit">Enregistrer</button>'+btn('Annuler','close','secondary')+'</div>':btn('Fermer','close','secondary wide'))+'</'+(isForm?'form':'div')+'>');
 if(isForm)document.querySelector('#entry-form').addEventListener('submit',event=>{
 event.preventDefault();const v=Object.fromEntries(new FormData(event.target));v.id=entry.id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7);
 if(mealMode==='confirm'){const g=Number(v.grams);v.quantity=(Number.isFinite(g)&&g>0?g:100)+' g';delete v.grams}
@@ -195,7 +202,7 @@ for(const type of ['weights','meals','moods']){
  out[type]=raw[type].map((entry,i)=>{
   if(!entry||typeof entry!=='object'||!isDate(entry.date)||entry.date>today())throw Error('Date invalide dans '+type+'.');
   const id=typeof entry.id==='string'||typeof entry.id==='number'?String(entry.id).slice(0,90):String(i);
-  if(type==='weights'){const value=Number(entry.value);if(!Number.isFinite(value)||value<=0||value>700)throw Error('Poids invalide.');return {id,date:entry.date,value:Math.round(value*100)/100}}
+  if(type==='weights'){const value=Number(entry.value);if(!Number.isFinite(value)||value<=0||value>700)throw Error('Poids invalide.');return {id,date:entry.date,value:Math.round(value*100)/100,...(entry.source==='sante-raccourcis'?{source:'sante-raccourcis'}:{})}}
   if(type==='meals'){const value=Number(entry.value);if(!Number.isFinite(value)||value<0||value>50000||typeof entry.name!=='string'||!entry.name.trim()||typeof entry.quantity!=='string')throw Error('Repas invalide.');const item={id,date:entry.date,name:entry.name.slice(0,150),quantity:entry.quantity.slice(0,80),value:Math.round(value),source:['manual','off','ciqual','photo'].includes(entry.source)?entry.source:'manual'};for(const key of ['protein','carbs','fat']){const rawValue=entry[key];if(rawValue===undefined||rawValue===null||rawValue===''){item[key]=null;continue}const n=Number(rawValue);if(!Number.isFinite(n)||n<0||n>3000)throw Error('Nutriment invalide.');item[key]=Math.round(n*10)/10}return item}
   if(!['À plat','Moyen','Bien','En forme'].includes(entry.name))throw Error('Humeur invalide.');
   return {id,date:entry.date,name:entry.name,note:typeof entry.note==='string'?entry.note.slice(0,300):''};
@@ -210,6 +217,7 @@ out.steps=out.steps.map((entry,i)=>{
  const svalue=Number(entry.value);if(!Number.isFinite(svalue)||svalue<0||svalue>200000||!Number.isInteger(svalue))throw Error('Nombre de pas invalide.');
  return {id:sid,date:entry.date,value:svalue,...(entry.source==='sante-raccourcis'?{source:'sante-raccourcis',...(typeof entry.syncedAt==='string'&&/^\d{4}-\d{2}-\d{2}T/.test(entry.syncedAt)&&Number.isFinite(Date.parse(entry.syncedAt))?{syncedAt:new Date(entry.syncedAt).toISOString()}:{})}:{})};
 });
+out.health=(Array.isArray(raw.health)?raw.health.slice(0,3000):[]).filter(e=>e&&typeof e==='object'&&isDate(e.date)&&e.date<=today()).map(e=>{const h={date:e.date};for(const [k,lo,hi] of [['sleep',0,24],['activeKcal',0,10000],['restingHr',25,220],['water',0,10000],['distance',0,300]]){const n=Number(e[k]);if(e[k]!==undefined&&e[k]!==null&&Number.isFinite(n)&&n>=lo&&n<=hi)h[k]=Math.round(n*100)/100}if(typeof e.syncedAt==='string'&&Number.isFinite(Date.parse(e.syncedAt)))h.syncedAt=new Date(e.syncedAt).toISOString();return h});
 const sg=raw.stepsGoal;
 out.stepsGoal=sg===null?null:(Number.isFinite(Number(sg))&&Number(sg)>=500&&Number(sg)<=100000?Math.round(Number(sg)):6000);
 const wg=Number(raw.weightGoal);
@@ -220,12 +228,16 @@ return out;
 }
 function reload(){try{const raw=localStorage.getItem(KEY);if(raw){const item=validatePayload(JSON.parse(raw));if(item.consent){data=item;unit=data.unit}}}catch(err){storageOK=false}}
 reload();
+// Demande au navigateur de ne pas effacer le suivi (Safari peut vider le stockage d’un site inutilisé 7 jours).
+try{if(data.consent&&navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch{}
 // Import local depuis Raccourcis iOS via fragment URL (non transmis au serveur).
 // Ce mécanisme ne lit jamais Santé directement et reste limité au navigateur utilisé.
 let pendingHealthImport=null;
 function importSanteSteps(){
  const hash=window.location.hash;
- if(!new URLSearchParams(hash.slice(1)).has('sante-pas'))return;
+ const hp=new URLSearchParams(hash.slice(1));
+ if(hp.has('sante')&&!hp.has('sante-pas')){importSanteBundle(hash);return}
+ if(!hp.has('sante-pas'))return;
  window.history.replaceState(null,'',window.location.pathname+window.location.search);
  pendingHealthImport=null;
  let incoming;
@@ -239,6 +251,41 @@ function importSanteSteps(){
  }
  applyHealthImport(incoming);
 }
+function importSanteBundle(hash){
+ window.history.replaceState(null,'',window.location.pathname+window.location.search);
+ pendingHealthImport=null;
+ let b;
+ try{b=MonSuiviHealth.parseHealthBundle(hash,today())}
+ catch(error){showHealthMessage(error.message,true);return}
+ if(demo||!data.consent){showHealthMessage('Crée d’abord ton espace local sur cet appareil, puis relance le raccourci.',true);return}
+ const done=[],now=new Date().toISOString();
+ if(b.weight!==undefined){
+  data.weights=data.weights.filter(e=>!(e.date===b.date&&e.source==='sante-raccourcis')).concat([{id:'sante-poids-'+b.date,date:b.date,value:b.weight,source:'sante-raccourcis'}]);
+  done.push(shownWeight(b.weight)+' '+unit);
+ }
+ const extra={};for(const k of ['sleep','activeKcal','restingHr','water','distance'])if(b[k]!==undefined)extra[k]=b[k];
+ if(Object.keys(extra).length){
+  const old=data.health.find(e=>e.date===b.date)||{};
+  data.health=data.health.filter(e=>e.date!==b.date).concat([{...old,...extra,date:b.date,syncedAt:now}]);
+  if(extra.sleep!==undefined)done.push(fmt(extra.sleep)+' h de sommeil');
+  if(extra.activeKcal!==undefined)done.push(fmt(extra.activeKcal)+' kcal actives');
+  if(extra.restingHr!==undefined)done.push(fmt(extra.restingHr)+' bpm au repos');
+  if(extra.water!==undefined)done.push(fmt(extra.water)+' ml d’eau');
+  if(extra.distance!==undefined)done.push(fmt(extra.distance)+' km');
+ }
+ if(b.steps!==undefined){
+  const old=data.steps.find(e=>e.date===b.date);
+  if(old&&old.source!=='sante-raccourcis'&&old.value!==b.steps){
+   save();pendingHealthImport={value:b.steps,date:b.date};
+   showHealthMessage((done.length?'Reçu : '+done.join(', ')+'. ':'')+'Tu as déjà noté '+fmt(old.value)+' pas à la main. Apple Santé indique '+fmt(b.steps)+' pas. Que souhaites-tu conserver ?',false,true);return;
+  }
+  data.steps=data.steps.filter(e=>e.date!==b.date).concat([{id:old?.id||'sante-'+b.date,date:b.date,value:b.steps,source:'sante-raccourcis',syncedAt:now}]);
+  done.unshift(fmt(b.steps)+' pas');
+ }
+ page='Activité';save();
+ showHealthMessage('Apple Santé synchronisé : '+done.join(', ')+'.',false);
+}
+const healthToday=()=>data.health.find(e=>e.date===today());
 function applyHealthImport(incoming){
  if(demo||!data.consent){pendingHealthImport=null;showHealthMessage('Crée ton espace local avant de recevoir des pas.',true);return}
  if(!incoming||incoming.date!==today()){pendingHealthImport=null;showHealthMessage('La journée a changé. Relance le raccourci avant de synchroniser.',true);return}
@@ -272,7 +319,7 @@ function btn(text,action,cl=''){return '<button type="button" class="'+cl+'" dat
 function footer(){return '<footer>'+['Confidentialité','À propos'].map(name=>'<a href="#" data-action="go:'+esc(name)+'">'+esc(name)+'</a>').join('')+'</footer>'}
 const legal={
 'À propos':'À propos de Mon Suivi et informations légales.',
-'Confidentialité':'Le suivi est conservé localement après ton accord. Les photos personnelles ne sont pas envoyées à une IA. Tu peux exporter et supprimer tes données dans Profil.',
+'Confidentialité':'Le suivi est conservé localement après ton accord. Une photo de repas ou une question au coach n’est envoyée à l’IA (Mistral AI) qu’après ton accord explicite, sans être stockée par l’application. Tu peux exporter et supprimer tes données dans Profil.',
 'Conditions':'Application gratuite de bien-être, sans diagnostic ni garantie de résultat. Les valeurs alimentaires sont des repères modifiables.',
 'Cookies':'Stockage local du suivi et cache technique, sans traceur publicitaire intégré au code.',
 'Mentions légales':'Informations sur Mon Suivi. Hébergement sur Vercel.',
@@ -311,7 +358,7 @@ return '<div class="screen home-screen">'+topbar()+
 '<section class="home-metrics" aria-label="Aperçu de votre suivi"><div class="mini-metric mini-metric-rose"><span class="mini-metric-icon">'+icon('meal')+'</span><strong>'+fmt(todayMeals.length)+'</strong><small>repas</small></div><div class="mini-metric mini-metric-gold"><span class="mini-metric-icon">'+icon('scale')+'</span><strong>'+(w?shownWeight(w.value):'—')+'</strong><small>poids'+(w?' ('+unit+')':'')+'</small></div><div class="mini-metric mini-metric-mint"><span class="mini-metric-icon">'+icon('heart')+'</span><strong class="mini-metric-mood">'+(cur?esc(cur.name):'—')+'</strong><small>humeur</small></div></section>'+
 '<section class="home-panel mood-panel"><div class="home-section-title"><div><h2>Mon humeur</h2><p>Comment vous sentez-vous ?</p></div>'+btn('Voir tout '+icon('chevron'),'go:Progrès','subtle-link')+'</div><div class="mood-row">'+moods.map(([name,symbol,cls])=>'<button class="mood-tile '+cls+(cur?.name===name?' selected':'')+'" aria-pressed="'+(cur?.name===name)+'" data-action="quickmood:'+name+'"><span class="mood-icon">'+icon(symbol)+'</span><span>'+name+'</span></button>').join('')+'</div></section>'+
 '<section class="home-panel meal-panel"><div class="home-section-title"><div><h2>Mes repas du jour</h2><p>Le plaisir de bien manger</p></div>'+btn(icon('plus')+' Ajouter','add:meals','compact-add')+'</div>'+preview+'<div class="home-panel-footer">'+btn('Voir mon journal '+icon('chevron'),'go:Repas','subtle-link')+'</div></section>'+
-'<section class="home-panel insight-panel"><div class="insight-icon">'+icon('heart')+'</div><div><h2>À votre rythme.</h2><p>Votre suivi est personnel. Aucun objectif imposé, juste vos petites habitudes à découvrir.</p></div></section>'+
+'<button type="button" class="coach-entry" data-action="go:Coach"><span class="coach-entry-icon" aria-hidden="true">✦</span><span><strong>Demander à mon coach</strong><small>Quoi manger, quoi boire, quand manger : pose ta question</small></span>'+icon('chevron')+'</button>'+'<section class="home-panel insight-panel"><div class="insight-icon">'+icon('heart')+'</div><div><h2>À votre rythme.</h2><p>Votre suivi est personnel. Aucun objectif imposé, juste vos petites habitudes à découvrir.</p></div></section>'+
 '</div>';
 }
 function screenMeals(){
@@ -321,8 +368,14 @@ const macros=macroFields.map(([key,label])=>{const known=todayMeals.filter(m=>m[
 return '<div class="screen meals-screen">'+topbar()+
 '<section class="page-heading"><div><span class="page-eyebrow">MON ALIMENTATION</span><h1>Mes repas<span class="page-dot">.</span></h1><p>Manger à son rythme, sans pression.</p></div>'+btn(icon('plus')+' Ajouter','add:meals','compact-add')+'</section>'+
 '<section class="meal-summary-card"><div class="meal-summary-head"><span>'+icon('meal')+' Aujourd’hui</span><span class="soft-pill">'+fmt(todayMeals.length)+' repas</span></div><div class="meal-summary-total">'+fmt(sum)+' <small>kcal notées</small></div><p>Une estimation pour vos repas enregistrés, sans limite imposée.</p><div class="macro-mini-row">'+macros.map(m=>'<div><span>'+esc(m.label)+'</span><strong>'+(m.value===null?'—':fmt(m.value)+' g')+'</strong></div>').join('')+'</div></section>'+
-'<div class="meal-entry-choices"><button type="button" class="meal-entry-choice photo-choice" data-action="addphoto"><span class="choice-icon">'+icon('meal')+'</span><span><strong>Alternatives alimentaires</strong><small>Alternatives sans envoi de photo</small></span>'+icon('chevron')+'</button><button type="button" class="meal-entry-choice manual-choice" data-action="add:meals"><span class="choice-icon">'+icon('plus')+'</span><span><strong>Saisie manuelle</strong><small>Un repas, à votre façon</small></span>'+icon('chevron')+'</button></div>'+
+'<div class="meal-entry-choices"><button type="button" class="meal-entry-choice photo-choice" data-action="addphoto"><span class="choice-icon">'+icon('meal')+'</span><span><strong>Photo de mon repas</strong><small>L’IA estime calories et nutriments</small></span>'+icon('chevron')+'</button><button type="button" class="meal-entry-choice manual-choice" data-action="add:meals"><span class="choice-icon">'+icon('plus')+'</span><span><strong>Saisie manuelle</strong><small>Un repas, à votre façon</small></span>'+icon('chevron')+'</button></div>'+
 '<section class="data-section meal-history-section"><div class="home-section-title"><div><h2>Mon journal</h2><p>Retrouvez et modifiez vos repas</p></div><span class="soft-pill">'+fmt(data.meals.length)+' au total</span></div>'+list('meals')+'</section></div>';
+}
+function healthCard(){
+ const h=healthToday();if(!h)return '';
+ const cells=[['sleep','Sommeil',v=>fmt(v)+' h'],['activeKcal','Calories actives',v=>fmt(v)+' kcal'],['restingHr','Cœur au repos',v=>fmt(v)+' bpm'],['water','Eau',v=>fmt(v/1000)+' L'],['distance','Distance',v=>fmt(v)+' km']].filter(([k])=>h[k]!==undefined);
+ if(!cells.length)return '';
+ return '<section class="health-today-card" aria-label="Données Apple Santé du jour"><div class="card-top"><h2>Ma santé aujourd’hui</h2><span class="small-muted">Apple Santé</span></div><div class="health-today-grid">'+cells.map(([k,label,f])=>'<div><small>'+label+'</small><strong>'+f(h[k])+'</strong></div>').join('')+'</div></section>';
 }
 function screenActivity(){
 const s=Number(stepsToday()?.value||0),goal=data.stepsGoal;
@@ -337,7 +390,7 @@ return '<div class="screen activity-screen">'+topbar()+
 '<section class="activity-hero-card"><div class="activity-hero-heading"><h2>Aujourd’hui</h2><span class="activity-hero-spark">'+icon('steps')+'</span></div><div class="activity-main-ring">'+ringSVG(s,goal)+'</div><p class="activity-hero-caption">'+(goal?(s>=goal?'Votre objectif du jour est atteint.':fmt(s)+' pas sur '+fmt(goal)+' aujourd’hui.'):'Vos pas du jour, sans objectif imposé.')+'</p></section>'+
 '<section class="activity-data-grid"><div><span>'+icon('steps')+'</span><strong>'+fmt(s)+'</strong><small>pas notés</small></div><div><span>'+icon('chart')+'</span><strong>'+(goal?Math.min(pct,999)+' %':'—')+'</strong><small>objectif</small></div><div><span>'+icon('heart')+'</span><strong>'+(goal?fmt(goal):'Libre')+'</strong><small>pas visés</small></div></section>'+
 '<section class="steps-chart-card"><div class="card-top"><h2>Cette semaine</h2><span class="small-muted">Pas enregistrés</span></div><div class="steps-week-chart" role="img" aria-label="Pas enregistrés sur les sept derniers jours">'+bars+'</div></section>'+
-'<section class="health-sync-card"><span class="health-sync-icon">'+icon('heart')+'</span><div class="health-sync-body"><h2>Pas depuis Apple Santé</h2><p>'+(stepsToday()?.source==='sante-raccourcis'?'Dernière synchronisation : '+fmt(s)+' pas aujourd’hui.':'Récupérez vos pas avec un raccourci iPhone. Rien n’est envoyé à nos serveurs.')+'</p></div>'+btn('Connecter Apple Santé','sante-help','compact-outline')+'</section>'+
+healthCard()+'<section class="health-sync-card"><span class="health-sync-icon">'+icon('heart')+'</span><div class="health-sync-body"><h2>Apple Santé</h2><p>'+(stepsToday()?.source==='sante-raccourcis'||healthToday()?'Synchronisé aujourd’hui'+(healthToday()?.syncedAt?' à '+new Date(healthToday().syncedAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'')+'. Relance le raccourci pour mettre à jour.':'Pas, poids, sommeil, calories actives, cœur et eau en un toucher grâce au raccourci iPhone. Rien n’est envoyé à nos serveurs.')+'</p></div>'+btn('Connecter Apple Santé','sante-help','compact-outline')+'</section>'+
 '<section class="step-goal-card"><div><h2>Mon objectif</h2><p>'+(goal?fmt(goal)+' pas par jour, à mon rythme.':'Aucun objectif imposé.')+'</p></div><div class="goal-buttons">'+btn(goal?'Modifier':'Définir','steps-goal','compact-outline')+(goal?btn('Désactiver','steps-goal-off','quiet-link'):'')+'</div></section>'+
 '<section class="data-section"><div class="home-section-title"><div><h2>Historique des pas</h2><p>Mes enregistrements précédents</p></div></div>'+list('steps')+'</section></div>';
 }
@@ -383,8 +436,8 @@ installHelp()+'<div class="delete-area">'+btn('Effacer mes données de cet appar
 function render(){
 const showNav=!['Accueil','Bienvenue',...Object.keys(legal)].includes(page);
 nav.hidden=!showNav;
-nav.style.setProperty('--active-tab',Math.max(0,['Aujourd’hui','Repas','Activité','Progrès','Profil'].indexOf(page==='Teddy'?'Progrès':page)));
-nav.innerHTML=showNav?[['Aujourd’hui','Aujourd’hui','home'],['Repas','Repas','meal'],['Activité','Activité','steps'],['Progrès','Progrès','chart'],['Profil','Profil','user']].map(([target,label,symbol])=>'<button type="button" data-action="go:'+target+'" aria-label="'+label+'" aria-current="'+((page===target||(page==='Teddy'&&target==='Progrès'))?'page':'false')+'">'+icon(symbol)+'<span>'+label+'</span></button>').join(''):'';
+nav.style.setProperty('--active-tab',Math.max(0,['Aujourd’hui','Repas','Activité','Progrès','Profil'].indexOf(page==='Teddy'?'Progrès':page==='Coach'?'Aujourd’hui':page)));
+nav.innerHTML=showNav?[['Aujourd’hui','Aujourd’hui','home'],['Repas','Repas','meal'],['Activité','Activité','steps'],['Progrès','Progrès','chart'],['Profil','Profil','user']].map(([target,label,symbol])=>'<button type="button" data-action="go:'+target+'" aria-label="'+label+'" aria-current="'+((page===target||(page==='Teddy'&&target==='Progrès')||(page==='Coach'&&target==='Aujourd’hui'))?'page':'false')+'">'+icon(symbol)+'<span>'+label+'</span></button>').join(''):'';
 let content='';
 if(page==='Accueil')content='<section class="welcome premium-welcome"><header class="welcome-brand"><img class="brand-cat" src="./icons/icon-192.png" width="48" height="48" alt=""><span>Mon <strong>Suivi</strong></span></header><div class="welcome-visual" aria-hidden="true"><div class="welcome-preview"><div class="welcome-preview-top"><span>Mon équilibre</span><span>✦</span></div><div class="welcome-preview-main"><div class="welcome-preview-ring"><div><img class="welcome-cat" src="./icons/icon-192.png" width="64" height="64" alt=""><strong>Moi, à mon rythme</strong><small>Chaque jour compte</small></div></div><div class="welcome-preview-numbers"><span class="preview-label">Une douce routine</span><span class="preview-dash">✦</span><span class="preview-chips"><i></i><i></i><i></i></span></div></div></div><div class="welcome-float-card"><span>'+icon('heart')+'</span><div><strong>Bien-être au quotidien</strong><small>Repas · Poids · Humeur · Pas</small></div></div></div><div class="welcome-content"><span class="welcome-eyebrow">Chaque petit pas compte.</span><h1>Avance à ton rythme,<br><em>célèbre tes progrès.</em></h1><p>Vos repas, vos pas et vos progrès dans un espace doux, privé et simple à utiliser.</p><div class="btn-stack">'+btn(data.consent?'Retrouver mon suivi':'Commencer mon suivi','start','wide')+'</div><p class="welcome-privacy">'+icon('heart')+' Gratuit · Vos données restent sur cet appareil</p>'+installHelp()+'</div></section>';
 else if(page==='Bienvenue')content='<section class="setup">'+btn(icon('back'),'go:Accueil','back')+'<h1>Votre espace<br>personnel</h1><p>Suivez votre parcours à votre rythme, sur cet appareil, sans créer de compte en ligne.</p><form id="setup-form"><div class="field"><label for="setup-name">Prénom ou pseudonyme</label><input id="setup-name" name="name" maxlength="60" placeholder="Comment souhaitez-vous être appelé ?" autocomplete="nickname"><p class="explain">Facultatif. Ne renseignez aucune information sensible.</p></div><div class="consent-row"><label><input name="terms" type="checkbox" required><span>J’ai lu les <a href="#" data-action="go:Conditions">conditions d’utilisation</a>.</span></label></div><div class="consent-row"><label><input name="consent" type="checkbox" required><span>J’accepte d’enregistrer localement mes données de suivi (poids, repas, humeur, pas et journal facultatif Teddy), et je peux retirer mon accord et effacer mes données à tout moment.</span></label></div><p class="info-note"><a href="#" data-action="go:Confidentialité">Confidentialité et retrait du consentement</a></p><div class="btn-stack" style="margin-top:24px"><button class="wide" type="submit">Créer mon espace local</button>'+'</div></form>'+footer()+'</section>';
@@ -395,6 +448,7 @@ else if(page==='Activité')content=screenActivity();
 else if(page==='Progrès')content=screenProgress();
 else if(page==='Profil')content=screenProfile();
 else if(page==='Teddy')content=window.MonSuiviTeddyUI?MonSuiviTeddyUI.screen():'';
+else if(page==='Coach')content=window.MonSuiviCoach?MonSuiviCoach.screen():'';
 if(!storageOK)content='<p class="notice-error" role="alert">Sauvegarde locale indisponible. Exportez vos données avant de quitter cette page.</p>'+content;
 app.innerHTML=content+(showNav?footer():'');
 }
@@ -434,10 +488,10 @@ const payload=JSON.stringify({format:'mon-suivi',version:2,...data,unit},null,2)
 try{const file=new File([payload],filename,{type:'application/json'});
 if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Mon Suivi — export de mes données'}).catch(()=>{});return}}catch(err){}
 const blob=new Blob([payload],{type:'application/json'}),href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),5000)}
-function clearData(){if(!confirm('Effacer définitivement vos données locales ? Pensez à les exporter avant de continuer.'))return;try{for(const key of [KEY,KEY+'-photo-consent',KEY+'-off',KEY+'-backup'])localStorage.removeItem(key)}catch{storageOK=false}photoData=null;photoSessionApproved=false;offResults=[];data=blank();demo=false;unit='kg';go('Accueil')}
+function clearData(){if(!confirm('Effacer définitivement vos données locales ? Pensez à les exporter avant de continuer.'))return;try{for(const key of [KEY,KEY+'-photo-consent',KEY+'-off',KEY+'-backup'])localStorage.removeItem(key);localStorage.removeItem(KEY+'-coach');localStorage.removeItem(KEY+'-coach-consent')}catch{storageOK=false}photoData=null;photoSessionApproved=false;offResults=[];data=blank();demo=false;unit='kg';go('Accueil')}
 document.addEventListener('submit',e=>{if(e.target.id!=='setup-form')return;e.preventDefault();const f=new FormData(e.target);if(!f.has('consent')||!f.has('terms'))return;data=blank();data.name=String(f.get('name')||'').trim().slice(0,60);data.consent=true;data.consentAt=new Date().toISOString();data.consentVersion='1';demo=false;unit='kg';page='Aujourd’hui';save()});
 document.addEventListener('submit',e=>{
-if(e.target.id==='photo-consent-form'){e.preventDefault();const f=new FormData(e.target);if(!f.has('agree')){const err=document.querySelector('#photo-consent-error');if(err){err.textContent='Cochez la case pour autoriser l’envoi de la photo.';err.hidden=false}return}photoSessionApproved=true;try{localStorage.removeItem(KEY+'-photo-consent')}catch{}dlg.close();analyzePhoto();return}
+if(e.target.id==='photo-consent-form'){e.preventDefault();const f=new FormData(e.target);if(!f.has('agree')){const err=document.querySelector('#photo-consent-error');if(err){err.textContent='Cochez la case pour autoriser l’envoi de la photo.';err.hidden=false}return}photoSessionApproved=true;try{localStorage.removeItem(KEY+'-photo-consent')}catch{}mealMode='photo';renderMealDialog();analyzePhoto();return}
 if(e.target.id==='goal-form'){e.preventDefault();const g=Number(new FormData(e.target).get('goal'));if(!Number.isInteger(g)||g<500||g>100000){const err=document.querySelector('#goal-error');err.textContent='Choisissez un objectif entre 500 et 100 000 pas.';err.hidden=false;return}data.stepsGoal=g;dlg.close();save();return}
 if(e.target.id==='wgoal-form'){e.preventDefault();let g=Number(new FormData(e.target).get('goal'));if(unit==='lb')g=g/unitFactor;if(!Number.isFinite(g)||g<=0||g>700){const err=document.querySelector('#wgoal-error');err.textContent='Objectif invalide.';err.hidden=false;return}data.weightGoal=Math.round(g*100)/100;dlg.close();save();return}
 });
