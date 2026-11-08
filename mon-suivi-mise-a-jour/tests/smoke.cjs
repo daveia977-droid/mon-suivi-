@@ -1,0 +1,120 @@
+// Tests automatisés hors navigateur ; les essais réels sur iPhone restent nécessaires.
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const app=fs.readFileSync('app.js','utf8');
+const server=fs.readFileSync('api/photo.js','utf8');
+const ciqual=fs.readFileSync('ciqual-2025.js','utf8');
+const win={window:{}};
+vm.runInNewContext(ciqual,win);
+const rows=win.window.CIQUAL_2025;
+assert.equal(rows.length,42,'Ciqual : 42 aliments vérifiés');
+assert.equal(new Set(rows.map(v=>v.code)).size,42,'Codes Ciqual distincts');
+assert.equal(rows.find(v=>v.code==='9100').kcal,350);
+assert.equal(rows.find(v=>v.code==='9104').kcal,155);
+assert.equal(rows.find(v=>v.code==='13004').carbs,null,'« traces » ne doit pas devenir 0');
+const sanitizer=server.match(/function sanitizeAI\(v\) \{[\s\S]*?\n\}/)?.[0];
+assert.ok(sanitizer,'Fonction de validation IA présente');
+let cleaned=vm.runInNewContext(sanitizer+';sanitizeAI({name:"Riz",kcal100g:null,grams:150,confidence:"faible"})');
+assert.equal(cleaned.kcal100g,null,'Une calorie inconnue reste inconnue');
+cleaned=vm.runInNewContext(sanitizer+';sanitizeAI({name:"Eau",kcal100g:0,grams:150,confidence:"haute"})');
+assert.equal(cleaned.kcal100g,0,'Zéro connu différent d’inconnu');
+const kcalFn=app.match(/function offKcalFor\(g\)\{[^\n]+\}/)?.[0];
+assert.ok(kcalFn);
+assert.equal(vm.runInNewContext('const offPicked={kcal:null};'+kcalFn+';offKcalFor(100)'),'', 'Pas de 0 si inconnu');
+const macroFn=app.match(/function macroFor\(key,g\)\{[^\n]+\}/)?.[0];
+assert.ok(macroFn);
+assert.equal(vm.runInNewContext('const offPicked={protein:3.31};'+macroFn+';macroFor("protein",200)'),6.6);
+assert.equal(vm.runInNewContext('const offPicked={protein:null};'+macroFn+';macroFor("protein",200)'),'');
+assert.ok(app.includes("KEY+'-photo-consent',KEY+'-off',KEY+'-backup'"),'Effacement des données annexes');
+assert.ok(app.includes("photoSessionApproved=false"),'Consentement par photo réinitialisé');
+assert.ok(app.includes("function doCiqualSearch"),'Recherche Ciqual disponible');
+assert.ok(app.includes("macroInputs({},photoAI"),'Nutriments affichés lors de la confirmation');
+const lib=fs.readFileSync('api/_lib.js','utf8'),coachApi=fs.readFileSync('api/coach.js','utf8');
+assert.ok(lib.includes("process.env.AI_ENABLED === 'false'"),'IA désactivable par variable');
+assert.ok(lib.includes("if (!apiKey) return {error: 'config'}"),'Sans clé, aucune IA');
+assert.ok(server.includes('quotaCheck(') && coachApi.includes('quotaCheck('),'Quota journalier photo et coach');
+assert.ok(server.includes('originAllowed(req)') && coachApi.includes('originAllowed(req)'),'Appels réservés au site');
+assert.ok(coachApi.includes('Tu n’es pas médecin') && coachApi.includes('Jamais de régime extrême'),'Garde-fous santé du coach');
+cleaned=vm.runInNewContext(sanitizer+';sanitizeAI({name:"Garba",kcal100g:"210",grams:350,protein:9.4,fat:250,items:[{name:"attiéké",grams:200},{grams:5}],tip:"Ajoute des crudités.",confidence:"moyenne"})');
+assert.equal(cleaned.kcal100g,210);assert.equal(cleaned.protein,9.4);assert.equal(cleaned.fat,null,'Valeur aberrante écartée');assert.equal(cleaned.items.length,1,'Ingrédient sans nom écarté');
+const validate=app.match(/function validatePayload\(raw\)\{[\s\S]*?\n\}\nfunction reload/)?.[0]?.replace(/\nfunction reload$/,'');
+assert.ok(validate,'Validation des sauvegardes disponible');
+const legacy={weights:[],moods:[],meals:[{id:'old',date:'2026-10-27',name:'Déjeuner',quantity:'1 portion',value:420}]};
+const script='const blank=()=>({name:"",weights:[],moods:[],meals:[],steps:[],stepsGoal:6000,weightGoal:null,consent:false,unit:"kg"});const today=()=> "2026-10-28";const isDate=d=> /^\\d{4}-\\d{2}-\\d{2}$/.test(d);'+validate+';validatePayload('+JSON.stringify(legacy)+')';
+const restored=vm.runInNewContext(script);
+assert.equal(restored.meals[0].value,420);
+assert.equal(restored.meals[0].protein,null);
+assert.equal(restored.meals[0].source,'manual');
+assert.ok(app.includes('function weightEncouragement(){'),'Encouragement du trophée');
+assert.ok(app.includes("class=\"progress-trophy\""),'Trophée présent en bas de Progrès');
+assert.ok(app.includes("window.addEventListener('hashchange',importSanteSteps)"),'Réception des pas depuis Raccourcis');
+assert.ok(app.includes("window.history.replaceState(null,''"),'Suppression du fragment privé');
+const healthSaved={weights:[],moods:[],meals:[],steps:[{id:'sante-2026-10-27',date:'2026-10-27',value:6432,source:'sante-raccourcis'}]};
+const healthScript='const blank=()=>({name:"",weights:[],moods:[],meals:[],steps:[],stepsGoal:6000,weightGoal:null,consent:false,unit:"kg"});const today=()=> "2026-10-28";const isDate=d=> /^\\d{4}-\\d{2}-\\d{2}$/.test(d);'+validate+';validatePayload('+JSON.stringify(healthSaved)+')';
+const healthRestored=vm.runInNewContext(healthScript);
+assert.equal(healthRestored.steps[0].source,'sante-raccourcis','La sauvegarde conserve la provenance des pas');
+
+const ideaDefs=app.match(/const PHOTO_IDEAS=\[[\s\S]*?\n\];/)?.[0];
+const ideaFn=app.match(/function photoAlternatives\(name\)\{[\s\S]*?\n\}/)?.[0];
+assert.ok(ideaDefs&&ideaFn,'Suggestions après photo intégrées');
+const ideaContext='function ciqualClean(s){return String(s).toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")}'+ideaDefs+';'+ideaFn+';';
+function ideasOf(name){return vm.runInNewContext(ideaContext+';photoAlternatives('+JSON.stringify(name)+')')}
+assert.equal(ideasOf('Chips de pommes de terre').specific,true);
+assert.match(ideasOf('Chips').items[0][0],/Pop-corn/);
+assert.match(ideasOf('Pizza industrielle').items[0][0],/Pizza maison/);
+assert.match(ideasOf('Soda cola').items[0][0],/Eau pétillante/);
+assert.equal(ideasOf('Carottes').specific,false,'Ne jamais inférer sans preuve un produit transformé');
+assert.equal(ideasOf('Biscuits industriels').specific,true,'Reconnaît le pluriel');
+assert.equal(ideasOf('Céréales sucrées').specific,true,'Reconnaît les accents et le pluriel');
+assert.ok(app.includes('photoAlternativesHtml(offPicked.name)'),'Suggestions affichées après analyse photo');
+assert.ok(app.includes("if(action==='photo-compare')"),'Recherche Open Food Facts seulement sur un clic');
+console.log('Tests Mon Suivi : Ciqual, nutrition, sauvegardes, Apple Santé et alternatives photo OK.');
+
+
+/* Guide V3.1 : contrôle du catalogue complet, pas de données nutritionnelles inventées. */
+const guideData=fs.readFileSync('meal-guide-data.js','utf8');
+const guideCode=fs.readFileSync('meal-guide.js','utf8');
+const guideStyles=fs.readFileSync('meal-guide.css','utf8');
+const guideContext={window:{}};
+vm.runInNewContext(fs.readFileSync('recipe-preparations.js','utf8'),guideContext);
+vm.runInNewContext(guideData,guideContext);
+const guideRecipes=guideContext.window.MON_SUIVI_RECIPES;
+const guideAlternatives=guideContext.window.MON_SUIVI_ALTERNATIVES;
+vm.runInNewContext(fs.readFileSync('alternative-prep.js','utf8'),guideContext);
+vm.runInNewContext(fs.readFileSync('alternative-portions.js','utf8'),guideContext);
+const altLinks=vm.runInNewContext(guideCode.match(/const recipeByAlt=\{[^;]+;/)[0]+';recipeByAlt');
+for(const alternative of guideAlternatives){
+ for(const name of alternative.choices){
+  const recipe=guideRecipes.find(r=>r.id===altLinks[name]);
+  assert.ok(recipe||guideContext.window.MON_SUIVI_ALT_PREP[name],'Préparation de chaque alternative : '+name);
+  assert.ok(recipe||guideContext.window.MON_SUIVI_ALT_PORTIONS[name]?.length>=1,'Portions de chaque alternative : '+name);
+ }
+}
+assert.equal(guideRecipes.length,42,'42 recettes intégrées');
+assert.equal(guideRecipes.filter(x=>x.category==='ivo').length,24,'24 plats ivoiriens');
+assert.equal(guideAlternatives.length,15,'15 catégories alternatives');
+assert.equal(new Set(guideRecipes.map(x=>x.id)).size,42,'Identifiants de recettes uniques');
+for(const r of guideRecipes){
+ assert.ok(r.name&&r.ingredients.length>=5&&r.steps&&r.note,'Chaque repas a des ingrédients et une préparation : '+r.id);
+ assert.ok(['both','lunch','dinner'].includes(r.meal),'Filtre déjeuner/dîner : '+r.id);
+ assert.equal(r.kcal,undefined,'Pas de calories fabriquées : '+r.id);
+ assert.equal(r.preparationSteps.length,4,'Quatre étapes adaptées : '+r.id);
+}
+assert.ok(guideAlternatives.every(a=>a.choices.length===2),'Deux alternatives par famille');
+const photosContext={window:{}};
+vm.runInNewContext(fs.readFileSync('food-photos.js','utf8'),photosContext);
+const photoRows=Object.values(photosContext.window.MON_SUIVI_PHOTOS);
+assert.ok(photoRows.length>0,'Photos locales référencées');
+for(const photo of photoRows){
+ assert.ok(photo.src.startsWith('./photos/')&&fs.existsSync(photo.src),'Photo locale disponible');
+ assert.ok(photo.page.startsWith('https://commons.wikimedia.org/'),'Source Wikimedia');
+ assert.ok(photo.author&&photo.license&&photo.licenseUrl.startsWith('https://'),'Attribution complète');
+}
+assert.ok(fs.existsSync('food-placeholder.svg'),'Repère local de secours disponible');
+assert.ok(!guideCode.includes('images.unsplash.com'),'Pas d’images tierces non autorisées');
+assert.ok(guideCode.includes('function showRecipe('),'Fiches ingrédients accessibles');
+assert.ok(guideCode.includes('function showAlternative('),'Alternatives illustrées accessibles');
+assert.ok(guideStyles.includes('@media(max-width:355px)'),'Mise en page petits iPhone');
+console.log('Guide repas : 42 recettes, 24 ivoiriennes et 15 catégories alternatives validées.');
+
