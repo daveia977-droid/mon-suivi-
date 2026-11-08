@@ -1,3 +1,7 @@
+# Budget
+
+> **Mise à jour (coach IA et photo) :** l’analyse photo et le coach utilisent désormais l’offre **gratuite** de Mistral AI, activée seulement si `MISTRAL_API_KEY` est renseignée dans Vercel (voir IA.md). Sans clé, ou avec `AI_ENABLED=false`, aucune IA n’est appelée. Des quotas journaliers et par minute empêchent tout emballement ; aucune carte bancaire n’est requise.
+
 # Budget et limites de la V4
 
 ## Mesures appliquées

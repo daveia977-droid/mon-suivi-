@@ -1,7 +1,5 @@
 'use strict';
 (function(){
- const shortcutName='Mon Suivi — Mes pas';
- const shortcutUrl='shortcuts://run-shortcut?name='+encodeURIComponent(shortcutName);
  const moods=['À plat','Moyen','Bien','En forme'];
  let dismissedDay='',photoURL=null;
  const button=(text,action)=>'<button type="button" class="secondary" data-v4="'+action+'">'+text+'</button>';
@@ -11,20 +9,20 @@
   return '<section class="v4-settings" id="v4-reminder-settings"><h2>Mon rappel d’humeur</h2><label><input id="v4-reminder-enabled" type="checkbox" '+(r.enabled?'checked':'')+'> Rappel lorsque l’application est ouverte</label><label>Heure locale <input id="v4-reminder-time" type="time" value="'+esc(r.time)+'"></label><p>Comment te sens-tu aujourd’hui ? Aucun choix n’est enregistré automatiquement.</p>'+button('Ajouter au calendrier iPhone','calendar')+'<p>Le journal Teddy est aussi proposé si ton aventure est commencée. Pour un rappel même lorsque l’application est fermée, importe cet événement dans Calendrier et vérifie son alerte. Pour le modifier ou le supprimer ensuite, utilise Calendrier. Le réglage ci-dessus concerne seulement le rappel dans Mon Suivi.</p><p>Les notifications Web Push ne sont pas activées dans cette version.</p></section>';
  }
  function healthSettings(){
-  const share=window.MON_SUIVI_CONFIG?.healthShortcutShareUrl;
-  const ready=window.MON_SUIVI_CONFIG?.healthShortcutValidated===true&&typeof share==='string'&&/^https:\/\/www\.icloud\.com\/shortcuts\/[a-z0-9-]+$/i.test(share);
+  const cfg=window.MON_SUIVI_CONFIG||{},share=cfg.healthShortcutShareUrl,name=cfg.healthShortcutName||'Mon Suivi — Santé';
+  const ready=cfg.healthShortcutValidated===true&&typeof share==='string'&&/^https:\/\/www\.icloud\.com\/shortcuts\/[a-z0-9-]+$/i.test(share);
   const install=ready?'<a href="'+esc(share)+'" rel="noopener noreferrer">Installer le raccourci</a>':'<button type="button" disabled>Installer le raccourci — lien en préparation</button>';
-  const sync=ready?'<a href="'+shortcutUrl+'">Synchroniser mes pas</a>':'<button type="button" disabled>Synchroniser mes pas</button>';
-
-  const latest=data.steps.filter(s=>s.source==='sante-raccourcis').sort((a,b)=>(b.syncedAt||b.date).localeCompare(a.syncedAt||a.date))[0];
-  const label=latest?(latest.syncedAt?new Date(latest.syncedAt).toLocaleString('fr-FR'):latest.date)+' · '+fmt(latest.value)+' pas':'Aucune synchronisation enregistrée';
-  return '<section class="v4-settings" id="v4-health"><h2>Connecter Apple Santé</h2><p>Dernière synchronisation : '+esc(label)+'</p><p>Le raccourci iPhone « '+shortcutName+' » doit d’abord être installé. Mon Suivi ne lit jamais directement Santé.</p>'+install+'<p>Le lien d’installation doit être créé et vérifié sur un iPhone avant de pouvoir être proposé ici.</p>'+sync+button('Aide et autorisations','health-help')+'<p>Après installation du raccourci seulement. La saisie manuelle reste disponible avec le bouton Noter.</p></section>';
+  const sync='<a class="compact-outline" href="shortcuts://run-shortcut?name='+encodeURIComponent(name)+'">Synchroniser maintenant</a>';
+  const latest=data.steps.filter(s=>s.source==='sante-raccourcis').map(s=>s.syncedAt||s.date).concat((data.health||[]).map(h=>h.syncedAt||h.date)).sort().reverse()[0];
+  const label=latest?(latest.includes('T')?new Date(latest).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):latest):'aucune pour l’instant';
+  return '<section class="v4-settings" id="v4-health"><h2>Raccourci Apple Santé</h2><p>Dernière synchronisation : '+esc(label)+'</p><p>Le raccourci « '+esc(name)+' » lit tes pas, ton poids, ton sommeil, tes calories actives, ton cœur au repos, l’eau et la distance, puis les envoie ici. Mon Suivi ne lit jamais Santé directement.</p>'+install+sync+button('Aide et création du raccourci','health-help')+'<p>La saisie manuelle reste disponible avec le bouton Noter.</p></section>';
  }
  function statistics(host){
   const days=period==='7'?7:30;
   host.querySelector('.page-heading')?.insertAdjacentHTML('afterend',MonSuiviTeddyUI.card()+MonSuiviBilan.render(days));
  }
  function photoPanel(){
+  if(window.MON_SUIVI_CONFIG&&window.MON_SUIVI_CONFIG.aiPhoto)return;
   const slot=document.querySelector('.photo-fallback-card');
   if(!slot||slot.querySelector('#v4-local-photo'))return;
   const panel=document.createElement('div');panel.id='v4-local-photo';panel.className='v4-settings';

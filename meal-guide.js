@@ -88,7 +88,7 @@ function renderGuide(){
     '<p class="mg-hint">Les ingrédients et quantités sont indicatifs pour 1 personne. Les recettes varient selon les familles et les régions. Aucune calorie n’est calculée sans données fiables.</p>';
  }else{
    const rows=filteredAlt();
-   html+='<div class="mg-alternatives-intro">'+icon('leaf')+'<div><strong>Qu’aimerais-tu remplacer ?</strong><span>Décris ton plat ou choisis une catégorie pour découvrir des idées, leurs ingrédients et leur préparation. La recherche utilise les mots que tu écris.</span></div></div>'+btn('Prendre ou importer une photo','describe-photo','mg-plain')+'<p class="mg-hint">Tu peux regarder ta photo et décrire les aliments. L’analyse IA n’est pas encore activée ; aucune photo n’est envoyée.</p>'+
+   html+='<div class="mg-alternatives-intro">'+icon('leaf')+'<div><strong>Qu’aimerais-tu remplacer ?</strong><span>Décris ton plat ou choisis une catégorie pour découvrir des idées, leurs ingrédients et leur préparation. La recherche utilise les mots que tu écris.</span></div></div>'+btn('Prendre ou importer une photo','describe-photo','mg-plain')+'<p class="mg-hint">L’IA reconnaît ton plat et estime ses calories et nutriments. La photo n’est envoyée qu’après ton accord.</p>'+
     '<label class="mg-search">'+icon('search')+'<span class="sr-only">Rechercher un aliment à remplacer</span>'+
     '<input id="mg-alt-search" type="search" autocomplete="off" placeholder="Ex. je mange du riz gras…" maxlength="160" value="'+escAttr(state.altQuery)+'"></label>'+
     '<div class="mg-results-head"><strong>'+rows.length+' catégories</strong><span>Photos sourcées, repères locaux si indisponibles</span></div>'+

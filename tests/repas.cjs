@@ -6,9 +6,9 @@ try{for(const width of [320,393,430]){
  await page.locator('[data-guide-action="section:alternatives"]').click();
  await page.locator('#mg-alt-search').fill('Je mange du riz gras');
  await page.locator('[data-guide-action="alternative:rizgras"]').waitFor();
- await page.locator('[data-guide-action="describe-photo"]').click();await page.locator('#v4-photo-file').waitFor();
- assert.match(await page.locator('#v4-photo-status').textContent(),/aucune photo n’est envoyée|n’est pas enregistrée/i);
- await page.locator('#v4-local-photo summary').click();assert.match(await page.locator('#v4-local-photo details').textContent(),/Nutri-Score exige/);
+ await page.locator('[data-guide-action="describe-photo"]').click();await page.locator('#photo-file').waitFor({state:'attached'});
+ assert.match(await page.locator('#dialog .photo-ai-card').textContent(),/calories/i);
+ assert.equal(await page.locator('#v4-local-photo').count(),0,'Ancien aperçu local remplacé par la photo IA');
  await page.locator('#dialog [data-action="close"]').click();
  await page.locator('[data-guide-action="section:recipes"]').click();
  await page.locator('[data-guide-action="category:all"]').click();
