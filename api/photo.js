@@ -1,144 +1,68 @@
-// Mon Suivi — fonction photo (Vercel Hobby, Node.js runtime).
-// Analyse une photo de repas via Mistral AI (free mode). Zéro stockage : la fonction
-// est sans état, l'image n'est ni journalisée ni persistée côté application.
-//
-// Variables d'environnement (jamais dans le code, jamais dans le chat) :
-//   MISTRAL_API_KEY            — clé free mode (console Mistral, sans carte)
-//   UPSTASH_REDIS_REST_URL     — URL REST de la base Upstash gratuite (compteur)
-//   UPSTASH_REDIS_REST_TOKEN   — token REST Upstash
-//   PHOTO_DAILY_LIMIT          — plafond journalier (défaut : 20)
-//   PHOTO_ENABLED              — 'false' coupe la fonction photo sans toucher au front
-//   PHOTO_MODEL                — modèle vision (défaut : mistral-small-latest, repli mistral-medium-latest)
-//
-// Confidentialité : entrées/sorties API conservées par Mistral jusqu'à 30 jours
-// glissants (surveillance anti-abus) avant suppression — disclosed dans l'app.
+// Mon Suivi — analyse d’une photo de repas (Vercel, Node.js). Variables : voir api/_lib.js.
+// Sans état : l’image n’est ni journalisée ni stockée par l’application. Mistral conserve les échanges d’API
+// jusqu’à 30 jours (surveillance anti-abus) : c’est indiqué à l’utilisatrice avant chaque envoi.
+import {json, readBody, originAllowed, aiConfig, quotaCheck, burstCheck, limitFrom, mistralChat} from './_lib.js';
 
-const MAX_BASE64 = 1_100_000; // ~0,8 Mo d'image une fois décodée, payload total < 1 Mo
-const DEFAULT_LIMIT = 20;
-const PHOTO_PROMPT = 'Tu es un estimateur nutritionnel prudent. Cette photo montre un repas ou un aliment. Réponds uniquement en JSON valide : {"name":"nom court du plat en français","kcal100g": calories pour 100 g si estimable sinon null,"grams": poids estimé de la portion photographiée en grammes,"confidence":"haute|moyenne|faible"}. En cas de doute, ne donne pas de calories ou de poids inventés, renvoie null et une confiance "faible".';
-
-function json(res, status, body) {
-  res.statusCode = status;
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store');
-  res.end(JSON.stringify(body));
-}
+const MAX_BASE64 = 1_100_000; // ~0,8 Mo d’image décodée
+const PHOTO_PROMPT = 'Tu es un estimateur nutritionnel prudent. La photo montre un repas, une boisson ou un aliment, parfois un plat africain (attiéké, alloco, garba, foutou, placali, kedjenou, riz sauce graine, pâte, akassa, igname pilée…). '
+  + 'Réponds UNIQUEMENT en JSON valide, en français : {"name":"nom court du plat","items":[{"name":"ingrédient visible","grams":poids estimé}],'
+  + '"grams":poids total estimé de la portion,"kcal100g":calories pour 100 g,"protein":protéines g/100 g,"carbs":glucides g/100 g,"fat":lipides g/100 g,'
+  + '"fiber":fibres g/100 g,"sugar":sucres g/100 g,"tip":"un conseil bienveillant d’une phrase pour équilibrer ce repas, sans culpabiliser","confidence":"haute|moyenne|faible"}. '
+  + 'Si ce n’est pas de la nourriture, renvoie {"name":"Aucun aliment reconnu","items":[],"grams":null,"kcal100g":null,"confidence":"faible"}. '
+  + 'En cas de doute sur une valeur, mets null plutôt que d’inventer. Ne donne jamais d’avis médical.';
 
 function sanitizeAI(v) {
-  const name = typeof v?.name === 'string' && v.name.trim() ? v.name.trim().slice(0, 150) : 'Repas photographié';
-  const kcal = v?.kcal100g===null||v?.kcal100g===undefined||v?.kcal100g===''?NaN:Number(v.kcal100g);
-  const grams = Number(v?.grams);
+  const num = (x, lo, hi, dec) => { if (x === null || x === undefined || x === '') return null; const n = Number(x); if (!Number.isFinite(n) || n < lo || n > hi) return null; const f = Math.pow(10, dec || 0); return Math.round(n * f) / f; };
+  const text = (x, max) => typeof x === 'string' && x.trim() ? x.trim().replace(/\s+/g, ' ').slice(0, max) : '';
+  const name = text(v?.name, 150) || 'Repas photographié';
+  const items = Array.isArray(v?.items) ? v.items.slice(0, 12).map(i => ({name: text(i?.name, 60), grams: num(i?.grams, 1, 3000, 0)})).filter(i => i.name) : [];
   return {
     name,
-    kcal100g: Number.isFinite(kcal) && kcal >= 0 && kcal <= 900 ? Math.round(kcal) : null,
-    grams: Number.isFinite(grams) && grams >= 1 && grams <= 3000 ? Math.round(grams) : null,
+    items,
+    kcal100g: num(v?.kcal100g, 0, 900, 0),
+    grams: num(v?.grams, 1, 3000, 0),
+    protein: num(v?.protein, 0, 100, 1),
+    carbs: num(v?.carbs, 0, 100, 1),
+    fat: num(v?.fat, 0, 100, 1),
+    fiber: num(v?.fiber, 0, 100, 1),
+    sugar: num(v?.sugar, 0, 100, 1),
+    tip: text(v?.tip, 220),
     confidence: ['haute', 'moyenne', 'faible'].includes(v?.confidence) ? v.confidence : 'faible'
   };
 }
 
-// Compteur quotidien atomique : INCR Redis résiste aux appels simultanés.
-// Fail-closed : Upstash injoignable => photo refusée (jamais de comptage approximatif).
-async function quotaCheck(url, token, limit) {
-  const key = 'photo:' + new Date().toISOString().slice(0, 10);
-  const headers = { Authorization: 'Bearer ' + token };
-  const incr = await fetch(url + '/incr/' + encodeURIComponent(key), { method: 'POST', headers });
-  if (!incr.ok) throw new Error('counter');
-  const counted = await incr.json();
-  const n = Number(counted.result);
-  if (!Number.isInteger(n) || n < 1) throw new Error('counter');
-  if (n === 1) {
-    // Le compteur du jour expire de lui-même (26 h > 24 h, marge de fuseaux).
-    const expire = await fetch(url + '/expire/' + encodeURIComponent(key) + '/93600', { method: 'POST', headers });
-    if (!expire.ok) throw new Error('counter');
-  }
-  return { n, left: Math.max(0, limit - n) };
-}
-
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let size = 0;
-    const chunks = [];
-    req.on('data', c => {
-      size += c.length;
-      if (size > 1_200_000) { reject(new Error('trop volumineux')); req.destroy(); return; }
-      chunks.push(c);
-    });
-    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
-    req.on('error', reject);
-  });
-}
-
-async function mistralAnalyze(apiKey, model, dataUrl) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 60000);
-  try {
-    const r = await fetch('https://api.mistral.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + apiKey },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model,
-        temperature: 0.2,
-        max_tokens: 300,
-        response_format: { type: 'json_object' },
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'text', text: PHOTO_PROMPT },
-            { type: 'image_url', image_url: dataUrl }
-          ]
-        }]
-      })
-    });
-    if (r.status === 404 || r.status === 400) return { error: 'model' };
-    if (!r.ok) return { error: 'mistral' };
-    const d = await r.json();
-    const raw = d?.choices?.[0]?.message?.content;
-    if (!raw) return { error: 'mistral' };
-    const parsed = JSON.parse(raw);
-    return { result: sanitizeAI(parsed) };
-  } catch (err) {
-    return { error: err?.name === 'AbortError' ? 'timeout' : 'mistral' };
-  } finally {
-    clearTimeout(timer);
-  }
+async function analyze(apiKey, model, dataUrl) {
+  const out = await mistralChat(apiKey, model, {
+    temperature: 0.2,
+    max_tokens: 600,
+    response_format: {type: 'json_object'},
+    messages: [{role: 'user', content: [{type: 'text', text: PHOTO_PROMPT}, {type: 'image_url', image_url: dataUrl}]}]
+  }, 60000);
+  if (out.error) return out;
+  try { return {result: sanitizeAI(JSON.parse(out.content))}; } catch { return {error: 'mistral'}; }
 }
 
 export default async function handler(req, res) {
-  // Budget V4 strict de 0 € : aucune API distante ne peut être activée par une variable d’environnement.
-  // Toute réactivation exige une nouvelle revue du code, des coûts et de la confidentialité.
-  const ZERO_COST_MODE = true;
-  if (ZERO_COST_MODE) { json(res, 503, { ok: false, error: 'disabled' }); return; }
-
   if (req.method === 'OPTIONS') { res.statusCode = 204; res.end(); return; }
-  if (req.method !== 'POST') { json(res, 405, { ok: false, error: 'method' }); return; }
-
-  if (process.env.PHOTO_ENABLED !== 'true') { json(res, 503, { ok: false, error: 'disabled' }); return; }
-  const apiKey = process.env.MISTRAL_API_KEY, upUrl = process.env.UPSTASH_REDIS_REST_URL, upToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!apiKey || !upUrl || !upToken) { json(res, 503, { ok: false, error: 'config' }); return; }
+  if (req.method !== 'POST') { json(res, 405, {ok: false, error: 'method'}); return; }
+  if (!originAllowed(req)) { json(res, 403, {ok: false, error: 'origin'}); return; }
+  const cfg = aiConfig('photo');
+  if (cfg.error) { json(res, 503, {ok: false, error: cfg.error}); return; }
+  if (!burstCheck(req, 'photo', 6)) { json(res, 429, {ok: false, error: 'quota'}); return; }
 
   let body;
-  try { body = JSON.parse(await readBody(req)); } catch { json(res, 413, { ok: false, error: 'trop volumineux' }); return; }
-
+  try { body = JSON.parse(await readBody(req, 1_200_000)); } catch { json(res, 413, {ok: false, error: 'trop volumineux'}); return; }
   const dataUrl = typeof body?.image === 'string' ? body.image : '';
-  if (!/^data:image\/(jpeg|png|webp);base64,/.test(dataUrl)) { json(res, 400, { ok: false, error: 'format' }); return; }
-  if (dataUrl.length > MAX_BASE64) { json(res, 413, { ok: false, error: 'trop volumineux' }); return; }
+  if (!/^data:image\/(jpeg|png|webp);base64,/.test(dataUrl)) { json(res, 400, {ok: false, error: 'format'}); return; }
+  if (dataUrl.length > MAX_BASE64) { json(res, 413, {ok: false, error: 'trop volumineux'}); return; }
 
-  const limit = Number(process.env.PHOTO_DAILY_LIMIT) > 0 ? Math.round(Number(process.env.PHOTO_DAILY_LIMIT)) : DEFAULT_LIMIT;
   let quota;
-  try { quota = await quotaCheck(upUrl, upToken, limit); }
-  catch { json(res, 503, { ok: false, error: 'compteur' }); return; }
-  if (quota.n > limit) { json(res, 429, { ok: false, error: 'quota', left: 0 }); return; }
+  try { quota = await quotaCheck('photo', limitFrom('PHOTO_DAILY_LIMIT', 30)); }
+  catch { json(res, 503, {ok: false, error: 'compteur'}); return; }
+  if (quota.over) { json(res, 429, {ok: false, error: 'quota', left: 0}); return; }
 
-  const model = process.env.PHOTO_MODEL || 'mistral-small-latest';
-  const first = await mistralAnalyze(apiKey, model, dataUrl);
-  let outcome = first;
-  if (first.error === 'model') {
-    // Repli documenté : mistral-medium-latest si le modèle par défaut est indisponible.
-    outcome = model === 'mistral-medium-latest'
-      ? { error: 'model' }
-      : await mistralAnalyze(apiKey, 'mistral-medium-latest', dataUrl);
-  }
-  if (outcome.error) { json(res, 502, { ok: false, error: outcome.error }); return; }
-  json(res, 200, { ok: true, ...outcome.result, left: quota.left });
+  let outcome = await analyze(cfg.apiKey, cfg.model, dataUrl);
+  if (outcome.error === 'model' && cfg.model !== 'mistral-medium-latest') outcome = await analyze(cfg.apiKey, 'mistral-medium-latest', dataUrl);
+  if (outcome.error) { json(res, outcome.error === 'quota' ? 429 : 502, {ok: false, error: outcome.error}); return; }
+  json(res, 200, {ok: true, ...outcome.result, left: quota.left});
 }
