@@ -30,7 +30,14 @@ assert.ok(app.includes("KEY+'-photo-consent',KEY+'-off',KEY+'-backup'"),'Effacem
 assert.ok(app.includes("photoSessionApproved=false"),'Consentement par photo réinitialisé');
 assert.ok(app.includes("function doCiqualSearch"),'Recherche Ciqual disponible');
 assert.ok(app.includes("macroInputs({},photoAI"),'Nutriments affichés lors de la confirmation');
-assert.ok(server.includes("process.env.PHOTO_ENABLED !== 'true'"),'Photo coupée par défaut');
+const lib=fs.readFileSync('api/_lib.js','utf8'),coachApi=fs.readFileSync('api/coach.js','utf8');
+assert.ok(lib.includes("process.env.AI_ENABLED === 'false'"),'IA désactivable par variable');
+assert.ok(lib.includes("if (!apiKey) return {error: 'config'}"),'Sans clé, aucune IA');
+assert.ok(server.includes('quotaCheck(') && coachApi.includes('quotaCheck('),'Quota journalier photo et coach');
+assert.ok(server.includes('originAllowed(req)') && coachApi.includes('originAllowed(req)'),'Appels réservés au site');
+assert.ok(coachApi.includes('Tu n’es pas médecin') && coachApi.includes('Jamais de régime extrême'),'Garde-fous santé du coach');
+cleaned=vm.runInNewContext(sanitizer+';sanitizeAI({name:"Garba",kcal100g:"210",grams:350,protein:9.4,fat:250,items:[{name:"attiéké",grams:200},{grams:5}],tip:"Ajoute des crudités.",confidence:"moyenne"})');
+assert.equal(cleaned.kcal100g,210);assert.equal(cleaned.protein,9.4);assert.equal(cleaned.fat,null,'Valeur aberrante écartée');assert.equal(cleaned.items.length,1,'Ingrédient sans nom écarté');
 const validate=app.match(/function validatePayload\(raw\)\{[\s\S]*?\n\}\nfunction reload/)?.[0]?.replace(/\nfunction reload$/,'');
 assert.ok(validate,'Validation des sauvegardes disponible');
 const legacy={weights:[],moods:[],meals:[{id:'old',date:'2026-10-27',name:'Déjeuner',quantity:'1 portion',value:420}]};

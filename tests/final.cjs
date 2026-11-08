@@ -51,7 +51,7 @@ const {chromium}=require('playwright');
    await page.locator('#v4-health').waitFor();
    const install=page.locator('#v4-health button').filter({hasText:'Installer le raccourci'});
    assert.equal(await install.isDisabled(),true);
-   assert.equal(await page.locator('#v4-health button').filter({hasText:'Synchroniser mes pas'}).isDisabled(),true);
+   assert.match(await page.locator('#v4-health a').filter({hasText:'Synchroniser maintenant'}).getAttribute('href'),/^shortcuts:\/\/run-shortcut\?name=Mon%20Suivi/);
    await page.evaluate(()=>{location.hash='sante-pas=4567&date='+today()});
    await page.locator('[data-health-action="health-accept"]').click();
    await page.waitForFunction(()=>data.steps.some(s=>s.value===4567));
@@ -73,14 +73,20 @@ const {chromium}=require('playwright');
    await page.locator('nav [data-action="go:Repas"]').click();
    await page.locator('.compact-add').click();
    await page.locator('[data-action="mealmode:photo"]').click();
-   await page.locator('#v4-photo-file').waitFor();
-   await page.locator('#v4-photo-file').setInputFiles(path.resolve('icons/icon-192.png'));
-   await page.waitForFunction(()=>{const image=document.querySelector('#v4-photo-preview');return image&&!image.hidden&&image.naturalWidth>0});
-   assert.match(await page.locator('#v4-photo-status').textContent(),/Aucun aliment ni nutriment/);
-   assert.deepEqual(photoRequests,[],'Aucune photo envoyée');
+   await page.route('**/api/photo',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,name:'Garba',items:[{name:'Attiéké',grams:200},{name:'Thon frit',grams:120}],grams:350,kcal100g:210,protein:9,carbs:24,fat:9,fiber:2,sugar:1,tip:'Ajoute des crudités pour plus de fibres.',confidence:'moyenne',left:29})}));
+   await page.locator('#photo-file').setInputFiles(path.resolve('icons/icon-192.png'));
+   await page.waitForFunction(()=>{const image=document.querySelector('#photo-results .photo-preview');return image&&image.naturalWidth>0});
+   assert.deepEqual(photoRequests,[],'Aucune photo envoyée avant accord');
+   await page.locator('#dialog [data-action="photoanalyze"]').click();
+   await page.locator('#photo-consent-form').waitFor();
+   await page.locator('#photo-consent-form input[name="agree"]').check();
+   await page.locator('#photo-consent-form button[type="submit"]').click();
+   await page.locator('#dialog .photo-details').waitFor();
+   assert.equal(photoRequests.filter(u=>u.endsWith('/api/photo')).length,1,'Une seule photo envoyée après accord');
+   assert.match(await page.locator('#dialog .photo-details').textContent(),/735 kcal[\s\S]*Attiéké[\s\S]*crudités/);
+   assert.equal(await page.locator('#off-kcal').inputValue(),'735');
+   await page.screenshot({path:'screenshots/photo-ia-'+width+'.png',fullPage:true});
    await page.locator('#dialog [data-action="close"]').click();
-   await page.waitForFunction(()=>!document.querySelector('#v4-photo-preview')?.getAttribute('src'));
-   assert.equal(await page.locator('#v4-photo-preview').getAttribute('src'),null,'Aperçu effacé à la fermeture');
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    await page.evaluate(()=>{data.moods=[];save();document.dispatchEvent(new Event('visibilitychange'))});
    await page.locator('#v4-mood-prompt').waitFor();
@@ -91,16 +97,19 @@ const {chromium}=require('playwright');
    assert.equal(await page.evaluate(()=>localStorage.getItem('mon-suivi-v1')),null);
    assert.equal(await page.evaluate(()=>data.consent),false);
    assert.deepEqual(errors,[]);
-   console.log('V4 '+width+' px : rappel explicite, calendrier, Santé datée, statistiques, photo locale et données OK');
+   console.log('V4 '+width+' px : rappel explicite, calendrier, Santé datée, statistiques, photo IA avec accord et données OK');
    await page.close();
   }
  }finally{await browser.close()}
- // Même une ancienne configuration serveur ne peut activer une API payante.
+ // Sans clé Mistral ou avec AI_ENABLED=false, aucune analyse externe n’est tentée.
  const {pathToFileURL}=require('node:url');
  const handler=(await import(pathToFileURL(path.resolve('api/photo.js')).href)).default;
  let status=0,body='';const response={set statusCode(v){status=v},setHeader(){},end(v){body=v}};
  const oldFetch=global.fetch;global.fetch=()=>{throw Error('Appel externe interdit')};
- try{process.env.PHOTO_ENABLED='true';await handler({method:'POST'},response)}finally{global.fetch=oldFetch}
+ try{delete process.env.MISTRAL_API_KEY;await handler({method:'POST',headers:{}},response)}finally{global.fetch=oldFetch}
+ assert.equal(status,503);assert.equal(JSON.parse(body).error,'config');
+ process.env.MISTRAL_API_KEY='test';process.env.AI_ENABLED='false';status=0;
+ try{global.fetch=()=>{throw Error('Appel externe interdit')};await handler({method:'POST',headers:{}},response)}finally{global.fetch=oldFetch;delete process.env.MISTRAL_API_KEY;delete process.env.AI_ENABLED}
  assert.equal(status,503);assert.equal(JSON.parse(body).error,'disabled');
- console.log('Mode zéro coût : aucune analyse externe activable par environnement.');
+ console.log('Sans clé ou avec AI_ENABLED=false : aucun appel externe.');
 })().catch(e=>{console.error(e);process.exit(1)});
